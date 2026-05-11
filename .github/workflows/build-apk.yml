@@ -1,0 +1,56 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.44.0'
+        channel: 'master'
+
+    - name: Get dependencies
+      run: |
+        cd pbsystem_app
+        flutter pub get
+
+    - name: Build APK (Debug)
+      run: |
+        cd pbsystem_app
+        flutter build apk --debug
+
+    - name: Build APK (Release)
+      run: |
+        cd pbsystem_app
+        flutter build apk --release
+
+    - name: Upload APK artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: apk-builds
+        path: pbsystem_app/build/app/outputs/apk/
+        retention-days: 30
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: pbsystem_app/build/app/outputs/apk/**/app-*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
