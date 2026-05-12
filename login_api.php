@@ -1,30 +1,78 @@
 <?php
-header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "neovtrack_db");
+// login_api.php - Generic login endpoint
+header('Content-Type: application/json; charset=UTF-8');
 
+// Database connection
+$host = "localhost";
+$db   = "neovtrack_db";
+$user = "root";
+$pass = ""; // change if your MySQL has a password
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Check connection
 if ($conn->connect_error) {
-    die(json_encode(["success"=>0, "message"=>"DB connection failed"]));
+    echo json_encode([
+        'success' => 0,
+        'message' => 'Database connection failed: ' . $conn->connect_error
+    ]);
+    exit();
 }
 
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (empty($email) || empty($password)) {
-    echo json_encode(["success"=>0, "message"=>"Email or password missing"]);
-    exit;
-}
-
-$sql = "SELECT userid, name, email FROM user WHERE email=? AND password=?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ss", $email, $password);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($user = $result->fetch_assoc()) {
     echo json_encode([
-        "success" => 1,
-        "user" => $user
+        'success' => 0,
+        'message' => 'Email and password are required'
     ]);
-} else {
-    echo json_encode(["success"=>0, "message"=>"Invalid credentials"]);
+    exit();
 }
+
+try {
+    // Try user table first
+    $stmt = $conn->prepare("SELECT userid as id, name, email, password FROM user WHERE email = ? LIMIT 1");
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    $stmt->bind_param("s", $email);
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+    
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        
+        // Check password
+        if ($password === $user['password']) {
+            echo json_encode([
+                'success' => 1,
+                'user' => $user
+            ]);
+            $stmt->close();
+            $conn->close();
+            exit();
+        }
+    }
+    
+    $stmt->close();
+    
+    // No user found with valid credentials
+    echo json_encode([
+        'success' => 0,
+        'message' => 'Invalid credentials'
+    ]);
+
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => 0,
+        'message' => 'Server error: ' . $e->getMessage()
+    ]);
+}
+
+$conn->close();
+exit;

@@ -1,4 +1,5 @@
 <?php
+// login_admin_api.php
 header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -9,7 +10,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-include 'connect.php';
+// Database connection
+$host = "localhost";
+$db   = "neovtrack_db";
+$user = "root";
+$pass = ""; // change if your MySQL has a password
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Check connection
+if ($conn->connect_error) {
+    echo json_encode([
+        'success' => 0,
+        'message' => 'Database connection failed: ' . $conn->connect_error
+    ]);
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
@@ -30,36 +46,57 @@ if ($email === '' || $password === '') {
     exit;
 }
 
-$emailSafe    = mysqli_real_escape_string($con, $email);
-$passwordSafe = mysqli_real_escape_string($con, $password);
+try {
+    // Prepare SQL statement - using safer column names
+    $stmt = $conn->prepare("SELECT id, name, email, password FROM admin WHERE email = ? LIMIT 1");
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    $stmt->bind_param("s", $email);
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+    
+    $result = $stmt->get_result();
 
-$sql = "
-    SELECT id, name, email
-    FROM admin
-    WHERE email = '$emailSafe'
-      AND password = '$passwordSafe'
-    LIMIT 1
-";
+    if ($result->num_rows === 0) {
+        echo json_encode([
+            'success' => 0,
+            'message' => 'Invalid email or password'
+        ]);
+        exit;
+    }
 
-$result = mysqli_query($con, $sql);
+    $admin = $result->fetch_assoc();
 
-if ($result && mysqli_num_rows($result) === 1) {
-    $admin = mysqli_fetch_assoc($result);
+    // Plain text password comparison
+    if ($password !== $admin['password']) {
+        echo json_encode([
+            'success' => 0,
+            'message' => 'Invalid email or password'
+        ]);
+        exit;
+    }
 
+    // Success
     echo json_encode([
         'success' => 1,
+        'message' => 'Login successful',
         'admin' => [
-            'id' => (int)$admin['id'],
-            'name' => $admin['name'],
+            'id'    => (int)$admin['id'],
+            'name'  => $admin['name'],
             'email' => $admin['email']
         ]
     ]);
-} else {
+
+    $stmt->close();
+} catch (Exception $e) {
     echo json_encode([
         'success' => 0,
-        'message' => 'Invalid email or password'
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
 }
 
-mysqli_close($con);
+$conn->close();
 exit;
