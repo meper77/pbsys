@@ -1,12 +1,36 @@
 // lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = String.fromEnvironment(
+  static String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://neovtrack.uitm.edu.my',
   );
+
+  static const String _prefsKey = 'api_base_url';
+
+  static Future<void> configure() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_prefsKey);
+    if (saved != null && saved.trim().isNotEmpty) {
+      _baseUrl = saved.trim();
+    }
+  }
+
+  static Future<void> setBaseUrl(String url) async {
+    final normalized = url.trim().replaceAll(RegExp(r'/$'), '');
+    if (normalized.isEmpty) {
+      return;
+    }
+
+    _baseUrl = normalized;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, _baseUrl);
+  }
+
+  static String get baseUrl => _baseUrl;
 
   Uri _uri(String path) => Uri.parse('$baseUrl/$path');
 

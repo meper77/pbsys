@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'services/api_service.dart';
 import 'screens/splash_screen.dart'; // <-- new splash screen
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
@@ -10,7 +11,9 @@ import 'screens/search_car_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/about_system_screen.dart'; // <-- new screen
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiService.configure();
   runApp(const PBSystemApp());
 }
 
