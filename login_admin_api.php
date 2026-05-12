@@ -35,8 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$email    = trim($_POST['email'] ?? '');
-$password = trim($_POST['password'] ?? '');
+$email    = '';
+$password = '';
+
+// Try JSON first
+$input = json_decode(file_get_contents('php://input'), true);
+if ($input && isset($input['email']) && isset($input['password'])) {
+    $email = trim($input['email']);
+    $password = trim($input['password']);
+} else {
+    // Fall back to form-encoded POST data
+    $email = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+}
 
 if ($email === '' || $password === '') {
     echo json_encode([

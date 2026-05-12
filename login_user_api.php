@@ -19,9 +19,20 @@ if ($conn->connect_error) {
     exit();
 }
 
-// Get POST data
-$email = isset($_POST['email']) ? trim($_POST['email']) : '';
-$password = isset($_POST['password']) ? trim($_POST['password']) : '';
+// Get POST data (JSON or form-encoded)
+$email = '';
+$password = '';
+
+// Try JSON first
+$input = json_decode(file_get_contents('php://input'), true);
+if ($input && isset($input['email']) && isset($input['password'])) {
+    $email = trim($input['email']);
+    $password = trim($input['password']);
+} else {
+    // Fall back to form-encoded POST data
+    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $password = isset($_POST['password']) ? trim($_POST['password']) : '';
+}
 
 if ($email === '' || $password === '') {
     echo json_encode([
