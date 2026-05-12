@@ -58,7 +58,7 @@ if ($email === '' || $password === '') {
 
 try {
     // Prepare SQL statement - using safer column names
-    $stmt = $conn->prepare("SELECT id, name, email, password FROM admin WHERE email = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT userid, name, email, password FROM admin WHERE email = ? LIMIT 1");
     if (!$stmt) {
         throw new Exception("Prepare failed: " . $conn->error);
     }

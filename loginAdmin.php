@@ -70,9 +70,9 @@ $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
 $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
 
 // Get admin ID
-$admin_id_query = mysqli_query($con, "SELECT id FROM admin WHERE email = '$email'");
+$admin_id_query = mysqli_query($con, "SELECT userid FROM admin WHERE email = '$email'");
 $admin_id_data = mysqli_fetch_assoc($admin_id_query);
-$admin_id = $admin_id_data['id'] ?? NULL;
+$admin_id = $admin_id_data['userid'] ?? NULL;
 
 // Update last_login in admin table
 mysqli_query($con, "UPDATE admin SET last_login = NOW() WHERE email = '$email'");
