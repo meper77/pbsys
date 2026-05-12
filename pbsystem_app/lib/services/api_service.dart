@@ -1,5 +1,6 @@
 // lib/services/api_service.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,8 @@ class ApiService {
     'API_BASE_URL',
     defaultValue: 'http://neovtrack.uitm.edu.my',
   );
+  static const String _fallbackBaseUrl = 'http://10.0.26.208';
+  static const String _fallbackHostHeader = 'neovtrack.uitm.edu.my';
 
   static const String _prefsKey = 'api_base_url';
 
@@ -34,6 +37,33 @@ class ApiService {
 
   Uri _uri(String path) => Uri.parse('$baseUrl/$path');
 
+  Future<http.Response> _post(Uri url, Map<String, String> headers, Object? body) async {
+    try {
+      return await http.post(url, headers: headers, body: body);
+    } on SocketException catch (e) {
+      final isHostLookup = e.message.toLowerCase().contains('failed host lookup');
+      final currentHost = url.host;
+      final shouldRetry = isHostLookup &&
+          currentHost.isNotEmpty &&
+          currentHost != Uri.parse(_fallbackBaseUrl).host;
+
+      if (!shouldRetry) {
+        rethrow;
+      }
+
+      final fallbackUri = Uri.parse(_fallbackBaseUrl).replace(
+        path: url.path,
+        queryParameters: url.hasQuery ? url.queryParameters : null,
+      );
+
+      final fallbackHeaders = Map<String, String>.from(headers);
+      fallbackHeaders['Host'] = _fallbackHostHeader;
+
+      print('API fallback - retrying via IP: $fallbackUri');
+      return await http.post(fallbackUri, headers: fallbackHeaders, body: body);
+    }
+  }
+
   /// ================= LOGIN =================
   Future<Map<String, dynamic>> login(
       String email, String password, String role) async {
@@ -46,12 +76,12 @@ class ApiService {
       print('API Login - URL: $url');
       print('API Login - Email: $email');
 
-      final response = await http.post(
+      final response = await _post(
         url,
-        headers: {
+        {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: {
+        {
           'email': email,
           'password': password,
         },
@@ -101,12 +131,12 @@ class ApiService {
       String password,
       String confirmPassword) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         _uri('register_user_api.php'),
-        headers: {
+        {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: {
+        {
           'name': name,
           'email': email,
           'password': password,
@@ -136,12 +166,12 @@ class ApiService {
       String password,
       String confirmPassword) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         _uri('forgot_password_api.php'),
-        headers: {
+        {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: {
+        {
           'step': '2',
           'email': email,
           'password': password,
@@ -172,12 +202,12 @@ class ApiService {
     bool showAll = false,
   }) async {
     try {
-      final response = await http.post(
+      final response = await _post(
         _uri('search_car_user_api.php'),
-        headers: {
+        {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: {
+        {
           'search': search,
           'status': status,
           'showAll': showAll ? 'true' : 'false',
