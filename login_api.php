@@ -53,13 +53,17 @@ try {
         throw new Exception("Execute failed: " . $stmt->error);
     }
     
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        
+    // Use bind_result/fetch for compatibility
+    $stmt->bind_result($userid, $name_db, $email_db, $password_db);
+    if ($stmt->fetch()) {
         // Check password
-        if ($password === $user['password']) {
+        if ($password === $password_db) {
+            $user = [
+                'id' => $userid,
+                'name' => $name_db,
+                'email' => $email_db,
+                'password' => $password_db
+            ];
             echo json_encode([
                 'success' => 1,
                 'user' => $user

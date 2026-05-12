@@ -69,24 +69,24 @@ try {
         throw new Exception("Execute failed: " . $stmt->error);
     }
     
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 0) {
+    // Use bind_result/fetch for compatibility
+    $stmt->bind_result($admin_id, $admin_name, $admin_email, $admin_password);
+    if (!$stmt->fetch()) {
         echo json_encode([
             'success' => 0,
             'message' => 'Invalid email or password'
         ]);
+        $stmt->close();
         exit;
     }
 
-    $admin = $result->fetch_assoc();
-
     // Plain text password comparison
-    if ($password !== $admin['password']) {
+    if ($password !== $admin_password) {
         echo json_encode([
             'success' => 0,
             'message' => 'Invalid email or password'
         ]);
+        $stmt->close();
         exit;
     }
 
@@ -95,9 +95,9 @@ try {
         'success' => 1,
         'message' => 'Login successful',
         'admin' => [
-            'id'    => (int)$admin['id'],
-            'name'  => $admin['name'],
-            'email' => $admin['email']
+            'id'    => (int)$admin_id,
+            'name'  => $admin_name,
+            'email' => $admin_email
         ]
     ]);
 
