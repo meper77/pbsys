@@ -1,5 +1,10 @@
 <?php
 // login_admin_api.php
+// Improve error logging on server: do not display errors to clients, log to php_error.log in same folder
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/php_error.log');
 header('Content-Type: application/json; charset=UTF-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
