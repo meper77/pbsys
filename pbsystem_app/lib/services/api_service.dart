@@ -3,7 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://10.90.78.197/PBsystem/';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://neovtrack.uitm.edu.my',
+  );
+
+  Uri _uri(String path) => Uri.parse('$baseUrl/$path');
 
   /// ================= LOGIN =================
   Future<Map<String, dynamic>> login(
@@ -11,9 +16,14 @@ class ApiService {
     try {
       final endpoint =
           role == 'admin' ? 'login_admin_api.php' : 'login_user_api.php';
+      final url = _uri(endpoint);
+
+      // Debug logging
+      print('API Login - URL: $url');
+      print('API Login - Email: $email');
 
       final response = await http.post(
-        Uri.parse('$baseUrl$endpoint'),
+        url,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -22,6 +32,9 @@ class ApiService {
           'password': password,
         },
       );
+
+      print('API Login - Status Code: ${response.statusCode}');
+      print('API Login - Response Body: ${response.body}');
 
       if (response.statusCode == 200 &&
           response.body.trim().isNotEmpty) {
@@ -45,10 +58,11 @@ class ApiService {
       } else {
         return {
           'success': 0,
-          'message': 'Server returned empty response'
+          'message': 'Server returned empty response (Status: ${response.statusCode})'
         };
       }
     } catch (e) {
+      print('API Login - Exception: $e');
       return {
         'success': 0,
         'message': 'API error: $e'
@@ -64,7 +78,7 @@ class ApiService {
       String confirmPassword) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/register_user_api.php'),
+        _uri('register_user_api.php'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -99,7 +113,7 @@ class ApiService {
       String confirmPassword) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/forgot_password_api.php'),
+        _uri('forgot_password_api.php'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -135,7 +149,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/search_car_user_api.php'),
+        _uri('search_car_user_api.php'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },

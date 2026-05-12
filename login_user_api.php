@@ -31,44 +31,58 @@ if ($email === '' || $password === '') {
     exit();
 }
 
-// Prepare SQL statement
-$stmt = $conn->prepare("SELECT userid, name, email, password FROM user WHERE email = ? LIMIT 1");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+try {
+    // Prepare SQL statement - using safer column names
+    $stmt = $conn->prepare("SELECT userid, name, email, password FROM user WHERE email = ? LIMIT 1");
+    if (!$stmt) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    $stmt->bind_param("s", $email);
+    if (!$stmt->execute()) {
+        throw new Exception("Execute failed: " . $stmt->error);
+    }
+    
+    $result = $stmt->get_result();
 
-if ($result->num_rows === 0) {
+    if ($result->num_rows === 0) {
+        echo json_encode([
+            'success' => 0,
+            'message' => 'Invalid email or password'
+        ]);
+        exit();
+    }
+
+    $user = $result->fetch_assoc();
+
+    // Plain text password comparison
+    if ($password !== $user['password']) {
+        echo json_encode([
+            'success' => 0,
+            'message' => 'Invalid email or password'
+        ]);
+        exit();
+    }
+
+    // Success
+    echo json_encode([
+        'success' => 1,
+        'message' => 'Login successful',
+        'user' => [
+            'id'    => (int)$user['userid'],
+            'name'  => $user['name'],
+            'email' => $user['email']
+        ]
+    ]);
+
+    $stmt->close();
+} catch (Exception $e) {
     echo json_encode([
         'success' => 0,
-        'message' => 'Invalid email or password'
+        'message' => 'Server error: ' . $e->getMessage()
     ]);
-    exit();
 }
 
-$user = $result->fetch_assoc();
-
-// Plain text password comparison ✅
-if ($password !== $user['password']) {
-    echo json_encode([
-        'success' => 0,
-        'message' => 'Invalid email or password'
-    ]);
-    exit();
-}
-
-// Success
-echo json_encode([
-    'success' => 1,
-    'message' => 'Login successful',
-    'user' => [
-        'id'    => (int)$user['userid'],
-        'name'  => $user['name'],
-        'email' => $user['email']
-    ]
-]);
-
-$stmt->close();
 $conn->close();
 ?>
-
 
