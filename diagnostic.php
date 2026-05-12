@@ -12,17 +12,13 @@ $diagnostics['php_version'] = phpversion();
 $diagnostics['mysqli_available'] = extension_loaded('mysqli') ? 'yes' : 'no';
 
 // 3. Test MySQL connection
-$host = "localhost";
-$db   = "neovtrack_db";
-$user = "root";
-$pass = "";
-
 $diagnostics['mysql_test'] = [];
-$conn = @new mysqli($host, $user, $pass, $db);
+include 'connect.php';
+$conn = $con ?? null;
 
-if ($conn->connect_error) {
+if (!$conn || $conn->connect_error) {
     $diagnostics['mysql_test']['status'] = 'error';
-    $diagnostics['mysql_test']['error'] = $conn->connect_error;
+    $diagnostics['mysql_test']['error'] = $conn ? $conn->connect_error : 'Connection unavailable';
 } else {
     $diagnostics['mysql_test']['status'] = 'connected';
     

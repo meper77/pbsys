@@ -15,19 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Database connection
-$host = "localhost";
-$db   = "neovtrack_db";
-$user = "root";
-$pass = ""; // change if your MySQL has a password
+include 'connect.php';
+$conn = $con;
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-// Check connection
-if ($conn->connect_error) {
+if (!$conn) {
     echo json_encode([
         'success' => 0,
-        'message' => 'Database connection failed: ' . $conn->connect_error
+        'message' => 'Database connection failed'
     ]);
     exit();
 }

@@ -7,19 +7,13 @@ ini_set('log_errors', '1');
 ini_set('error_log', __DIR__ . '/php_error.log');
 header('Content-Type: application/json; charset=UTF-8');
 
-// Database connection
-$host = "localhost";
-$db   = "neovtrack_db";
-$user = "root";
-$pass = ""; // change if your MySQL has a password
+include 'connect.php';
+$conn = $con;
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-// Check connection
-if ($conn->connect_error) {
+if (!$conn) {
     echo json_encode([
         'success' => 0,
-        'message' => 'Database connection failed: ' . $conn->connect_error
+        'message' => 'Database connection failed'
     ]);
     exit();
 }

@@ -1,29 +1,22 @@
 <?php
+mysqli_report(MYSQLI_REPORT_OFF);
 
-// ===================== ENVIRONMENT =====================
-// Change this to 'live' when uploading to Hestia
-$environment = 'local';  
+// Auto-detect production on Hestia, otherwise use local XAMPP credentials.
+$server_name = strtolower($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+$environment = getenv('NEOVTRACK_ENV') ?: (strpos($server_name, 'neovtrack.uitm.edu.my') !== false ? 'live' : 'local');
 
-// ===================== LOCAL (XAMPP) =====================
-if ($environment === 'local') {
-
-    $db_host = 'localhost';
-    $db_user = 'root';
-    $db_pass = '';
-    $db_name = 'neovtrack_db';
-
-} 
-
-// ===================== LIVE (HESTIA) =====================
-else {
-
+if ($environment === 'live') {
     $db_host = 'localhost';
     $db_user = 'neovtrack_app';
     $db_pass = 'Neovtrack@1234';
     $db_name = 'neovtrack_db';
+} else {
+    $db_host = 'localhost';
+    $db_user = 'root';
+    $db_pass = '';
+    $db_name = 'neovtrack_db';
 }
 
-// ===================== CONNECT =====================
 $con = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
 if ($con->connect_error) {
@@ -34,4 +27,3 @@ if ($con->connect_error) {
     ]);
     exit;
 }
-?>
