@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../screens/vehicle_detail_screen.dart';
 
 class SearchCarScreen extends StatefulWidget {
   const SearchCarScreen({super.key});
@@ -378,6 +379,21 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
                             _rowLabel(
                               'STICKER',
                               sticker.isEmpty ? '-' : sticker.toUpperCase(),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: item)),
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: primaryColor,
+                                ),
+                                child: const Text('VIEW DETAILS'),
+                              ),
                             ),
                           ],
                         ),

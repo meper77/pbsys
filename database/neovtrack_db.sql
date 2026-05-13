@@ -165,6 +165,32 @@ CREATE TABLE `password_reset_requests` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `vehicle_reports`
+--
+
+CREATE TABLE `vehicle_reports` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `reporter_name` varchar(200) NOT NULL,
+  `reporter_email` varchar(200) DEFAULT NULL,
+  `reporter_role` varchar(20) NOT NULL DEFAULT 'user',
+  `plate_number` varchar(30) NOT NULL,
+  `owner_name` varchar(200) DEFAULT NULL,
+  `id_number` varchar(100) DEFAULT NULL,
+  `phone` varchar(30) DEFAULT NULL,
+  `vehicle_type` varchar(100) DEFAULT NULL,
+  `vehicle_status` varchar(100) DEFAULT NULL,
+  `sticker` varchar(100) DEFAULT NULL,
+  `offense_details` text NOT NULL,
+  `latitude` decimal(10,8) NOT NULL,
+  `longitude` decimal(11,8) NOT NULL,
+  `photo_paths` text NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `staffcar`
 --
 

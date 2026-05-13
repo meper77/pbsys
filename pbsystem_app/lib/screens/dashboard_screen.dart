@@ -1,18 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/profile_image_service.dart';
-import 'search_car_screen.dart';
+import 'admin_panel_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int userId;
   final String name;
   final String email;
+  final String role;
 
   const DashboardScreen({
     super.key,
     required this.userId,
     required this.name,
     required this.email,
+    this.role = 'user',
   });
 
   @override
@@ -72,8 +74,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _moduleCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 160,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 30, color: const Color(0xFF4B2E83)),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF4B2E83),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openCategory(String title, {String status = '', bool showAll = false}) {
+    Navigator.pushNamed(
+      context,
+      '/vehicle_category',
+      arguments: {
+        'title': title,
+        'status': status,
+        'showAll': showAll,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isAdmin = widget.role == 'admin';
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -84,12 +139,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-
-                // ===== LOGO =====
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -105,30 +158,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 10),
-
-                // ===== TIME =====
-                Column(
-                  children: [
-                    Text(
-                      currentTime,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      currentDate,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
+                Text(
+                  currentTime,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-
+                Text(
+                  currentDate,
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 12),
-
-                // ===== WELCOME =====
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -136,10 +179,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: Colors.white.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'Welcome to Neo.V-Track App!',
-                      style: TextStyle(
+                      isAdmin
+                          ? 'Welcome Administrator'
+                          : 'Welcome to Neo.V-Track App!',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF4B2E83),
@@ -147,10 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 30),
-
-                // ===== PROFILE AVATAR =====
+                const SizedBox(height: 24),
                 GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(
@@ -187,48 +229,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 40),
-
-                // ===== BUTTONS =====
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'MODULES',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _moduleCard(
+                      icon: Icons.search,
+                      title: 'Search Vehicles',
+                      onTap: () => Navigator.pushNamed(context, '/search_car'),
+                    ),
+                    _moduleCard(
+                      icon: Icons.report_problem,
+                      title: 'Report Vehicle',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/report_vehicle',
+                        arguments: {
+                          'reporterId': widget.userId,
+                          'reporterName': widget.name,
+                          'reporterEmail': widget.email,
+                          'reporterRole': widget.role,
+                        },
+                      ),
+                    ),
+                    _moduleCard(
+                      icon: Icons.badge,
+                      title: 'Staff Vehicles',
+                      onTap: () => _openCategory('Staff Vehicles', status: 'Staf'),
+                    ),
+                    _moduleCard(
+                      icon: Icons.school,
+                      title: 'Student Vehicles',
+                      onTap: () =>
+                          _openCategory('Student Vehicles', status: 'Pelajar'),
+                    ),
+                    _moduleCard(
+                      icon: Icons.person_pin_circle,
+                      title: 'Visitor Vehicles',
+                      onTap: () =>
+                          _openCategory('Visitor Vehicles', status: 'Pelawat'),
+                    ),
+                    _moduleCard(
+                      icon: Icons.build,
+                      title: 'Contractor Vehicles',
+                      onTap: () => _openCategory(
+                        'Contractor Vehicles',
+                        status: 'Kontraktor',
+                      ),
+                    ),
+                    _moduleCard(
+                      icon: Icons.directions_car_filled,
+                      title: 'All Vehicles',
+                      onTap: () => _openCategory('All Vehicles', showAll: true),
+                    ),
+                    if (isAdmin)
+                      _moduleCard(
+                        icon: Icons.admin_panel_settings,
+                        title: 'Admin Panel',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                        ),
+                      ),
+                    _moduleCard(
+                      icon: Icons.info_outline,
+                      title: 'About System',
+                      onTap: () => Navigator.pushNamed(context, '/about_system'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
                 Row(
                   children: [
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const SearchCarScreen(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFF3C143),
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 20),
-                          ),
-                          child: const Text(
-                            'SEARCH\nVEHICLES',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF4B2E83),
-                            ),
-                          ),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/profile',
+                            arguments: {
+                              'userId': widget.userId,
+                              'name': widget.name,
+                              'email': widget.email,
+                            },
+                          ).then((_) => _loadProfileImage());
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
+                        child: const Text('PROFILE'),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _confirmLogout,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 20),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         child: const Text(
                           'LOGOUT',
@@ -240,33 +352,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // ===== ABOUT SYSTEM =====
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/about_system');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF3C143),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'ABOUT SYSTEM',
-                      style: TextStyle(
-                        color: Color(0xFF4B2E83),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
+                    ],
                   ),
-                ),
               ],
             ),
           ),

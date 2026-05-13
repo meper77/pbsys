@@ -50,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
             userId: user['id'],
             name: user['name'],
             email: user['email'],
+            role: widget.role,
           ),
         ),
       );
@@ -315,4 +316,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

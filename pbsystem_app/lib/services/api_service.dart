@@ -17,6 +17,10 @@ class ApiService {
   static const String _prefsKey = 'api_base_url';
   static String _webSessionCookie = '';
   static String _webSessionRole = 'user';
+  static int _currentUserId = 0;
+  static String _currentUserName = '';
+  static String _currentUserEmail = '';
+  static String _currentUserRole = 'user';
 
   static Future<void> configure() async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,6 +48,11 @@ class ApiService {
   static String get webSessionCookie => _webSessionCookie;
 
   static String get webSessionRole => _webSessionRole;
+
+  static int get currentUserId => _currentUserId;
+  static String get currentUserName => _currentUserName;
+  static String get currentUserEmail => _currentUserEmail;
+  static String get currentUserRole => _currentUserRole;
 
   Uri _uri(String path) => Uri.parse('$baseUrl/$path');
 
@@ -82,6 +91,18 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsWebCookieKey, cookie);
     await prefs.setString(_prefsWebRoleKey, _webSessionRole);
+  }
+
+  static void _cacheCurrentUser({
+    required int id,
+    required String name,
+    required String email,
+    required String role,
+  }) {
+    _currentUserId = id;
+    _currentUserName = name;
+    _currentUserEmail = email;
+    _currentUserRole = role.toLowerCase();
   }
 
   Future<void> _bootstrapWebSession(
@@ -198,6 +219,13 @@ class ApiService {
         if (role == 'admin' &&
             data['success'] == 1 &&
             data['admin'] != null) {
+          final admin = data['admin'];
+          _cacheCurrentUser(
+            id: int.tryParse(admin['id'].toString()) ?? 0,
+            name: admin['name']?.toString() ?? '',
+            email: admin['email']?.toString() ?? '',
+            role: 'admin',
+          );
           try {
             await _bootstrapWebSession(role, email, password);
           } catch (e) {
@@ -214,6 +242,13 @@ class ApiService {
         }
 
         if (role != 'admin' && data['success'] == 1 && data['user'] != null) {
+          final user = data['user'];
+          _cacheCurrentUser(
+            id: int.tryParse(user['id'].toString()) ?? 0,
+            name: user['name']?.toString() ?? '',
+            email: user['email']?.toString() ?? '',
+            role: role,
+          );
           try {
             await _bootstrapWebSession(role, email, password);
           } catch (e) {

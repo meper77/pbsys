@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../services/api_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,6 +13,10 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+
+  // Enable only for local dev testing. Automatically attempts admin login and
+  // navigates to dashboard if successful. Set to false for normal behavior.
+  static const bool _autoAdminLogin = false;
 
   @override
   void initState() {
@@ -30,8 +35,37 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // ===== Move to WelcomeScreen after 3 seconds =====
-    Timer(const Duration(seconds: 3), () {
+    if (_autoAdminLogin) {
+      // Try automatic admin login for developer smoke tests, then navigate.
+      _attemptAutoAdminLogin();
+    } else {
+      // ===== Move to WelcomeScreen after 3 seconds =====
+      Timer(const Duration(seconds: 3), () {
+        Navigator.pushReplacementNamed(context, '/welcome');
+      });
+    }
+  }
+
+  Future<void> _attemptAutoAdminLogin() async {
+    try {
+      final api = ApiService();
+      final res = await api.login('admin@mail.com', '111111', 'admin');
+      if (res['success'] == 1) {
+        final user = res['user'];
+        Navigator.pushReplacementNamed(context, '/dashboard', arguments: {
+          'userId': user['id'],
+          'name': user['name'],
+          'email': user['email'],
+          'role': 'admin',
+        });
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // fallback to normal welcome screen
+    Timer(const Duration(seconds: 1), () {
       Navigator.pushReplacementNamed(context, '/welcome');
     });
   }

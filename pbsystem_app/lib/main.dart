@@ -8,8 +8,10 @@ import 'screens/register_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/search_car_screen.dart';
+import 'screens/vehicle_category_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/about_system_screen.dart'; // <-- new screen
+import 'screens/report_vehicle_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,12 +93,23 @@ class PBSystemApp extends StatelessWidget {
                 userId: args!['userId'],
                 name: args['name'],
                 email: args['email'],
+                role: args['role'] ?? 'user',
               ),
             );
 
           case '/search_car':
             return MaterialPageRoute(
               builder: (_) => const SearchCarScreen(),
+            );
+
+          case '/vehicle_category':
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (_) => VehicleCategoryScreen(
+                title: (args?['title'] ?? 'Vehicles') as String,
+                status: (args?['status'] ?? '') as String,
+                showAll: (args?['showAll'] ?? false) as bool,
+              ),
             );
 
           case '/profile':
@@ -112,6 +125,18 @@ class PBSystemApp extends StatelessWidget {
           case '/about_system': // <-- added route
             return MaterialPageRoute(
               builder: (_) => const AboutSystemScreen(),
+            );
+
+          case '/report_vehicle':
+            final args = settings.arguments as Map<String, dynamic>?;
+            return MaterialPageRoute(
+              builder: (_) => ReportVehicleScreen(
+                vehicle: args?['vehicle'] as Map<String, dynamic>?,
+                reporterName: (args?['reporterName'] ?? '') as String,
+                reporterEmail: (args?['reporterEmail'] ?? '') as String,
+                reporterRole: (args?['reporterRole'] ?? 'user') as String,
+                reporterId: (args?['reporterId'] ?? 0) as int,
+              ),
             );
 
           default:
