@@ -10,6 +10,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/search_car_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/about_system_screen.dart'; // <-- new screen
+import 'screens/web_app_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ class PBSystemApp extends StatelessWidget {
     return MaterialApp(
       title: 'NEO.V-TRACK',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/splash', // <-- splash as first screen
+      initialRoute: '/web_app',
 
       theme: ThemeData(
         useMaterial3: true,
@@ -56,6 +57,11 @@ class PBSystemApp extends StatelessWidget {
 
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/web_app':
+            return MaterialPageRoute(
+              builder: (_) => const WebAppScreen(),
+            );
+
           case '/splash': // <-- splash screen
             return MaterialPageRoute(
               builder: (_) => const SplashScreen(),
