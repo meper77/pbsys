@@ -17,20 +17,29 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
   bool loading = false;
   String message = '';
   List<dynamic> results = [];
+  String activeStatus = '';
+  bool showAll = false;
 
   // ==== UiTM Colors ====
   static const primaryColor = Color(0xFF4B2E83); // Ungu
   static const secondaryColor = Color(0xFFF3C143); // Kuning Emas
   static const neutralWhite = Color(0xFFFFFFFF);
   static const textPrimary = Color(0xFF000000);
+  static const cardBackground = Color(0xFFF6F2FC);
 
-  Future<void> handleSearch() async {
-    final query = searchController.text.trim();
-
-    if (query.isEmpty) {
+  Future<void> _performSearch({
+    String search = '',
+    String status = '',
+    bool showAllRecords = false,
+    bool requireQuery = false,
+  }) async {
+    final query = search.trim();
+    if (requireQuery && query.isEmpty) {
       setState(() {
         message = 'PLEASE ENTER PLATE NUMBER, OWNER NAME, OR ID';
         results = [];
+        activeStatus = '';
+        showAll = false;
       });
       return;
     }
@@ -39,19 +48,123 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
       loading = true;
       message = '';
       results = [];
+      activeStatus = status;
+      showAll = showAllRecords;
     });
 
-    final data = await api.searchCarUser(search: query);
+    final data = await api.searchCarUser(
+      search: query,
+      status: status,
+      showAll: showAllRecords,
+    );
 
     setState(() {
       loading = false;
       if (data['success'] == 1) {
         results = data['data'];
-        if (results.isEmpty) message = 'NO VEHICLES FOUND';
+        if (results.isEmpty) {
+          message = 'NO VEHICLES FOUND';
+        }
       } else {
         message = (data['message'] ?? 'SEARCH FAILED').toUpperCase();
       }
     });
+  }
+
+  Future<void> handleSearch() async {
+    await _performSearch(
+      search: searchController.text,
+      requireQuery: true,
+    );
+  }
+
+  Color _statusColor(String status) {
+    final normalized = status.toLowerCase();
+    if (normalized.contains('staf') || normalized.contains('staff')) {
+      return const Color(0xFF1976D2);
+    }
+    if (normalized.contains('pelajar') || normalized.contains('student')) {
+      return const Color(0xFF7B1FA2);
+    }
+    if (normalized.contains('pelawat') || normalized.contains('visitor')) {
+      return const Color(0xFF388E3C);
+    }
+    if (normalized.contains('kontraktor') || normalized.contains('contractor')) {
+      return const Color(0xFFF57C00);
+    }
+    return primaryColor;
+  }
+
+  String _searchSummary() {
+    if (showAll) {
+      return 'ALL VEHICLES (${results.length})';
+    }
+    if (activeStatus.isNotEmpty) {
+      return '${activeStatus.toUpperCase()} VEHICLES (${results.length})';
+    }
+    if (searchController.text.trim().isNotEmpty) {
+      return 'SEARCH RESULTS (${results.length})';
+    }
+    return 'SEARCH RESULTS';
+  }
+
+  Widget _filterButton({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8, bottom: 8),
+      child: OutlinedButton(
+        onPressed: loading ? null : onTap,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: selected ? secondaryColor : Colors.white,
+          foregroundColor: selected ? primaryColor : primaryColor,
+          side: BorderSide(
+            color: selected ? secondaryColor : primaryColor.withOpacity(0.4),
+          ),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status) {
+    final color = _statusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _rowLabel(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: RichText(
+        text: TextSpan(
+          style: const TextStyle(color: textPrimary, fontSize: 14),
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            TextSpan(text: value.isEmpty ? '-' : value),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -134,6 +247,38 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 14),
+
+                Wrap(
+                  children: [
+                    _filterButton(
+                      label: 'STAFF',
+                      selected: activeStatus == 'Staf' && !showAll,
+                      onTap: () => _performSearch(status: 'Staf'),
+                    ),
+                    _filterButton(
+                      label: 'STUDENT',
+                      selected: activeStatus == 'Pelajar' && !showAll,
+                      onTap: () => _performSearch(status: 'Pelajar'),
+                    ),
+                    _filterButton(
+                      label: 'VISITOR',
+                      selected: activeStatus == 'Pelawat' && !showAll,
+                      onTap: () => _performSearch(status: 'Pelawat'),
+                    ),
+                    _filterButton(
+                      label: 'CONTRACTOR',
+                      selected: activeStatus == 'Kontraktor' && !showAll,
+                      onTap: () => _performSearch(status: 'Kontraktor'),
+                    ),
+                    _filterButton(
+                      label: 'ALL',
+                      selected: showAll,
+                      onTap: () => _performSearch(showAllRecords: true),
+                    ),
+                  ],
+                ),
+
                 const SizedBox(height: 20),
 
                 // ==== MESSAGE ====
@@ -146,6 +291,20 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
 
                 const SizedBox(height: 16),
 
+                if (results.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _searchSummary(),
+                      style: const TextStyle(
+                        color: neutralWhite,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                if (results.isNotEmpty) const SizedBox(height: 12),
+
                 // ==== RESULTS ====
                 ListView.builder(
                   shrinkWrap: true,
@@ -153,30 +312,48 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
                   itemCount: results.length,
                   itemBuilder: (context, index) {
                     final item = results[index];
+                    final phone = (item['phone'] ?? '').toString().trim();
+                    final sticker = (item['sticker'] ?? '').toString().trim();
+
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      color: cardBackground,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              item['platenum']?.toString().toUpperCase() ?? '-',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item['platenum']?.toString().toUpperCase() ?? '-',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                _statusBadge((item['status'] ?? '-').toString()),
+                              ],
                             ),
                             const SizedBox(height: 6),
-                            Text('OWNER: ${item['name']?.toUpperCase() ?? '-'}'),
-                            Text('ID: ${item['idnumber']?.toUpperCase() ?? '-'}'),
+                            _rowLabel(
+                              'OWNER',
+                              (item['name'] ?? '').toString().toUpperCase(),
+                            ),
+                            _rowLabel(
+                              'ID NUMBER',
+                              (item['idnumber'] ?? '').toString().toUpperCase(),
+                            ),
                             Row(
                               children: [
                                 const Text('PHONE: '),
                                 GestureDetector(
                                   onTap: () async {
-                                    final phone = item['phone'] ?? '';
                                     if (phone.isNotEmpty) {
                                       final uri = Uri.parse('tel:$phone');
                                       if (await canLaunchUrl(uri)) {
@@ -194,14 +371,42 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
                                 ),
                               ],
                             ),
-                            Text('STATUS: ${item['status']?.toUpperCase() ?? '-'}'),
-                            Text('TYPE: ${item['type']?.toUpperCase() ?? '-'}'),
+                            _rowLabel(
+                              'TYPE',
+                              (item['type'] ?? '').toString().toUpperCase(),
+                            ),
+                            _rowLabel(
+                              'STICKER',
+                              sticker.isEmpty ? '-' : sticker.toUpperCase(),
+                            ),
                           ],
                         ),
                       ),
                     );
                   },
                 ),
+
+                const SizedBox(height: 8),
+                if (results.isNotEmpty || message.isNotEmpty)
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          searchController.clear();
+                          activeStatus = '';
+                          showAll = false;
+                          results = [];
+                          message = '';
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: neutralWhite,
+                        side: const BorderSide(color: neutralWhite),
+                      ),
+                      child: const Text('RESET SEARCH'),
+                    ),
+                  ),
               ],
             ),
           ),
