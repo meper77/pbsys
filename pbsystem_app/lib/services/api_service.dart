@@ -25,7 +25,7 @@ class ApiService {
       _baseUrl = saved.trim();
     }
     _webSessionCookie = prefs.getString(_prefsWebCookieKey) ?? '';
-    _webSessionRole = prefs.getString(_prefsWebRoleKey) ?? 'user';
+    _webSessionRole = prefs.getString(_prefsWebRoleKey)?.toLowerCase() ?? 'user';
   }
 
   static Future<void> setBaseUrl(String url) async {
@@ -78,10 +78,10 @@ class ApiService {
 
   Future<void> _persistWebSession(String cookie, String role) async {
     _webSessionCookie = cookie;
-    _webSessionRole = role;
+    _webSessionRole = role.toLowerCase();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsWebCookieKey, cookie);
-    await prefs.setString(_prefsWebRoleKey, role);
+    await prefs.setString(_prefsWebRoleKey, _webSessionRole);
   }
 
   Future<void> _bootstrapWebSession(
@@ -89,110 +89,85 @@ class ApiService {
     String email,
     String password,
   ) async {
-    final endpoint = role == 'admin' ? 'loginAdmin.php' : 'login.php';
-    final fields = role == 'admin'
-        ? {
-            'email_Admin': email,
-            'password_Admin': password,
-          }
-        : {
-            'email': email,
-            'password': password,
-          };
+    final finalRole = role.toLowerCase();
+    final endpoint = finalRole == 'admin' ? 'loginAdmin.php' : 'login.php';
 
     final client = http.Client();
     try {
-      final request = http.Request('POST', _webUri(endpoint))
-        ..followRedirects = false
-        ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        ..bodyFields = fields;
+      Future<http.Response> sendRequest(Map<String, String> bodyFields) async {
+        final request = http.Request('POST', _webUri(endpoint))
+          ..followRedirects = false
+          ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
+          ..bodyFields = bodyFields;
 
-      final streamed = await client.send(request);
-      final response = await http.Response.fromStream(streamed);
+        try {
+          final streamed = await client.send(request);
+          return await http.Response.fromStream(streamed);
+        } on SocketException catch (e) {
+          final isHostLookup = e.message.toLowerCase().contains('failed host lookup');
+          final currentHost = _webUri(endpoint).host;
+          final shouldRetry = isHostLookup &&
+              currentHost.isNotEmpty &&
+              currentHost != Uri.parse(_fallbackBaseUrl).host;
 
-      final setCookie = response.headers['set-cookie'] ?? '';
-      final sessionMatch = RegExp(r'PHPSESSID=([^;]+)').firstMatch(setCookie);
-      if (sessionMatch == null) {
-        throw StateError('Web session cookie missing');
+          if (!shouldRetry) rethrow;
+
+          final fallbackUri = Uri.parse(_fallbackBaseUrl).replace(
+            path: _webUri(endpoint).path,
+            queryParameters: _webUri(endpoint).hasQuery ? _webUri(endpoint).queryParameters : null,
+          );
+
+          final fallbackRequest = http.Request('POST', fallbackUri)
+            ..followRedirects = false
+            ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
+            ..headers['Host'] = _fallbackHostHeader
+            ..bodyFields = bodyFields;
+
+          final streamed = await client.send(fallbackRequest);
+          return await http.Response.fromStream(streamed);
+        }
       }
 
-      await _persistWebSession(sessionMatch.group(1)!, role);
+      // First try role-specific field names
+      final primaryFields = finalRole == 'admin'
+          ? {'email_Admin': email, 'password_Admin': password}
+          : {'email': email, 'password': password};
+
+      var response = await sendRequest(primaryFields);
+      var setCookie = response.headers['set-cookie'] ?? '';
+      var sessionMatch = RegExp(r'PHPSESSID=([^;]+)').firstMatch(setCookie);
+
+      if (sessionMatch == null) {
+        // Try alternate field names in case the form expects generic names
+        final altFields = finalRole == 'admin'
+            ? {'email': email, 'password': password}
+            : {'email_Admin': email, 'password_Admin': password};
+
+        response = await sendRequest(altFields);
+        setCookie = response.headers['set-cookie'] ?? '';
+        sessionMatch = RegExp(r'PHPSESSID=([^;]+)').firstMatch(setCookie);
+
+        if (sessionMatch == null) {
+          throw StateError('Web session cookie missing');
+        }
+      }
+
+      await _persistWebSession(sessionMatch.group(1)!, finalRole);
     } finally {
       client.close();
     }
   }
 
-  String _stripHtml(String input) {
-    var text = input
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ')
-        .replaceAll(RegExp(r'<[^>]+>'), ' ')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&quot;', '"')
-        .replaceAll('&#39;', "'")
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-    return text;
-  }
-
-  List<Map<String, dynamic>> _parseSearchRows(String html) {
-    final tableMatch = RegExp(
-      r'<table[^>]*id="vehicleTable"[^>]*>.*?<tbody>(.*?)</tbody>',
-      caseSensitive: false,
-      dotAll: true,
-    ).firstMatch(html);
-
-    if (tableMatch == null) {
-      return [];
-    }
-
-    final tbody = tableMatch.group(1) ?? '';
-    final rows = <Map<String, dynamic>>[];
-    final rowMatches = RegExp(
-      r'<tr>(.*?)</tr>',
-      caseSensitive: false,
-      dotAll: true,
-    ).allMatches(tbody);
-
-    for (final rowMatch in rowMatches) {
-      final rowHtml = rowMatch.group(1) ?? '';
-      final cellMatches = RegExp(
-        r'<td[^>]*>(.*?)</td>',
-        caseSensitive: false,
-        dotAll: true,
-      ).allMatches(rowHtml);
-
-      final cells = cellMatches
-          .map((cell) => _stripHtml(cell.group(1) ?? ''))
-          .toList();
-
-      if (cells.length < 7) {
-        continue;
-      }
-
-      final data = <String, dynamic>{
-        'status': cells[1],
-        'idnumber': cells[2],
-        'name': cells[3],
-        'phone': cells[4],
-        'platenum': cells[5].toUpperCase(),
-        'type': cells[6],
-      };
-
-      if (cells.length > 7) {
-        data['sticker'] = cells[7];
-      }
-
-      rows.add(data);
-    }
-
-    return rows;
-  }
+  // HTML parsing fallback removed. App now prefers JSON endpoints only.
+  // Legacy HTML parser was kept as diagnostic previously, but it's removed to simplify
+  // the code path. If JSON endpoints are not deployed, the app will fall back to the
+  // legacy JSON API (search_car_user_api.php) instead of parsing HTML.
 
   /// ================= LOGIN =================
   Future<Map<String, dynamic>> login(
       String email, String password, String role) async {
     try {
+      role = role.toLowerCase();
       final endpoint =
           role == 'admin' ? 'login_admin_api.php' : 'login_user_api.php';
       final url = _uri(endpoint);
@@ -340,42 +315,52 @@ class ApiService {
     bool showAll = false,
   }) async {
     try {
-      final searchPage = webSessionRole == 'admin'
-          ? 'searchCar.php'
-          : 'searchCarUser.php';
-
-      if (webSessionCookie.isNotEmpty) {
-        final client = http.Client();
-        try {
-          final request = http.Request('POST', _webUri(searchPage))
-            ..followRedirects = false
-            ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
-            ..headers['Cookie'] = 'PHPSESSID=$webSessionCookie'
-            ..bodyFields = {
-              'search': search,
-              'status': status,
-              'showAll': showAll ? 'true' : 'false',
-              'submit': '1',
-            };
-
-          final streamed = await client.send(request);
-          final response = await http.Response.fromStream(streamed);
-
-          if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
-            final rows = _parseSearchRows(response.body);
-            return {
-              'success': 1,
-              'count': rows.length,
-              'data': rows,
-              'message': rows.isEmpty ? 'No vehicles found' : '',
-            };
-          }
-        } finally {
-          client.close();
-        }
+      // Select category-specific JSON endpoint when possible
+      String endpoint = 'search_api.php';
+      final s = status.toLowerCase();
+      if (s.contains('staf') || s.contains('staff')) {
+        endpoint = 'search_staff_api.php';
+      } else if (s.contains('pelajar') || s.contains('student')) {
+        endpoint = 'search_students_api.php';
+      } else if (s.contains('pelawat') || s.contains('visitor')) {
+        endpoint = 'search_visitors_api.php';
+      } else if (s.contains('kontraktor') || s.contains('contractor')) {
+        endpoint = 'search_contractors_api.php';
+      } else {
+        endpoint = 'search_api.php';
       }
 
-      final response = await _post(
+      http.Response? response;
+      try {
+        response = await _post(
+          _uri(endpoint),
+          {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          {
+            'search': search,
+            'status': status,
+            'showAll': showAll ? 'true' : 'false',
+          },
+        );
+
+        if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+          final jsonData = jsonDecode(response.body);
+          final data = (jsonData['data'] ?? jsonData['vehicles'] ?? []) as List;
+
+          return {
+            'success': jsonData['success'] ?? 0,
+            'count': jsonData['count'] ?? data.length,
+            'data': data,
+            'message': jsonData['message'] ?? '',
+          };
+        }
+      } catch (e) {
+        // network/host error - will try legacy endpoint
+      }
+
+      // Legacy API fallback (if new endpoints not deployed)
+      final legacyResp = await _post(
         _uri('search_car_user_api.php'),
         {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -387,8 +372,8 @@ class ApiService {
         },
       );
 
-      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
-        final jsonData = jsonDecode(response.body);
+      if (legacyResp.statusCode == 200 && legacyResp.body.trim().isNotEmpty) {
+        final jsonData = jsonDecode(legacyResp.body);
         final data = (jsonData['data'] ?? jsonData['vehicles'] ?? []) as List;
 
         return {
@@ -401,7 +386,7 @@ class ApiService {
 
       return {
         'success': 0,
-        'message': 'Server error: ${response.statusCode}'
+        'message': 'Server error: ${legacyResp?.statusCode ?? response?.statusCode ?? 'unknown'}'
       };
     } catch (e) {
       return {
