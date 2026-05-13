@@ -11,6 +11,7 @@ if (isset($_GET['logout'])) {
 
 include('inc/header.php');
 include 'connect.php';
+include 'inc/search_backend.php';
 
 if (!isset($_SESSION['email_Admin'])) {
     header('location:loginAdmin.php');
@@ -135,18 +136,9 @@ $no = 1;
 if (isset($_POST['submit'])) {
     $search = trim($_POST['search']);
     if (!empty($search)) {
-        // Use prepared statement to prevent SQL injection
-        $stmt = $con->prepare("SELECT * FROM `owner` WHERE platenum LIKE ?");
-        $search_param = "%$search%";
-        $stmt->bind_param("s", $search_param);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        while ($row = $result->fetch_assoc()) {
-            $results[] = $row;
-        }
+        $payload = searchVehicleRecords($con, $search);
+        $results = $payload['data'];
         $hasResults = true;
-        $stmt->close();
     }
 }
 ?>
@@ -157,14 +149,14 @@ if (isset($_POST['submit'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $t['page_title']; ?> - NEO V-TRACK</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- DataTables CSS from CDN -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
-    
+
     <style>
         :root {
             --primary-color: #1a2980;
@@ -177,7 +169,7 @@ if (isset($_POST['submit'])) {
             --uitm-red: #c30e2e;
             --uitm-blue: #003087;
         }
-        
+
         body {
             background-color: #f5f7fb;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -186,7 +178,7 @@ if (isset($_POST['submit'])) {
             padding: 0;
             min-height: 100vh;
         }
-        
+
         /* Black Navbar - UPDATED with logos */
         .navbar-black {
             background-color: #000000 !important;
@@ -194,11 +186,11 @@ if (isset($_POST['submit'])) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-bottom: 3px solid var(--uitm-red);
         }
-        
+
         .navbar-black .container {
             max-width: 1400px;
         }
-        
+
         /* Logo container styling - SAME AS INDEX.PHP */
         .logo-container {
             display: flex;
@@ -206,51 +198,51 @@ if (isset($_POST['submit'])) {
             gap: 15px;
             padding: 10px 0;
         }
-        
+
         .uitm-logo, .neo-logo {
             height: 45px;
             width: auto;
             object-fit: contain;
         }
-        
+
         .uitm-logo {
             border-right: 2px solid rgba(255,255,255,0.3);
             padding-right: 15px;
         }
-        
+
         .system-title {
             border-left: 3px solid rgba(255,255,255,0.3);
             padding-left: 15px;
         }
-        
+
         .system-title h1 {
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 5px;
             color: white;
         }
-        
+
         .system-title p {
             opacity: 0.9;
             font-size: 14px;
             margin: 0;
             color: white;
         }
-        
+
         .navbar-black .navbar-nav {
             flex-direction: row;
             justify-content: center;
             flex-wrap: nowrap;
         }
-        
+
         .navbar-black .nav-item {
             border-right: 1px solid rgba(255,255,255,0.2);
         }
-        
+
         .navbar-black .nav-item:last-child {
             border-right: none;
         }
-        
+
         .navbar-black .nav-link {
             color: white !important;
             padding: 15px 18px !important;
@@ -259,15 +251,15 @@ if (isset($_POST['submit'])) {
             transition: all 0.3s;
             text-align: center;
         }
-        
+
         .navbar-black .nav-link:hover {
             background-color: rgba(255,255,255,0.1);
         }
-        
+
         .navbar-black .nav-link.active {
             background-color: var(--uitm-red);
         }
-        
+
         /* Main Header */
         .main-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
@@ -275,13 +267,13 @@ if (isset($_POST['submit'])) {
             padding: 15px 0;
             margin-bottom: 20px;
         }
-        
+
         .header-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
         }
-        
+
         .admin-info {
             display: flex;
             align-items: center;
@@ -291,7 +283,7 @@ if (isset($_POST['submit'])) {
             border-radius: 8px;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
+
         .admin-avatar {
             width: 35px;
             height: 35px;
@@ -302,7 +294,7 @@ if (isset($_POST['submit'])) {
             justify-content: center;
             font-size: 16px;
         }
-        
+
         .logout-btn {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -316,14 +308,14 @@ if (isset($_POST['submit'])) {
             gap: 8px;
             transition: all 0.3s;
         }
-        
+
         .logout-btn:hover {
             background: rgba(255, 255, 255, 0.25);
             color: white;
             text-decoration: none;
             transform: translateY(-2px);
         }
-        
+
         /* Language Switcher */
         .language-switcher {
             display: flex;
@@ -335,7 +327,7 @@ if (isset($_POST['submit'])) {
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
+
         .lang-btn {
             background: transparent;
             border: none;
@@ -346,25 +338,25 @@ if (isset($_POST['submit'])) {
             text-decoration: none;
             transition: all 0.3s;
         }
-        
+
         .lang-btn:hover {
             background: rgba(255, 255, 255, 0.25);
             color: white;
             text-decoration: none;
         }
-        
+
         .lang-btn.active {
             background: rgba(255, 255, 255, 0.3);
             font-weight: 600;
         }
-        
+
         /* Main Content */
         .main-content {
             max-width: 1300px;
             margin: 20px auto;
             padding: 0 15px;
         }
-        
+
         /* Search Section */
         .search-container {
             background: white;
@@ -374,7 +366,7 @@ if (isset($_POST['submit'])) {
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             border: 1px solid #eaeaea;
         }
-        
+
         .search-title {
             color: var(--dark-color);
             font-weight: 600;
@@ -382,36 +374,36 @@ if (isset($_POST['submit'])) {
             padding-bottom: 15px;
             border-bottom: 2px solid var(--primary-color);
         }
-        
+
         .search-form {
             max-width: 700px;
             margin: 0 auto;
         }
-        
+
         .search-input-group {
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid #ddd;
             transition: all 0.3s;
         }
-        
+
         .search-input-group:focus-within {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(26, 41, 128, 0.1);
         }
-        
+
         .search-input {
             border: none;
             padding: 12px 20px;
             font-size: 16px;
             flex: 1;
         }
-        
+
         .search-input:focus {
             box-shadow: none;
             outline: none;
         }
-        
+
         .search-btn {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
             color: white;
@@ -421,18 +413,18 @@ if (isset($_POST['submit'])) {
             transition: all 0.3s;
             white-space: nowrap;
         }
-        
+
         .search-btn:hover {
             background: linear-gradient(135deg, var(--uitm-blue) 0%, var(--primary-color) 100%);
         }
-        
+
         .search-help {
             text-align: center;
             color: #666;
             font-size: 14px;
             margin-top: 12px;
         }
-        
+
         /* Results Section */
         .results-container {
             background: white;
@@ -443,7 +435,7 @@ if (isset($_POST['submit'])) {
             border: 1px solid #eaeaea;
             overflow: hidden;
         }
-        
+
         .results-title {
             color: var(--dark-color);
             font-weight: 600;
@@ -456,7 +448,7 @@ if (isset($_POST['submit'])) {
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         .results-count {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
             color: white;
@@ -465,24 +457,24 @@ if (isset($_POST['submit'])) {
             font-size: 14px;
             font-weight: 600;
         }
-        
+
         .table-responsive {
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 20px;
         }
-        
+
         .vehicle-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .vehicle-table thead {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
             color: white;
         }
-        
+
         .vehicle-table th {
             padding: 12px 15px;
             text-align: left;
@@ -491,35 +483,35 @@ if (isset($_POST['submit'])) {
             border: none;
             white-space: nowrap;
         }
-        
+
         .vehicle-table tbody tr {
             border-bottom: 1px solid #eee;
             transition: all 0.3s;
         }
-        
+
         .vehicle-table tbody tr:hover {
             background-color: #f8f9ff;
         }
-        
+
         .vehicle-table td {
             padding: 12px 15px;
             vertical-align: middle;
             border-bottom: 1px solid #eee;
         }
-        
+
         .no-results {
             text-align: center;
             padding: 40px 20px;
             color: #666;
         }
-        
+
         .no-results-icon {
             font-size: 50px;
             color: #ddd;
             margin-bottom: 20px;
             opacity: 0.5;
         }
-        
+
         .action-buttons {
             display: flex;
             justify-content: space-between;
@@ -530,7 +522,7 @@ if (isset($_POST['submit'])) {
             padding-top: 20px;
             border-top: 1px solid #eee;
         }
-        
+
         .export-btn {
             background: linear-gradient(135deg, var(--success-color) 0%, #00d2b9 100%);
             color: white;
@@ -544,13 +536,13 @@ if (isset($_POST['submit'])) {
             gap: 8px;
             transition: all 0.3s;
         }
-        
+
         .export-btn:hover {
             background: linear-gradient(135deg, #00d2b9 0%, var(--success-color) 100%);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 176, 155, 0.3);
         }
-        
+
         .search-again-btn {
             background: linear-gradient(135deg, var(--warning-color) 0%, #ff9966 100%);
             color: white;
@@ -565,7 +557,7 @@ if (isset($_POST['submit'])) {
             transition: all 0.3s;
             text-decoration: none;
         }
-        
+
         .search-again-btn:hover {
             background: linear-gradient(135deg, #ff9966 0%, var(--warning-color) 100%);
             color: white;
@@ -573,7 +565,7 @@ if (isset($_POST['submit'])) {
             box-shadow: 0 4px 8px rgba(255, 153, 102, 0.3);
             text-decoration: none;
         }
-        
+
         .status-badge {
             padding: 5px 12px;
             border-radius: 4px;
@@ -581,31 +573,31 @@ if (isset($_POST['submit'])) {
             font-weight: 600;
             display: inline-block;
         }
-        
+
         .status-staff {
             background-color: #e3f2fd;
             color: #1976d2;
             border: 1px solid #bbdefb;
         }
-        
+
         .status-student {
             background-color: #f3e5f5;
             color: #7b1fa2;
             border: 1px solid #e1bee7;
         }
-        
+
         .status-visitor {
             background-color: #e8f5e9;
             color: #388e3c;
             border: 1px solid #c8e6c9;
         }
-        
+
         .status-contractor {
             background-color: #fff3e0;
             color: #f57c00;
             border: 1px solid #ffe0b2;
         }
-        
+
         .vehicle-number {
             font-family: 'Courier New', monospace;
             font-size: 15px;
@@ -616,7 +608,7 @@ if (isset($_POST['submit'])) {
             border-radius: 4px;
             border: 1px solid #e0e5ff;
         }
-        
+
         .sticker-badge-ada {
             background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
             color: white;
@@ -628,7 +620,7 @@ if (isset($_POST['submit'])) {
             text-align: center;
             min-width: 80px;
         }
-        
+
         .sticker-badge-tiada {
             background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
             color: white;
@@ -640,25 +632,25 @@ if (isset($_POST['submit'])) {
             text-align: center;
             min-width: 80px;
         }
-        
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .navbar-black .nav-link {
                 padding: 15px 14px !important;
                 font-size: 13px;
             }
-            
+
             .uitm-logo, .neo-logo {
                 height: 40px;
             }
         }
-        
+
         @media (max-width: 992px) {
             .navbar-black .navbar-nav {
                 flex-wrap: wrap;
                 justify-content: flex-start;
             }
-            
+
             .navbar-black .nav-item {
                 border-right: none;
                 width: auto;
@@ -666,29 +658,29 @@ if (isset($_POST['submit'])) {
                 flex: 1 0 33.33%;
                 text-align: center;
             }
-            
+
             .navbar-black .nav-link {
                 padding: 12px 8px !important;
                 font-size: 12px;
             }
-            
+
             .logo-container {
                 justify-content: center;
             }
         }
-        
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             .logo-container {
                 flex-direction: column;
                 text-align: center;
                 gap: 10px;
             }
-            
+
             .system-title {
                 border-left: none;
                 padding-left: 0;
@@ -696,72 +688,72 @@ if (isset($_POST['submit'])) {
                 padding-top: 10px;
                 width: 100%;
             }
-            
+
             .navbar-black .navbar-nav {
                 flex-direction: column;
                 width: 100%;
             }
-            
+
             .navbar-black .nav-item {
                 width: 100%;
                 border-bottom: 1px solid rgba(255,255,255,0.1);
                 flex: none;
             }
-            
+
             .navbar-black .nav-item:last-child {
                 border-bottom: none;
             }
-            
+
             .search-input-group {
                 flex-direction: column;
             }
-            
+
             .search-input {
                 border-radius: 8px 8px 0 0;
                 border-bottom: 1px solid #ddd;
             }
-            
+
             .search-btn {
                 border-radius: 0 0 8px 8px;
                 width: 100%;
             }
-            
+
             .results-title {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .action-buttons {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
+
             .search-again-btn, .export-btn {
                 width: 100%;
                 justify-content: center;
             }
-            
-            .vehicle-table th, 
+
+            .vehicle-table th,
             .vehicle-table td {
                 padding: 10px;
                 font-size: 13px;
             }
         }
-        
+
         @media (max-width: 480px) {
             .main-content {
                 padding: 0 10px;
             }
-            
+
             .search-container,
             .results-container {
                 padding: 20px 15px;
             }
-            
+
             .search-title {
                 font-size: 1.3rem;
             }
-            
+
             .uitm-logo, .neo-logo {
                 height: 35px;
             }
@@ -776,20 +768,20 @@ if (isset($_POST['submit'])) {
         <div class="logo-container">
             <!-- UITM Logo -->
             <img src="inc/images/uitm.png" alt="UITM Logo" class="uitm-logo">
-            
+
             <!-- NEO V-TRACK Logo -->
             <img src="inc/images/kik2.png" alt="NEO V-TRACK Logo" class="neo-logo">
-            
+
             <div class="system-title">
                 <h1><i class="fas fa-search"></i> <?php echo $t['page_title']; ?></h1>
                 <p><?php echo $t['system_name']; ?></p>
             </div>
         </div>
-        
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon" style="filter: invert(1);">☰</span>
         </button>
-        
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
@@ -856,7 +848,7 @@ if (isset($_POST['submit'])) {
                         <div style="font-size: 11px; opacity: 0.8;"><?php echo $t['admin_role']; ?></div>
                     </div>
                 </div>
-                
+
                 <!-- Language Switcher -->
                 <div class="language-switcher">
                     <a href="?lang=bm" class="lang-btn <?php echo ($lang == 'bm') ? 'active' : ''; ?>">
@@ -867,7 +859,7 @@ if (isset($_POST['submit'])) {
                     </a>
                 </div>
             </div>
-            
+
             <!-- Logout Button -->
             <a href="?logout=1" class="logout-btn" onclick="return confirm('<?php echo $t['logout_confirm']; ?>')">
                 <i class="fas fa-sign-out-alt me-2"></i> <?php echo $t['logout']; ?>
@@ -881,11 +873,11 @@ if (isset($_POST['submit'])) {
     <!-- Search Section -->
     <div class="search-container">
         <h2 class="search-title"><i class="fas fa-car me-2"></i><?php echo $t['search_vehicle']; ?></h2>
-        
+
         <form method="POST" class="search-form">
             <div class="d-flex search-input-group">
-                <input type="text" class="form-control search-input" 
-                       placeholder="<?php echo $t['search_placeholder']; ?>" 
+                <input type="text" class="form-control search-input"
+                       placeholder="<?php echo $t['search_placeholder']; ?>"
                        name="search" value="<?php echo htmlspecialchars($search); ?>"
                        required autofocus>
                 <button class="btn search-btn" type="submit" name="submit">
@@ -897,7 +889,7 @@ if (isset($_POST['submit'])) {
             </p>
         </form>
     </div>
-    
+
     <!-- Results Section -->
     <?php if ($hasResults || isset($_POST['submit'])): ?>
     <div class="results-container">
@@ -910,7 +902,7 @@ if (isset($_POST['submit'])) {
             </span>
             <?php endif; ?>
         </div>
-        
+
         <?php if (count($results) > 0): ?>
         <div class="table-responsive">
             <table class="vehicle-table table-striped" id="vehicleTable">
@@ -927,12 +919,12 @@ if (isset($_POST['submit'])) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php 
+                    <?php
                     $counter = 1;
-                    foreach ($results as $row): 
+                    foreach ($results as $row):
                         $status_class = '';
                         $status_text = '';
-                        
+
                         // Map database status to language and CSS class
                         if (in_array(strtolower($row['status']), ['staf', 'staff'])) {
                             $status_class = 'status-staff';
@@ -950,7 +942,7 @@ if (isset($_POST['submit'])) {
                             $status_class = 'status-staff';
                             $status_text = htmlspecialchars($row['status']);
                         }
-                        
+
                         $sticker_status = isset($row['sticker']) ? $row['sticker'] : '';
                         $sticker_number = isset($row['stickerno']) ? $row['stickerno'] : '';
                     ?>
@@ -963,8 +955,8 @@ if (isset($_POST['submit'])) {
                         <td><span class="vehicle-number"><?php echo htmlspecialchars($row['platenum']); ?></span></td>
                         <td><?php echo htmlspecialchars($row['type']); ?></td>
                         <td>
-                            <?php 
-                            if ($sticker_status == 'ADA' && !empty($sticker_number)): 
+                            <?php
+                            if ($sticker_status == 'ADA' && !empty($sticker_number)):
                             ?>
                                 <span class="sticker-badge-ada">
                                     <?php echo htmlspecialchars($sticker_number); ?>
@@ -982,7 +974,7 @@ if (isset($_POST['submit'])) {
                 </tbody>
             </table>
         </div>
-        
+
         <div class="action-buttons">
             <a href="searchCar.php" class="search-again-btn">
                 <i class="fas fa-redo me-2"></i><?php echo $t['search_again']; ?>
@@ -991,7 +983,7 @@ if (isset($_POST['submit'])) {
                 <i class="fas fa-file-excel me-2"></i><?php echo $t['export_excel']; ?>
             </button>
         </div>
-        
+
         <?php else: ?>
         <div class="no-results">
             <div class="no-results-icon">
@@ -1058,17 +1050,17 @@ $(document).ready(function() {
             ]
         });
     }
-    
+
     // Export to Excel
     $('#export-btn').on('click', function() {
         var table = $('#vehicleTable');
         if (table.length) {
             // Clone table to avoid affecting DataTable
             var tableClone = table.clone();
-            
+
             // Remove DataTable classes and attributes
             tableClone.removeClass('dataTable').find('.dataTables_empty').remove();
-            
+
             // Create workbook and download
             var wb = XLSX.utils.table_to_book(tableClone[0], {sheet: "Vehicle Search Results"});
             XLSX.writeFile(wb, "vehicle-search-results-<?php echo date('Y-m-d'); ?>.xlsx");

@@ -3,7 +3,9 @@ import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.role = 'user'});
+
+  final String role;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -34,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final data = await api.login(
       emailController.text.trim(),
       passwordController.text.trim(),
-      'user', // Only user login now
+      widget.role,
     );
 
     setState(() => loading = false);
@@ -60,6 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = widget.role == 'admin';
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -150,8 +154,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Login',
+                            Text(
+                              isAdmin ? 'Admin Login' : 'Login',
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -159,8 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Please sign in to continue',
+                            Text(
+                              isAdmin ? 'Admin account sign in' : 'Please sign in to continue',
                               style: TextStyle(color: textSecondary),
                             ),
                             const SizedBox(height: 26),
@@ -229,10 +233,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: () => Navigator.pushNamed(context, '/forgot'),
                                     child: const Text('Forgot your password?'),
                                   ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                                    child: const Text('New user? Create an account'),
-                                  ),
+                            if (!isAdmin)
+                              TextButton(
+                                onPressed: () => Navigator.pushNamed(context, '/register'),
+                                child: const Text('New user? Create an account'),
+                              ),
                                 ],
                               ),
                             ),

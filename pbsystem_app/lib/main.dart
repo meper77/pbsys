@@ -67,8 +67,11 @@ class PBSystemApp extends StatelessWidget {
             );
 
           case '/login_user':
+            final args = settings.arguments as Map<String, dynamic>?;
             return MaterialPageRoute(
-              builder: (_) => const LoginScreen(),
+              builder: (_) => LoginScreen(
+                role: args?['role'] ?? 'user',
+              ),
             );
 
           case '/register':

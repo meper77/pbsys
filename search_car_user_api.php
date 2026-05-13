@@ -4,71 +4,17 @@ error_reporting(E_ALL);
 header('Content-Type: application/json');
 
 include 'connect.php';
+include 'inc/search_backend.php';
 
-// ==================== GET INPUT ====================
-$search  = isset($_POST['search']) ? trim($_POST['search']) : '';
-$status  = isset($_POST['status']) ? trim($_POST['status']) : '';
-$showAll = isset($_POST['showAll']) ? $_POST['showAll'] : '';
+$input = json_decode(file_get_contents('php://input'), true);
 
-// ==================== BUILD QUERY ====================
+$search = trim($_POST['search'] ?? ($input['search'] ?? ''));
+$status = trim($_POST['status'] ?? ($input['status'] ?? ''));
+$showAllRaw = $_POST['showAll'] ?? ($input['showAll'] ?? '');
+$showAll = filter_var($showAllRaw, FILTER_VALIDATE_BOOL);
 
-if (!empty($search)) {
+$payload = searchVehicleRecords($con, $search, $status, $showAll);
 
-    $safe = mysqli_real_escape_string($con, $search);
-
-    $sql = "SELECT * FROM owner 
-            WHERE platenum LIKE '%$safe%' 
-               OR name LIKE '%$safe%' 
-               OR idnumber LIKE '%$safe%'";
-
-} elseif (!empty($status)) {
-
-    $safe = mysqli_real_escape_string($con, $status);
-
-    $sql = "SELECT * FROM owner WHERE status='$safe'";
-
-} else {
-
-    // DEFAULT: SHOW ALL
-    $sql = "SELECT * FROM owner ORDER BY id DESC";
-}
-
-// ==================== EXECUTE QUERY ====================
-$result = mysqli_query($con, $sql);
-
-if (!$result) {
-    echo json_encode([
-        "success" => 0,
-        "message" => "Query failed"
-    ]);
-    exit;
-}
-
-// ==================== FETCH RESULTS ====================
-$vehicles = [];
-
-while ($row = mysqli_fetch_assoc($result)) {
-
-    $vehicles[] = [
-        'id'        => $row['id'],
-        'name'      => $row['name'],
-        'ownerEmail'=> $row['ownerEmail'],
-        'phone'     => $row['phone'],
-        'idnumber'  => $row['idnumber'],
-        'type'      => $row['type'],
-        'status'    => $row['status'],
-        'brand'     => $row['brand'],
-        'platenum'  => strtoupper($row['platenum']),
-        'sticker'   => $row['sticker'],
-        'stickerno' => $row['stickerno']
-    ];
-}
-
-// ==================== RETURN JSON ====================
-echo json_encode([
-    "success" => 1,
-    "count"   => count($vehicles),
-    "data"    => $vehicles
-]);
+echo json_encode($payload);
 
 mysqli_close($con);

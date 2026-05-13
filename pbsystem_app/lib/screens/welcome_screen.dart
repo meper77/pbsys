@@ -90,7 +90,11 @@ class WelcomeScreen extends StatelessWidget {
                         height: 52,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/login_user');
+                            Navigator.pushNamed(
+                              context,
+                              '/login_user',
+                              arguments: {'role': 'user'},
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: secondaryColor,
@@ -102,6 +106,36 @@ class WelcomeScreen extends StatelessWidget {
                           ),
                           child: const Text(
                             'ENTER TO LOGIN',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/login_user',
+                              arguments: {'role': 'admin'},
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: neutralWhite,
+                            side: const BorderSide(color: neutralWhite, width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'ADMIN LOGIN',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

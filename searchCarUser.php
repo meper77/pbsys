@@ -16,6 +16,7 @@ if (!isset($_SESSION['email'])) {
 
 include('inc/header.php');
 include 'connect.php';
+include 'inc/search_backend.php';
 
 $userName = $_SESSION['nama'] ?? 'Pengguna';
 
@@ -47,14 +48,14 @@ $text['bm'] = [
     // Header
     'title' => 'NEO V-TRACK',
     'subtitle' => 'Sistem Pengurusan & Pemantauan Kenderaan',
-    
+
     // Back Button
     'backBtn' => 'Kembali ke Anjung',
-    
+
     // Search Hero
     'searchTitle' => 'Cari Kenderaan',
     'searchSubtitle' => 'Cari kenderaan berdaftar mengikut nombor plat, nama pemilik atau nombor id',
-    
+
     // Search Box
     'searchBtn' => 'Cari Sekarang',
     'quickFilters' => 'Carian Pantas:',
@@ -63,10 +64,10 @@ $text['bm'] = [
     'filterVisitor' => 'Kenderaan Pelawat',
     'filterContractor' => 'Kenderaan Kontraktor',
     'filterAll' => 'Semua Kenderaan',
-    
+
     // Results
     'resultsTitle' => 'Hasil Carian',
-    
+
     // Table Columns
     'colNo' => '#',
     'colStatus' => 'Status',
@@ -75,16 +76,16 @@ $text['bm'] = [
     'colPhone' => 'No. Telefon',
     'colPlate' => 'No. Plat Kenderaan',
     'colType' => 'Jenis Kenderaan',
-    
+
     // Buttons
     'exportBtn' => 'Eksport ke Excel',
     'resetBtn' => 'Reset Carian',
     'resetBtn2' => 'Reset Carian',
-    
+
     // No Results
     'noResultsTitle' => 'Tiada Rekod Ditemui',
     'noResultsText' => 'Tiada rekod yang sepadan dengan carian anda',
-    
+
     // Start Search
     'startSearchTitle' => 'Mulakan Carian Anda',
     'startSearchText' => 'Gunakan borang di atas untuk mencari kenderaan berdaftar',
@@ -92,10 +93,10 @@ $text['bm'] = [
     'searchByName' => 'Cari dengan Nama',
     'searchByID' => 'Cari dengan No. ID',
     'viewAll' => 'Lihat Semua',
-    
+
     // Logout
     'logout_confirm' => 'Adakah anda pasti ingin log keluar?',
-    
+
     // Filter Results Text
     'filtered_by_keyword' => 'Kata kunci:',
     'filtered_by_status' => 'Status:',
@@ -111,14 +112,14 @@ $text['en'] = [
     // Header
     'title' => 'NEO V-TRACK',
     'subtitle' => 'Vehicle Management & Monitoring System',
-    
+
     // Back Button
     'backBtn' => 'Back to Dashboard',
-    
+
     // Search Hero
     'searchTitle' => 'Search Vehicle',
     'searchSubtitle' => 'Search registered vehicles by plate number, owner name or id number',
-    
+
     // Search Box
     'searchBtn' => 'Search Now',
     'quickFilters' => 'Quick Filters:',
@@ -127,10 +128,10 @@ $text['en'] = [
     'filterVisitor' => 'Visitor Vehicles',
     'filterContractor' => 'Contractor Vehicles',
     'filterAll' => 'All Vehicles',
-    
+
     // Results
     'resultsTitle' => 'Search Results',
-    
+
     // Table Columns
     'colNo' => '#',
     'colStatus' => 'Status',
@@ -139,16 +140,16 @@ $text['en'] = [
     'colPhone' => 'Phone Number',
     'colPlate' => 'Vehicle Plate',
     'colType' => 'Vehicle Type',
-    
+
     // Buttons
     'exportBtn' => 'Export to Excel',
     'resetBtn' => 'Reset Search',
     'resetBtn2' => 'Reset Search',
-    
+
     // No Results
     'noResultsTitle' => 'No Records Found',
     'noResultsText' => 'No records match your search',
-    
+
     // Start Search
     'startSearchTitle' => 'Start Your Search',
     'startSearchText' => 'Use the form above to search for registered vehicles',
@@ -156,10 +157,10 @@ $text['en'] = [
     'searchByName' => 'Search by Name',
     'searchByID' => 'Search by ID',
     'viewAll' => 'View All',
-    
+
     // Logout
     'logout_confirm' => 'Are you sure you want to log out?',
-    
+
     // Filter Results Text
     'filtered_by_keyword' => 'Keyword:',
     'filtered_by_status' => 'Status:',
@@ -550,11 +551,11 @@ body {
     .search-form{
         flex-direction:column;
     }
-    
+
     .search-input, .search-btn{
         width:100%;
     }
-    
+
     .vehicle-table{
         display:block;
         overflow-x:auto;
@@ -635,9 +636,9 @@ body {
 <div class="search-container">
     <form method="POST" action="">
         <div class="search-form">
-            <input type="text" 
-                   class="search-input" 
-                   name="search" 
+            <input type="text"
+                   class="search-input"
+                   name="search"
                    placeholder="<?php echo $lang == 'bm' ? 'Masukkan No. Plat Kenderaan (contoh: ABC1234), Nama Pemilik Atau Nombor ID (contoh: Pelajar - 202*******)' : 'Enter Vehicle Plate Number (e.g.: ABC1234), Owner Name Or ID Number (e.g.: Student - 202*******)'; ?>"
                    value="<?php echo htmlspecialchars($search); ?>"
                    required>
@@ -646,7 +647,7 @@ body {
             </button>
         </div>
     </form>
-    
+
     <div class="quick-filters">
         <span style="color:#666; font-size:14px; margin-right:10px;"><?php echo $t['quickFilters']; ?></span>
         <a href="searchCarUser.php?status=Staf<?php echo $lang != 'bm' ? '&lang=en' : ''; ?>" class="filter-btn <?php echo ($status == 'Staf') ? 'active' : ''; ?>"><?php echo $t['filterStaff']; ?></a>
@@ -664,37 +665,32 @@ body {
         <?php
         $hasResults = false;
         $count = 0;
-        $filterText = '';
-        
-        // Check in correct order: POST search first, then GET parameters
+        $countText = '';
+        $payload = ['data' => []];
+
         if (isset($_POST['submit']) && !empty($search)) {
-            // Search form was submitted
-            $sql = "SELECT * FROM owner WHERE platenum LIKE '%$search%' OR name LIKE '%$search%' OR idnumber LIKE '%$search%'";
-            $filterText = $t['filtered_by_keyword'] . " $search";
+            $payload = searchVehicleRecords($con, $search);
             $countText = $t['records_matching'];
             $hasResults = true;
         } elseif (!empty($status)) {
-            // Status filter was clicked
-            $sql = "SELECT * FROM owner WHERE status='$status'";
-            $filterText = $t['filtered_by_status'] . " $status";
+            $payload = searchVehicleRecords($con, '', $status, false);
             $countText = $t['records_with_status'] . " $status";
             $hasResults = true;
         } elseif ($showAll) {
-            // Show all was clicked
-            $sql = "SELECT * FROM owner ORDER BY id DESC";
-            $filterText = $t['filtered_all'];
+            $payload = searchVehicleRecords($con, '', '', true);
             $countText = $t['all_records'];
             $hasResults = true;
         }
-        
+
+        $results = $payload['data'];
+        $count = count($results);
+
         if ($hasResults) {
-            $result = mysqli_query($con, $sql);
-            $count = mysqli_num_rows($result);
             echo '<div class="results-count">' . $count . ' ' . $countText . ' ' . $t['records_found'] . '</div>';
         }
         ?>
     </div>
-    
+
     <?php
     if ($hasResults) {
         if ($count > 0) {
@@ -715,7 +711,7 @@ body {
             <tbody>
                 <?php
                 $no = 1;
-                while ($row = mysqli_fetch_assoc($result)) {
+                foreach ($results as $row) {
                     $statusClass = strtolower(str_replace(' ', '-', $row['status']));
                 ?>
                 <tr>
@@ -738,14 +734,14 @@ body {
                     </td>
                     <td><?php echo $row['type']; ?></td>
                 </tr>
-                <?php 
+                <?php
                 $no++;
-                } 
+                }
                 ?>
             </tbody>
         </table>
     </div>
-    
+
     <!-- EXPORT BUTTON -->
     <div class="text-end mt-4">
         <button class="btn btn-outline-purple" onclick="exportToExcel()">
@@ -755,9 +751,9 @@ body {
             <i class="fas fa-redo me-1"></i> <?php echo $t['resetBtn']; ?>
         </a>
     </div>
-    
-    <?php 
-        } else { 
+
+    <?php
+        } else {
     ?>
     <div class="no-results">
         <div class="no-results-icon">
@@ -769,9 +765,9 @@ body {
             <i class="fas fa-redo me-2"></i><?php echo $t['resetBtn2']; ?>
         </a>
     </div>
-    <?php 
-        } 
-    } else { 
+    <?php
+        }
+    } else {
     ?>
     <div class="no-results">
         <div class="no-results-icon">
@@ -826,7 +822,7 @@ body {
 // Initialize DataTable with current language
 $(document).ready(function() {
     const currentLang = '<?php echo $lang; ?>';
-    
+
     if ($('#vehicleTable').length) {
         $('#vehicleTable').DataTable({
             "language": {
@@ -892,6 +888,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </body>
 </html>
 
-<?php 
-mysqli_close($con); 
+<?php
+mysqli_close($con);
 ?>
