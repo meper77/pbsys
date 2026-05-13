@@ -11,8 +11,12 @@ class ApiService {
   );
   static const String _fallbackBaseUrl = 'http://10.0.26.208';
   static const String _fallbackHostHeader = 'neovtrack.uitm.edu.my';
+  static const String _prefsWebCookieKey = 'web_session_cookie';
+  static const String _prefsWebRoleKey = 'web_session_role';
 
   static const String _prefsKey = 'api_base_url';
+  static String _webSessionCookie = '';
+  static String _webSessionRole = 'user';
 
   static Future<void> configure() async {
     final prefs = await SharedPreferences.getInstance();
@@ -20,6 +24,8 @@ class ApiService {
     if (saved != null && saved.trim().isNotEmpty) {
       _baseUrl = saved.trim();
     }
+    _webSessionCookie = prefs.getString(_prefsWebCookieKey) ?? '';
+    _webSessionRole = prefs.getString(_prefsWebRoleKey) ?? 'user';
   }
 
   static Future<void> setBaseUrl(String url) async {
@@ -35,7 +41,13 @@ class ApiService {
 
   static String get baseUrl => _baseUrl;
 
+  static String get webSessionCookie => _webSessionCookie;
+
+  static String get webSessionRole => _webSessionRole;
+
   Uri _uri(String path) => Uri.parse('$baseUrl/$path');
+
+  Uri _webUri(String path) => Uri.parse('$baseUrl/$path');
 
   Future<http.Response> _post(Uri url, Map<String, String> headers, Object? body) async {
     try {
@@ -62,6 +74,119 @@ class ApiService {
       print('API fallback - retrying via IP: $fallbackUri');
       return await http.post(fallbackUri, headers: fallbackHeaders, body: body);
     }
+  }
+
+  Future<void> _persistWebSession(String cookie, String role) async {
+    _webSessionCookie = cookie;
+    _webSessionRole = role;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsWebCookieKey, cookie);
+    await prefs.setString(_prefsWebRoleKey, role);
+  }
+
+  Future<void> _bootstrapWebSession(
+    String role,
+    String email,
+    String password,
+  ) async {
+    final endpoint = role == 'admin' ? 'loginAdmin.php' : 'login.php';
+    final fields = role == 'admin'
+        ? {
+            'email_Admin': email,
+            'password_Admin': password,
+          }
+        : {
+            'email': email,
+            'password': password,
+          };
+
+    final client = http.Client();
+    try {
+      final request = http.Request('POST', _webUri(endpoint))
+        ..followRedirects = false
+        ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        ..bodyFields = fields;
+
+      final streamed = await client.send(request);
+      final response = await http.Response.fromStream(streamed);
+
+      final setCookie = response.headers['set-cookie'] ?? '';
+      final sessionMatch = RegExp(r'PHPSESSID=([^;]+)').firstMatch(setCookie);
+      if (sessionMatch == null) {
+        throw StateError('Web session cookie missing');
+      }
+
+      await _persistWebSession(sessionMatch.group(1)!, role);
+    } finally {
+      client.close();
+    }
+  }
+
+  String _stripHtml(String input) {
+    var text = input
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return text;
+  }
+
+  List<Map<String, dynamic>> _parseSearchRows(String html) {
+    final tableMatch = RegExp(
+      r'<table[^>]*id="vehicleTable"[^>]*>.*?<tbody>(.*?)</tbody>',
+      caseSensitive: false,
+      dotAll: true,
+    ).firstMatch(html);
+
+    if (tableMatch == null) {
+      return [];
+    }
+
+    final tbody = tableMatch.group(1) ?? '';
+    final rows = <Map<String, dynamic>>[];
+    final rowMatches = RegExp(
+      r'<tr>(.*?)</tr>',
+      caseSensitive: false,
+      dotAll: true,
+    ).allMatches(tbody);
+
+    for (final rowMatch in rowMatches) {
+      final rowHtml = rowMatch.group(1) ?? '';
+      final cellMatches = RegExp(
+        r'<td[^>]*>(.*?)</td>',
+        caseSensitive: false,
+        dotAll: true,
+      ).allMatches(rowHtml);
+
+      final cells = cellMatches
+          .map((cell) => _stripHtml(cell.group(1) ?? ''))
+          .toList();
+
+      if (cells.length < 7) {
+        continue;
+      }
+
+      final data = <String, dynamic>{
+        'status': cells[1],
+        'idnumber': cells[2],
+        'name': cells[3],
+        'phone': cells[4],
+        'platenum': cells[5].toUpperCase(),
+        'type': cells[6],
+      };
+
+      if (cells.length > 7) {
+        data['sticker'] = cells[7];
+      }
+
+      rows.add(data);
+    }
+
+    return rows;
   }
 
   /// ================= LOGIN =================
@@ -98,6 +223,11 @@ class ApiService {
         if (role == 'admin' &&
             data['success'] == 1 &&
             data['admin'] != null) {
+          try {
+            await _bootstrapWebSession(role, email, password);
+          } catch (e) {
+            print('Web session bootstrap failed: $e');
+          }
           return {
             'success': 1,
             'user': {
@@ -106,6 +236,14 @@ class ApiService {
               'email': data['admin']['email'],
             }
           };
+        }
+
+        if (role != 'admin' && data['success'] == 1 && data['user'] != null) {
+          try {
+            await _bootstrapWebSession(role, email, password);
+          } catch (e) {
+            print('Web session bootstrap failed: $e');
+          }
         }
 
         return data;
@@ -202,6 +340,41 @@ class ApiService {
     bool showAll = false,
   }) async {
     try {
+      final searchPage = webSessionRole == 'admin'
+          ? 'searchCar.php'
+          : 'searchCarUser.php';
+
+      if (webSessionCookie.isNotEmpty) {
+        final client = http.Client();
+        try {
+          final request = http.Request('POST', _webUri(searchPage))
+            ..followRedirects = false
+            ..headers['Content-Type'] = 'application/x-www-form-urlencoded'
+            ..headers['Cookie'] = 'PHPSESSID=$webSessionCookie'
+            ..bodyFields = {
+              'search': search,
+              'status': status,
+              'showAll': showAll ? 'true' : 'false',
+              'submit': '1',
+            };
+
+          final streamed = await client.send(request);
+          final response = await http.Response.fromStream(streamed);
+
+          if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+            final rows = _parseSearchRows(response.body);
+            return {
+              'success': 1,
+              'count': rows.length,
+              'data': rows,
+              'message': rows.isEmpty ? 'No vehicles found' : '',
+            };
+          }
+        } finally {
+          client.close();
+        }
+      }
+
       final response = await _post(
         _uri('search_car_user_api.php'),
         {
@@ -214,22 +387,22 @@ class ApiService {
         },
       );
 
-      if (response.statusCode == 200 &&
-          response.body.trim().isNotEmpty) {
+      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
         final jsonData = jsonDecode(response.body);
+        final data = (jsonData['data'] ?? jsonData['vehicles'] ?? []) as List;
 
         return {
           'success': jsonData['success'] ?? 0,
-          'count': jsonData['count'] ?? 0,
-          'data': jsonData['data'] ?? [], // ✅ FIXED KEY
+          'count': jsonData['count'] ?? data.length,
+          'data': data,
           'message': jsonData['message'] ?? '',
         };
-      } else {
-        return {
-          'success': 0,
-          'message': 'Server error: ${response.statusCode}'
-        };
       }
+
+      return {
+        'success': 0,
+        'message': 'Server error: ${response.statusCode}'
+      };
     } catch (e) {
       return {
         'success': 0,
