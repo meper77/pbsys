@@ -21,58 +21,53 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Deploy via SFTP (if credentials available)
-      if: secrets.HESTIA_HOST != null && secrets.HESTIA_USER != null && secrets.HESTIA_PASSWORD != null
+    - name: Deploy via SSH (if SSH key available)
+      if: secrets.HESTIA_SSH_KEY != null && secrets.HESTIA_HOST != null && secrets.HESTIA_USER != null
       run: |
-        # Install lftp for SFTP mirror
-        sudo apt-get update
-        sudo apt-get install -y lftp
+        # Setup SSH key
+        mkdir -p ~/.ssh
+        echo "${{ secrets.HESTIA_SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.HESTIA_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
         
-        # Create lftp script
-        cat > deploy.lftp << 'EOF'
-        set ssl:verify-certificate no
-        set net:timeout 10
-        set net:max-retries 2
-        open sftp://${{ secrets.HESTIA_USER }}:${{ secrets.HESTIA_PASSWORD }}@${{ secrets.HESTIA_HOST }}
-        cd public_html
-        mput admin_management_api.php
-        mput vehicle_stats_api.php
-        mput sticker_management_api.php
-        mput superadmin.php
-        mput vehicle_list_drill_down.php
-        # Set permissions
-        site chmod 644 admin_management_api.php
-        site chmod 644 vehicle_stats_api.php
-        site chmod 644 sticker_management_api.php
-        site chmod 644 superadmin.php
-        site chmod 644 vehicle_list_drill_down.php
-        bye
+        # Create SSH config
+        cat > ~/.ssh/config << 'EOF'
+        Host hestia
+          HostName ${{ secrets.HESTIA_HOST }}
+          User ${{ secrets.HESTIA_USER }}
+          IdentityFile ~/.ssh/deploy_key
+          StrictHostKeyChecking accept-new
         EOF
+        chmod 600 ~/.ssh/config
         
-        # Execute deployment
-        lftp -f deploy.lftp
-        echo "✓ Files deployed via SFTP"
+        # Upload files via SCP
+        scp -i ~/.ssh/deploy_key \
+          admin_management_api.php \
+          vehicle_stats_api.php \
+          sticker_management_api.php \
+          superadmin.php \
+          vehicle_list_drill_down.php \
+          ${{ secrets.HESTIA_USER }}@${{ secrets.HESTIA_HOST }}:~/public_html/
+        
+        # Set permissions via SSH
+        ssh -i ~/.ssh/deploy_key ${{ secrets.HESTIA_USER }}@${{ secrets.HESTIA_HOST }} \
+          "chmod 644 ~/public_html/{admin_management_api,vehicle_stats_api,sticker_management_api,superadmin,vehicle_list_drill_down}.php"
+        
+        echo "✓ Files deployed via SSH"
     
-    - name: Manual deployment notice
-      if: secrets.HESTIA_HOST == null || secrets.HESTIA_USER == null || secrets.HESTIA_PASSWORD == null
+    - name: Deployment notice
+      if: secrets.HESTIA_SSH_KEY == null || secrets.HESTIA_HOST == null || secrets.HESTIA_USER == null
       run: |
-        echo "⚠️  SFTP Credentials not configured in GitHub Secrets"
+        echo "⚠️  SSH Key not configured in GitHub Secrets"
         echo "To enable automatic deployment, add these secrets:"
-        echo "  - HESTIA_HOST"
-        echo "  - HESTIA_USER"
-        echo "  - HESTIA_PASSWORD"
+        echo "  - HESTIA_SSH_KEY (private key content)"
+        echo "  - HESTIA_HOST (neovtrack.uitm.edu.my)"
+        echo "  - HESTIA_USER (your SSH username)"
         echo ""
-        echo "Manual deployment instructions:"
-        echo "1. Download the latest code from main branch"
-        echo "2. Use Hestia File Manager or SFTP to upload:"
-        echo "   - admin_management_api.php"
-        echo "   - vehicle_stats_api.php"
-        echo "   - sticker_management_api.php"
-        echo "   - superadmin.php"
-        echo "   - vehicle_list_drill_down.php"
-        echo "3. Upload to: public_html/"
-        echo "4. Set permissions: 644"
-        echo "5. Apply database migration via phpMyAdmin"
+        echo "Setup instructions:"
+        echo "1. Generate SSH key: ssh-keygen -t rsa -b 4096 -f hestia_deploy_key -N ''"
+        echo "2. Copy private key to HESTIA_SSH_KEY secret"
+        echo "3. Add public key to ~/.ssh/authorized_keys on Hestia"
         exit 0
     
     - name: Notify deployment
