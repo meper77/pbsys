@@ -1,0 +1,82 @@
+name: Deploy to Hestia
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'admin_management_api.php'
+      - 'vehicle_stats_api.php'
+      - 'sticker_management_api.php'
+      - 'superadmin.php'
+      - 'vehicle_list_drill_down.php'
+      - 'database/migration_admin_features.sql'
+      - '.github/workflows/deploy-to-hestia.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy via SFTP (if credentials available)
+      if: secrets.HESTIA_HOST != null && secrets.HESTIA_USER != null && secrets.HESTIA_PASSWORD != null
+      run: |
+        # Install lftp for SFTP mirror
+        sudo apt-get update
+        sudo apt-get install -y lftp
+        
+        # Create lftp script
+        cat > deploy.lftp << 'EOF'
+        set ssl:verify-certificate no
+        set net:timeout 10
+        set net:max-retries 2
+        open sftp://${{ secrets.HESTIA_USER }}:${{ secrets.HESTIA_PASSWORD }}@${{ secrets.HESTIA_HOST }}
+        cd public_html
+        mput admin_management_api.php
+        mput vehicle_stats_api.php
+        mput sticker_management_api.php
+        mput superadmin.php
+        mput vehicle_list_drill_down.php
+        # Set permissions
+        site chmod 644 admin_management_api.php
+        site chmod 644 vehicle_stats_api.php
+        site chmod 644 sticker_management_api.php
+        site chmod 644 superadmin.php
+        site chmod 644 vehicle_list_drill_down.php
+        bye
+        EOF
+        
+        # Execute deployment
+        lftp -f deploy.lftp
+        echo "✓ Files deployed via SFTP"
+    
+    - name: Manual deployment notice
+      if: secrets.HESTIA_HOST == null || secrets.HESTIA_USER == null || secrets.HESTIA_PASSWORD == null
+      run: |
+        echo "⚠️  SFTP Credentials not configured in GitHub Secrets"
+        echo "To enable automatic deployment, add these secrets:"
+        echo "  - HESTIA_HOST"
+        echo "  - HESTIA_USER"
+        echo "  - HESTIA_PASSWORD"
+        echo ""
+        echo "Manual deployment instructions:"
+        echo "1. Download the latest code from main branch"
+        echo "2. Use Hestia File Manager or SFTP to upload:"
+        echo "   - admin_management_api.php"
+        echo "   - vehicle_stats_api.php"
+        echo "   - sticker_management_api.php"
+        echo "   - superadmin.php"
+        echo "   - vehicle_list_drill_down.php"
+        echo "3. Upload to: public_html/"
+        echo "4. Set permissions: 644"
+        echo "5. Apply database migration via phpMyAdmin"
+        exit 0
+    
+    - name: Notify deployment
+      if: success()
+      run: |
+        echo "✓ Deployment completed successfully"
+        echo "Access deployed files at: https://${{ secrets.HESTIA_HOST }}/[filename]"
