@@ -371,34 +371,44 @@ while ($row = mysqli_fetch_assoc($users_query)) {
                 <!-- Statistics Section -->
                 <div class="row mb-4">
                     <div class="col-md-2">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <p><i class="fas fa-car me-2"></i><?php echo $t['total_vehicles']; ?></p>
-                            <h3><?php echo $total_count; ?></h3>
-                        </div>
+                        <a href="vehicle_list_drill_down.php?type=staff" style="text-decoration: none; color: inherit;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;">
+                                <p><i class="fas fa-car me-2"></i><?php echo $t['total_vehicles']; ?></p>
+                                <h3><?php echo $total_count; ?></h3>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <a href="vehicle_list_drill_down.php?type=staff" style="text-decoration: none; color: inherit;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor: pointer;">
                             <p><i class="fas fa-briefcase me-2"></i><?php echo $t['staff_vehicles']; ?></p>
                             <h3><?php echo $staff_count; ?></h3>
                         </div>
+                        </a>
                     </div>
                     <div class="col-md-2">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <p><i class="fas fa-book me-2"></i><?php echo $t['student_vehicles']; ?></p>
-                            <h3><?php echo $student_count; ?></h3>
-                        </div>
+                        <a href="vehicle_list_drill_down.php?type=student" style="text-decoration: none; color: inherit;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); cursor: pointer;">
+                                <p><i class="fas fa-book me-2"></i><?php echo $t['student_vehicles']; ?></p>
+                                <h3><?php echo $student_count; ?></h3>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                            <p><i class="fas fa-user-tie me-2"></i><?php echo $t['visitor_vehicles']; ?></p>
-                            <h3><?php echo $visitor_count; ?></h3>
-                        </div>
+                        <a href="vehicle_list_drill_down.php?type=visitor" style="text-decoration: none; color: inherit;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); cursor: pointer;">
+                                <p><i class="fas fa-user-tie me-2"></i><?php echo $t['visitor_vehicles']; ?></p>
+                                <h3><?php echo $visitor_count; ?></h3>
+                            </div>
+                        </a>
                     </div>
                     <div class="col-md-2">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                            <p><i class="fas fa-building me-2"></i><?php echo $t['contractor_vehicles']; ?></p>
-                            <h3><?php echo $contractor_count; ?></h3>
-                        </div>
+                        <a href="vehicle_list_drill_down.php?type=contractor" style="text-decoration: none; color: inherit;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); cursor: pointer;">
+                                <p><i class="fas fa-building me-2"></i><?php echo $t['contractor_vehicles']; ?></p>
+                                <h3><?php echo $contractor_count; ?></h3>
+                            </div>
+                        </a>
                     </div>
                 </div>
 
