@@ -90,4 +90,4 @@ Git tag `pre-reorg-2026-05-14` captures the codebase state immediately before th
 
 ## License
 
-Internal UiTM project — not licensed for external use.
+Proprietary — Copyright © 2026 meper77. Internal UiTM project; not licensed for external use. See [LICENSE.md](LICENSE.md) for full terms.
