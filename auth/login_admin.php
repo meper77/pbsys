@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($result && mysqli_num_rows($result) > 0) {
         $_SESSION['email_Admin'] = $email;
-        header("Location: index.php");
+        header("Location: /index.php");
         $_SESSION['user_type'] = 'admin';
 
 // Track session

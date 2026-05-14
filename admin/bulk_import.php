@@ -660,7 +660,7 @@ if (isset($_GET['download_template'])) {
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php">
+                    <a class="nav-link" href="/index.php">
                         <i class="fas fa-home me-1"></i><?php echo $t['nav_dashboard']; ?>
                     </a>
                 </li>
@@ -816,7 +816,7 @@ if (isset($_GET['download_template'])) {
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-upload me-2"></i><?php echo $t['upload']; ?>
                 </button>
-                <a href="index.php" class="btn btn-danger">
+                <a href="/index.php" class="btn btn-danger">
                     <i class="fas fa-arrow-left me-2"></i><?php echo $t['back']; ?>
                 </a>
             </div>

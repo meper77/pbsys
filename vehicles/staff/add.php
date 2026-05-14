@@ -645,7 +645,7 @@ if (isset($_POST['submit'])) {
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php">
+                    <a class="nav-link" href="/index.php">
                         <i class="fas fa-home me-1"></i><?php echo $t['nav_dashboard']; ?>
                     </a>
                 </li>

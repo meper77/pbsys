@@ -7,7 +7,7 @@
 		</button>
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="nav navbar-nav menus">
-				<li class="nav-item"><a class="nav-link fw-bold" href="index.php" id="index_menu">ANJUNG</a></li>
+				<li class="nav-item"><a class="nav-link fw-bold" href="/index.php" id="index_menu">ANJUNG</a></li>
 				<li class="nav-item"><a class="nav-link fw-bold" href="/search/car_admin.php" id="searchCar_menu">CARIAN KENDERAAN</a></li>
 				<li class="nav-item"><a class="nav-link fw-bold" href="/vehicles/staff/list.php" id="staffcar_menu">STAF</a></li>
 				<li class="nav-item"><a class="nav-link fw-bold" href="/vehicles/student/list.php" id="studentcar_menu">PELAJAR</a></li>

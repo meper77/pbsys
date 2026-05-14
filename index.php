@@ -833,7 +833,7 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="index.php">
+                    <a class="nav-link active" href="/index.php">
                         <i class="fas fa-home me-1"></i><?php echo $t['nav_dashboard']; ?>
                     </a>
                 </li>
