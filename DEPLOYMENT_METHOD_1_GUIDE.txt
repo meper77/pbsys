@@ -1,0 +1,351 @@
+================================================================================
+         DEPLOYMENT METHOD 1: GITHUB ACTIONS (AUTOMATED)
+================================================================================
+
+You chose Method 1 (GitHub Actions - Automated Deployment)
+
+This guide shows how to complete the setup and deploy your admin features
+to the Hestia server automatically.
+
+================================================================================
+                        WHAT YOU NEED
+================================================================================
+
+Before proceeding, have these items ready:
+
+1. Hestia SFTP Credentials:
+   - SFTP Username (your Hestia account username)
+   - SFTP Password (your Hestia account password)
+   - SFTP Host: neovtrack.uitm.edu.my (already configured)
+
+2. GitHub Access:
+   - You must have write access to the repository
+   - Your GitHub account must be able to add secrets
+
+3. Knowledge:
+   - Basic GitHub navigation
+   - Where to find your Hestia credentials
+
+================================================================================
+                     SETUP IN 4 STEPS
+================================================================================
+
+STEP 1: GATHER YOUR CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You need your Hestia SFTP credentials. Find them here:
+
+1. Log into your Hestia Control Panel: https://hestia.uitm.edu.my:8083
+2. Go to: SSH Access (or Account Settings)
+3. Look for:
+   - Username: (Usually your domain prefix or account name)
+   - This is what you need to enter as HESTIA_USER
+
+If you don't know your credentials:
+- Contact your hosting provider or Hestia admin
+- Check your hosting account welcome email
+- Try "Username & Password Login.txt" file in repository root
+
+Example credentials (DO NOT USE - this is just format):
+  HESTIA_USER: youraccountname
+  HESTIA_PASSWORD: your_secure_password
+
+STEP 2: GO TO GITHUB SECRETS SETTINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Open in web browser:
+   https://github.com/meper77/pbsys
+
+2. Click "Settings" button (top right menu)
+
+3. In left sidebar, look for "Secrets and variables"
+
+4. Click "Secrets and variables" → "Actions"
+
+5. You should now see:
+   - "Repository secrets" section
+   - "New repository secret" button
+
+STEP 3: ADD THREE SECRETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You need to add 3 secrets. Repeat this process 3 times:
+
+SECRET 1 (Already Configured):
+  Name: HESTIA_HOST
+  Value: neovtrack.uitm.edu.my
+  ✓ Already in repository, just verify it exists
+
+SECRET 2 (Your SFTP Username):
+  1. Click "New repository secret" button
+  2. In "Name" field, enter: HESTIA_USER
+  3. In "Value" field, enter: [Your SFTP username]
+  4. Click "Add secret" button
+  
+  Example:
+  Name: HESTIA_USER
+  Value: neo_track_admin
+
+SECRET 3 (Your SFTP Password):
+  1. Click "New repository secret" button
+  2. In "Name" field, enter: HESTIA_PASSWORD
+  3. In "Value" field, enter: [Your SFTP password]
+  4. Click "Add secret" button
+  
+  WARNING: This will be hidden in logs for security. Don't worry.
+  GitHub automatically masks passwords in all displays.
+
+VERIFY ALL SECRETS ADDED:
+  After adding, you should see 3 secrets listed:
+  - HESTIA_HOST (with value hidden)
+  - HESTIA_USER (with value hidden)
+  - HESTIA_PASSWORD (with value hidden)
+
+STEP 4: TRIGGER DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Now deployment is ready! You can trigger it in two ways:
+
+OPTION A: Automatic (Recommended)
+  Any push to main branch will trigger deployment automatically.
+  The workflow is already configured to deploy on:
+  - Pushes to main branch that modify PHP or SQL files
+  - Manual workflow dispatch from Actions tab
+
+OPTION B: Manual Trigger
+  To manually trigger deployment without pushing code:
+  1. Go to: https://github.com/meper77/pbsys
+  2. Click "Actions" tab (top navigation)
+  3. Click "Deploy to Hestia" workflow (left sidebar)
+  4. Click "Run workflow" dropdown
+  5. Keep branch as "main"
+  6. Click "Run workflow" button
+  7. Workflow runs immediately
+
+================================================================================
+                    MONITOR DEPLOYMENT
+================================================================================
+
+After triggering deployment, monitor progress here:
+
+1. Go to: https://github.com/meper77/pbsys/actions
+2. Look for "Deploy to Hestia" workflow
+3. Latest run should be at the top
+4. Click to see details:
+   - Green checkmark = Success
+   - Red X = Failed
+   - Yellow dot = In progress
+
+WATCH DEPLOYMENT PROGRESS:
+  Click the workflow run to see:
+  - Real-time SFTP connection
+  - File upload progress
+  - Permission settings
+  - Success/failure messages
+
+TYPICAL DEPLOYMENT TIME:
+  - Connection: 5-10 seconds
+  - File uploads: 10-30 seconds
+  - Permission setting: 5-10 seconds
+  - Total: 20-50 seconds
+
+================================================================================
+                     AFTER DEPLOYMENT
+================================================================================
+
+GitHub Actions handles uploading PHP files automatically.
+
+However, you must MANUALLY apply the database migration:
+
+1. Log into Hestia Control Panel: https://hestia.uitm.edu.my:8083
+
+2. Navigate to: Databases → neovtrack_db → phpMyAdmin
+
+3. In phpMyAdmin:
+   - Click "SQL" tab (top menu)
+   - Look for empty SQL editor
+
+4. Open the migration file:
+   - File: database/migration_admin_features.sql
+   - In your local repository or GitHub
+
+5. Copy entire contents of migration file
+
+6. Paste into phpMyAdmin SQL editor
+
+7. Click "Go" or "Execute" button
+
+8. You should see "Query OK" messages confirming success
+
+DATABASE VERIFICATION:
+  After migration, verify in phpMyAdmin:
+  - staffcar table has: created_at, updated_at, sticker_status columns
+  - studentcar table has: created_at, updated_at, sticker_status columns
+  - visitorcar table exists (new table)
+  - contractorcar table exists (new table)
+  - admin_users table exists (new table)
+  - admin_action_logs table exists (new table)
+
+TEST THE DEPLOYMENT:
+
+1. Access the superadmin dashboard:
+   https://neovtrack.uitm.edu.my/superadmin.php
+   (Note: You must be logged in as admin first)
+
+2. Verify features:
+   ✓ Statistics display with counts
+   ✓ Statistics cards are clickable
+   ✓ Clicking shows filtered vehicle records
+   ✓ Records display with timestamps
+   ✓ Sticker status badges are visible
+   ✓ Admin management forms work
+   ✓ Bilingual UI works (Malay/English toggle)
+
+3. Test API endpoints:
+   curl -X GET "https://neovtrack.uitm.edu.my/admin_management_api.php?action=list_admins" \
+     -H "Cookie: email_Admin=admin@example.com"
+
+================================================================================
+                   TROUBLESHOOTING
+================================================================================
+
+ISSUE 1: Workflow didn't run
+  Solution:
+  - Verify secrets are added correctly (check spelling)
+  - Make sure you're pushing to "main" branch (not develop)
+  - Try manual trigger from Actions tab
+  - Check if PHP/SQL files were modified in commit
+
+ISSUE 2: Workflow failed - "SFTP Connection Failed"
+  Solution:
+  - Verify HESTIA_USER and HESTIA_PASSWORD are correct
+  - Test credentials manually using an SFTP client
+  - Ensure SFTP is enabled on your Hestia account
+  - Check that public_html directory exists
+  - Verify account has write permissions
+
+ISSUE 3: Files uploaded but not working (404 error)
+  Solution:
+  - Check that files are in public_html directory
+  - Verify file names: (no .bak or extra extensions)
+  - Check file permissions are 644 (workflow sets this)
+  - Clear browser cache and retry
+  - Check if virtual host DocumentRoot is correct
+
+ISSUE 4: Database migration failed
+  Solution:
+  - You must apply manually - workflow doesn't handle this
+  - Check migration file syntax in phpMyAdmin
+  - Verify you're in correct database (neovtrack_db)
+  - Check for existing tables (migrations are idempotent - safe to rerun)
+  - Look for error messages in phpMyAdmin
+
+ISSUE 5: API returns "403 Forbidden"
+  Solution:
+  - Ensure you're logged in as admin (check session)
+  - Verify userid <= 10 (superadmin requirement)
+  - Check browser console for errors
+  - Try different admin account
+
+VIEW DETAILED LOGS:
+  1. Go to: https://github.com/meper77/pbsys/actions
+  2. Click on the failed workflow run
+  3. Click "Deploy via SFTP" step
+  4. View complete SFTP logs
+  5. Look for error messages
+
+================================================================================
+                      ONGOING USAGE
+================================================================================
+
+Once deployed and working:
+
+AUTOMATIC DEPLOYMENTS:
+  - Every push to main branch triggers deployment
+  - Files upload automatically
+  - Monitor at: https://github.com/meper77/pbsys/actions
+  - No manual uploads needed
+
+MANUAL DEPLOYMENTS:
+  - Use Actions tab to trigger manually anytime
+  - Same process as automatic
+  - Good for hotfixes or testing
+
+FUTURE CHANGES:
+  1. Make code changes
+  2. Commit and push to main branch
+  3. GitHub Actions automatically deploys
+  4. Monitor on Actions tab
+  5. Changes live in ~1 minute
+
+MANUAL ALTERNATIVE:
+  If GitHub Actions has issues, fall back to manual methods:
+  - See DEPLOYMENT_CHECKLIST.md for manual options
+  - Can use Hestia File Manager for manual uploads
+  - Can use SFTP client (WinSCP, FileZilla)
+
+================================================================================
+                    REFERENCE & DOCUMENTATION
+================================================================================
+
+Related Files:
+  - GITHUB_ACTIONS_SETUP.md - Detailed setup guide
+  - DEPLOYMENT_CHECKLIST.md - All deployment methods
+  - ADMIN_FEATURES_DEPLOYMENT.txt - Features overview
+  - DEPLOYMENT_COMPLETE.txt - Executive summary
+  - .github/workflows/deploy-to-hestia.yml - Workflow configuration
+
+GitHub Actions Docs:
+  - Secrets: https://docs.github.com/en/actions/security-guides/encrypted-secrets
+  - Workflows: https://docs.github.com/en/actions/learn-github-actions
+  - Troubleshooting: https://docs.github.com/en/actions/troubleshooting
+
+Repository:
+  - URL: https://github.com/meper77/pbsys
+  - Branch: main
+  - Actions: https://github.com/meper77/pbsys/actions
+  - Secrets: https://github.com/meper77/pbsys/settings/secrets/actions
+
+================================================================================
+                          QUICK CHECKLIST
+================================================================================
+
+Before pushing code:
+  ☐ Gathered Hestia SFTP credentials
+  ☐ Added HESTIA_USER secret to GitHub
+  ☐ Added HESTIA_PASSWORD secret to GitHub
+  ☐ Verified 3 secrets show in GitHub Secrets settings
+
+After workflow runs:
+  ☐ Workflow completed successfully (green checkmark)
+  ☐ Files uploaded to public_html (check Actions logs)
+  ☐ Applied database migration via phpMyAdmin
+  ☐ Verified new tables exist in database
+  ☐ Tested superadmin dashboard access
+  ☐ Verified statistics display correctly
+
+Production Deployment Complete:
+  ☐ All features working
+  ☐ Dashboard accessible
+  ☐ API endpoints responding
+  ☐ Database migration applied
+  ☐ File permissions correct (644)
+
+================================================================================
+                         YOU'RE ALL SET!
+================================================================================
+
+Your deployment is ready to go! 
+
+Next action: Gather your Hestia SFTP credentials and add them to GitHub
+            Secrets as described in STEP 3 above.
+
+Once secrets are added, deployment will trigger automatically on next push.
+
+Happy deploying! 🚀
+
+================================================================================
+Generated: 2026-05-14
+Updated: 2026-05-14 08:47 UTC+8
+For support: See DEPLOYMENT_CHECKLIST.md or GITHUB_ACTIONS_SETUP.md
+================================================================================
