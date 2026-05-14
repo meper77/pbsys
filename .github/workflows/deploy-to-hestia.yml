@@ -13,76 +13,56 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    env:
-      HESTIA_HOST: ${{ secrets.HESTIA_HOST }}
-      HESTIA_USER: ${{ secrets.HESTIA_USER }}
-      HESTIA_SSH_KEY: ${{ secrets.HESTIA_SSH_KEY }}
-      HESTIA_PATH: ${{ secrets.HESTIA_PATH }}
+    # Self-hosted runner on UiTM intranet (cloud runners can't reach 10.0.26.208).
+    runs-on: [self-hosted, Windows, hestia-lan]
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Guard — required secrets configured
+      - name: Show runner / tools
         run: |
-          missing=0
-          for v in HESTIA_HOST HESTIA_USER HESTIA_SSH_KEY; do
-            if [ -z "${!v}" ]; then
-              echo "::error::Missing secret: $v"
-              missing=1
-            fi
-          done
-          if [ $missing -eq 1 ]; then
-            echo "Configure secrets at: https://github.com/${{ github.repository }}/settings/secrets/actions"
-            exit 1
-          fi
-          echo "All required secrets present."
+          echo "Runner: $RUNNER_NAME on $RUNNER_OS"
+          rclone --version | head -1
+          ssh -V
 
-      - name: Install lftp
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
-
-      - name: Setup SSH key
+      - name: Probe SFTP connectivity
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "$HESTIA_SSH_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$HESTIA_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          rclone lsd hestia: --sftp-disable-hashcheck >/dev/null
+          echo "✓ SFTP reachable"
 
-      - name: Deploy via lftp (SFTP mirror)
+      - name: Sync to Hestia (rclone SFTP)
         run: |
-          REMOTE_PATH="${HESTIA_PATH:-web/neovtrack.uitm.edu.my/public_html}"
-          echo "Mirroring to sftp://${HESTIA_USER}@${HESTIA_HOST}/${REMOTE_PATH}"
-          lftp -c "
-            set sftp:connect-program 'ssh -a -x -i $HOME/.ssh/deploy_key -o StrictHostKeyChecking=accept-new';
-            set sftp:auto-confirm yes;
-            set net:max-retries 2;
-            set net:timeout 30;
-            open -u ${HESTIA_USER}, sftp://${HESTIA_HOST};
-            mirror -R --delete --verbose --parallel=4 \
-              --exclude-glob .git/ \
-              --exclude-glob .github/ \
-              --exclude-glob .claude/ \
-              --exclude-glob .gitignore \
-              --exclude-glob pbsystem_app/ \
-              --exclude-glob '*.md' \
-              --exclude-glob '*.txt' \
-              --exclude-glob '*.zip' \
-              --exclude-glob '*.ps1' \
-              --exclude-glob '*.sh' \
-              --exclude-glob '*.cmd' \
-              --exclude-glob debug.log \
-              --exclude-glob 'Username*' \
-              --exclude-glob 'test_*.php' \
-              --exclude-glob test.php \
-              --exclude-glob deploy_package/ \
-              ./ ${REMOTE_PATH}/;
-            bye
-          "
+          REMOTE="hestia:web/neovtrack.uitm.edu.my/public_html"
+          echo "Syncing repo -> $REMOTE"
+          rclone sync ./ "$REMOTE" \
+            --sftp-disable-hashcheck \
+            --transfers 8 \
+            --checkers 8 \
+            --stats=10s --stats-one-line \
+            --exclude '.git/**' \
+            --exclude '.github/**' \
+            --exclude '.claude/**' \
+            --exclude '.gitignore' \
+            --exclude 'pbsystem_app/**' \
+            --exclude '*.md' \
+            --exclude '*.txt' \
+            --exclude '*.zip' \
+            --exclude '*.ps1' \
+            --exclude '*.sh' \
+            --exclude '*.cmd' \
+            --exclude 'debug.log' \
+            --exclude 'Username*' \
+            --exclude 'test_*.php' \
+            --exclude 'test.php' \
+            --exclude 'deploy_package/**' \
+            --exclude 'runner-setup/**'
 
-      - name: Deployment summary
+      - name: Summary
         if: success()
         run: |
-          echo "✓ Deployed commit ${{ github.sha }}"
-          echo "✓ Live at https://${HESTIA_HOST}/"
+          echo "✓ Deployed commit ${GITHUB_SHA::7}"
+          echo "✓ Live at https://neovtrack.uitm.edu.my/"
