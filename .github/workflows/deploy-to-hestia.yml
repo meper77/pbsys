@@ -3,75 +3,86 @@ name: Deploy to Hestia
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'admin_management_api.php'
-      - 'vehicle_stats_api.php'
-      - 'sticker_management_api.php'
-      - 'superadmin.php'
-      - 'vehicle_list_drill_down.php'
-      - 'database/migration_admin_features.sql'
-      - '.github/workflows/deploy-to-hestia.yml'
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '.github/workflows/build-apk.yml'
+      - 'pbsystem_app/**'
+      - '.gitignore'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    env:
+      HESTIA_HOST: ${{ secrets.HESTIA_HOST }}
+      HESTIA_USER: ${{ secrets.HESTIA_USER }}
+      HESTIA_SSH_KEY: ${{ secrets.HESTIA_SSH_KEY }}
+      HESTIA_PATH: ${{ secrets.HESTIA_PATH }}
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Deploy via SSH (if SSH key available)
-      if: secrets.HESTIA_SSH_KEY != null && secrets.HESTIA_HOST != null && secrets.HESTIA_USER != null
-      run: |
-        # Setup SSH key
-        mkdir -p ~/.ssh
-        echo "${{ secrets.HESTIA_SSH_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
-        ssh-keyscan -H ${{ secrets.HESTIA_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-        
-        # Create SSH config
-        cat > ~/.ssh/config << 'EOF'
-        Host hestia
-          HostName ${{ secrets.HESTIA_HOST }}
-          User ${{ secrets.HESTIA_USER }}
-          IdentityFile ~/.ssh/deploy_key
-          StrictHostKeyChecking accept-new
-        EOF
-        chmod 600 ~/.ssh/config
-        
-        # Upload files via SCP
-        scp -i ~/.ssh/deploy_key \
-          admin_management_api.php \
-          vehicle_stats_api.php \
-          sticker_management_api.php \
-          superadmin.php \
-          vehicle_list_drill_down.php \
-          ${{ secrets.HESTIA_USER }}@${{ secrets.HESTIA_HOST }}:~/public_html/
-        
-        # Set permissions via SSH
-        ssh -i ~/.ssh/deploy_key ${{ secrets.HESTIA_USER }}@${{ secrets.HESTIA_HOST }} \
-          "chmod 644 ~/public_html/{admin_management_api,vehicle_stats_api,sticker_management_api,superadmin,vehicle_list_drill_down}.php"
-        
-        echo "✓ Files deployed via SSH"
-    
-    - name: Deployment notice
-      if: secrets.HESTIA_SSH_KEY == null || secrets.HESTIA_HOST == null || secrets.HESTIA_USER == null
-      run: |
-        echo "⚠️  SSH Key not configured in GitHub Secrets"
-        echo "To enable automatic deployment, add these secrets:"
-        echo "  - HESTIA_SSH_KEY (private key content)"
-        echo "  - HESTIA_HOST (neovtrack.uitm.edu.my)"
-        echo "  - HESTIA_USER (your SSH username)"
-        echo ""
-        echo "Setup instructions:"
-        echo "1. Generate SSH key: ssh-keygen -t rsa -b 4096 -f hestia_deploy_key -N ''"
-        echo "2. Copy private key to HESTIA_SSH_KEY secret"
-        echo "3. Add public key to ~/.ssh/authorized_keys on Hestia"
-        exit 0
-    
-    - name: Notify deployment
-      if: success()
-      run: |
-        echo "✓ Deployment completed successfully"
-        echo "Access deployed files at: https://${{ secrets.HESTIA_HOST }}/[filename]"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Guard — required secrets configured
+        run: |
+          missing=0
+          for v in HESTIA_HOST HESTIA_USER HESTIA_SSH_KEY; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Missing secret: $v"
+              missing=1
+            fi
+          done
+          if [ $missing -eq 1 ]; then
+            echo "Configure secrets at: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+          echo "All required secrets present."
+
+      - name: Install lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$HESTIA_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$HESTIA_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy via lftp (SFTP mirror)
+        run: |
+          REMOTE_PATH="${HESTIA_PATH:-web/neovtrack.uitm.edu.my/public_html}"
+          echo "Mirroring to sftp://${HESTIA_USER}@${HESTIA_HOST}/${REMOTE_PATH}"
+          lftp -c "
+            set sftp:connect-program 'ssh -a -x -i $HOME/.ssh/deploy_key -o StrictHostKeyChecking=accept-new';
+            set sftp:auto-confirm yes;
+            set net:max-retries 2;
+            set net:timeout 30;
+            open sftp://${HESTIA_USER}@${HESTIA_HOST};
+            mirror -R --delete --verbose --parallel=4 \
+              --exclude-glob .git/ \
+              --exclude-glob .github/ \
+              --exclude-glob .claude/ \
+              --exclude-glob .gitignore \
+              --exclude-glob pbsystem_app/ \
+              --exclude-glob '*.md' \
+              --exclude-glob '*.txt' \
+              --exclude-glob '*.zip' \
+              --exclude-glob '*.ps1' \
+              --exclude-glob '*.sh' \
+              --exclude-glob '*.cmd' \
+              --exclude-glob debug.log \
+              --exclude-glob 'Username*' \
+              --exclude-glob 'test_*.php' \
+              --exclude-glob test.php \
+              --exclude-glob deploy_package/ \
+              ./ ${REMOTE_PATH}/;
+            bye
+          "
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "✓ Deployed commit ${{ github.sha }}"
+          echo "✓ Live at https://${HESTIA_HOST}/"

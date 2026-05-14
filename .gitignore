@@ -1,0 +1,26 @@
+# Claude Code
+.claude/
+
+# Local secrets / keys
+*.pem
+*.key
+hestia_deploy_key*
+id_rsa*
+
+# Deploy artefacts
+*.zip
+deploy_package/
+search_api_deploy.zip
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+debug.log
+
+# Local credentials reminder
+Username & Password Login.txt
