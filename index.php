@@ -4,16 +4,16 @@ session_start();
 // ========== LOGOUT HANDLER ==========
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: roleSelection.php');
+    header('Location: /auth/role_selection.php');
     exit();
 }
 // ========== END LOGOUT HANDLER ==========
 
-include('inc/header.php');
-include 'connect.php';
+include($_SERVER['DOCUMENT_ROOT'].'/includes/header.php');
+include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 
 if (!isset($_SESSION['email_Admin'])) {
-    header('location:loginAdmin.php');
+    header('location:/auth/login_admin.php');
     exit();
 }
 
@@ -815,10 +815,10 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
     <div class="container">
         <div class="logo-container">
             <!-- UITM Logo -->
-            <img src="inc/images/uitm.png" alt="UITM Logo" class="uitm-logo">
+            <img src="/assets/images/uitm.png" alt="UITM Logo" class="uitm-logo">
             
             <!-- NEO V-TRACK Logo -->
-            <img src="inc/images/kik2.png" alt="NEO V-TRACK Logo" class="neo-logo">
+            <img src="/assets/images/kik2.png" alt="NEO V-TRACK Logo" class="neo-logo">
             
             <div class="system-title">
                 <h1><i class="fas fa-tachometer-alt"></i> <?php echo $t['dashboard_title']; ?></h1>
@@ -838,42 +838,42 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="searchCar.php">
+                    <a class="nav-link" href="/search/car_admin.php">
                         <i class="fas fa-search me-1"></i><?php echo $t['nav_search']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="staffcar.php">
+                    <a class="nav-link" href="/vehicles/staff/list.php">
                         <i class="fas fa-user-tie me-1"></i><?php echo $t['nav_staff']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="studentcar.php">
+                    <a class="nav-link" href="/vehicles/student/list.php">
                         <i class="fas fa-user-graduate me-1"></i><?php echo $t['nav_student']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="Visitorcar.php">
+                    <a class="nav-link" href="/vehicles/visitor/list.php">
                         <i class="fas fa-user-clock me-1"></i><?php echo $t['nav_visitor']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="contractorcar.php">
+                    <a class="nav-link" href="/vehicles/contractor/list.php">
                         <i class="fas fa-hard-hat me-1"></i><?php echo $t['nav_contractor']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="user.php">
+                    <a class="nav-link" href="/admin/users.php">
                         <i class="fas fa-users-cog me-1"></i><?php echo $t['nav_user_mgmt']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="admin.php">
+                    <a class="nav-link" href="/admin/dashboard.php">
                         <i class="fas fa-user-shield me-1"></i><?php echo $t['nav_admin']; ?>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="bulk_import.php">
+                    <a class="nav-link" href="/admin/bulk_import.php">
                         <i class="fas fa-file-import me-1"></i>Import Kenderaan
                     </a>
                 </li>

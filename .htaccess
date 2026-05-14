@@ -1,0 +1,88 @@
+# pbsys — Apache config
+# - Legacy URL rewrites: keep old endpoints (Android APKs, bookmarks) working after the
+#   reorg. Each rule is an INTERNAL rewrite (not a redirect), so the URL bar is unchanged.
+# - Block direct access to includes/, vendor/, database/, uploads/ where appropriate.
+
+Options -Indexes
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ---------- Legacy auth ----------
+  RewriteRule ^login\.php$                    auth/login.php                    [L]
+  RewriteRule ^loginAdmin\.php$               auth/login_admin.php              [L]
+  RewriteRule ^register\.php$                 auth/register.php                 [L]
+  RewriteRule ^forgotPassword\.php$           auth/forgot_password.php          [L]
+  RewriteRule ^forgotPasswordAdmin\.php$      auth/forgot_password_admin.php    [L]
+  RewriteRule ^roleSelection\.php$            auth/role_selection.php           [L]
+  RewriteRule ^action\.php$                   auth/action.php                   [L]
+
+  # ---------- Legacy admin ----------
+  RewriteRule ^admin\.php$                    admin/dashboard.php               [L]
+  RewriteRule ^superadmin\.php$               admin/superadmin.php              [L]
+  RewriteRule ^addAdmin\.php$                 admin/add_admin.php               [L]
+  RewriteRule ^updateAdmin\.php$              admin/update_admin.php            [L]
+  RewriteRule ^deleteAdmin\.php$              admin/delete_admin.php            [L]
+  RewriteRule ^actionAdmin\.php$              admin/action_admin.php            [L]
+  RewriteRule ^user\.php$                     admin/users.php                   [L]
+  RewriteRule ^addUser\.php$                  admin/add_user.php                [L]
+  RewriteRule ^updateUser\.php$               admin/update_user.php             [L]
+  RewriteRule ^deleteUser\.php$               admin/delete_user.php             [L]
+  RewriteRule ^indexUser\.php$                admin/index_user.php              [L]
+  RewriteRule ^bulk_import\.php$              admin/bulk_import.php             [L]
+  RewriteRule ^vehicle_list_drill_down\.php$  admin/vehicle_list.php            [L]
+  RewriteRule ^print\.php$                    admin/print.php                   [L]
+
+  # ---------- Legacy vehicles ----------
+  RewriteRule ^Visitorcar\.php$               vehicles/visitor/list.php         [L]
+  RewriteRule ^addVisitorcar\.php$            vehicles/visitor/add.php          [L]
+  RewriteRule ^updateVisitorcar\.php$         vehicles/visitor/update.php       [L]
+  RewriteRule ^deleteVisitorcar\.php$         vehicles/visitor/delete.php      [L]
+  RewriteRule ^viewVisitorcar\.php$           vehicles/visitor/view.php         [L]
+  RewriteRule ^staffcar\.php$                 vehicles/staff/list.php           [L]
+  RewriteRule ^addStaffcar\.php$              vehicles/staff/add.php            [L]
+  RewriteRule ^updateStaffcar\.php$           vehicles/staff/update.php         [L]
+  RewriteRule ^deleteStaffcar\.php$           vehicles/staff/delete.php         [L]
+  RewriteRule ^viewStaffcar\.php$             vehicles/staff/view.php           [L]
+  RewriteRule ^studentcar\.php$               vehicles/student/list.php         [L]
+  RewriteRule ^addStudentcar\.php$            vehicles/student/add.php          [L]
+  RewriteRule ^updateStudentcar\.php$         vehicles/student/update.php       [L]
+  RewriteRule ^deleteStudentcar\.php$         vehicles/student/delete.php       [L]
+  RewriteRule ^viewStudentcar\.php$           vehicles/student/view.php         [L]
+  RewriteRule ^contractorcar\.php$            vehicles/contractor/list.php      [L]
+  RewriteRule ^addContractcar\.php$           vehicles/contractor/add.php       [L]
+  RewriteRule ^updateContractcar\.php$        vehicles/contractor/update.php    [L]
+  RewriteRule ^deleteContractcar\.php$        vehicles/contractor/delete.php    [L]
+  RewriteRule ^viewContractcar\.php$          vehicles/contractor/view.php      [L]
+
+  # ---------- Legacy search ----------
+  RewriteRule ^searchCar\.php$                search/car_admin.php              [L]
+  RewriteRule ^searchCarUser\.php$            search/car_user.php               [L]
+
+  # ---------- Legacy APIs (Android app hits these) ----------
+  RewriteRule ^login_api\.php$                api/login_api.php                 [L]
+  RewriteRule ^login_admin_api\.php$          api/login_admin_api.php           [L]
+  RewriteRule ^login_user_api\.php$           api/login_user_api.php            [L]
+  RewriteRule ^register_user_api\.php$        api/register_user_api.php         [L]
+  RewriteRule ^forgot_password_api\.php$      api/forgot_password_api.php       [L]
+  RewriteRule ^search_api\.php$               api/search_api.php                [L]
+  RewriteRule ^search_car_user_api\.php$      api/search_car_user_api.php       [L]
+  RewriteRule ^search_staff_api\.php$         api/search_staff_api.php          [L]
+  RewriteRule ^search_students_api\.php$      api/search_students_api.php       [L]
+  RewriteRule ^search_visitors_api\.php$      api/search_visitors_api.php       [L]
+  RewriteRule ^search_contractors_api\.php$   api/search_contractors_api.php    [L]
+  RewriteRule ^report_vehicle_api\.php$       api/report_vehicle_api.php        [L]
+  RewriteRule ^vehicle_stats_api\.php$        api/vehicle_stats_api.php         [L]
+  RewriteRule ^sticker_management_api\.php$   api/sticker_management_api.php    [L]
+  RewriteRule ^admin_management_api\.php$     api/admin_management_api.php      [L]
+
+  # ---------- Legacy includes (defensive — shouldn't be hit, but include for safety) ----------
+  RewriteRule ^connect\.php$                  - [F,L]
+  RewriteRule ^db_connect\.php$               - [F,L]
+</IfModule>
+
+# Deny direct browsing of sensitive file types.
+<FilesMatch "\.(sql|md|log|sh|ps1|cmd|env)$">
+  Require all denied
+</FilesMatch>
