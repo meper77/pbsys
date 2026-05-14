@@ -17,7 +17,7 @@ jobs:
     runs-on: [self-hosted, Windows, hestia-lan]
     defaults:
       run:
-        shell: bash
+        shell: pwsh
 
     steps:
       - name: Checkout code
@@ -25,44 +25,47 @@ jobs:
 
       - name: Show runner / tools
         run: |
-          echo "Runner: $RUNNER_NAME on $RUNNER_OS"
-          rclone --version | head -1
+          Write-Host "Runner: $env:RUNNER_NAME on $env:RUNNER_OS"
+          rclone --version | Select-Object -First 1
           ssh -V
 
       - name: Probe SFTP connectivity
         run: |
-          rclone lsd hestia: --sftp-disable-hashcheck >/dev/null
-          echo "✓ SFTP reachable"
+          rclone lsd hestia: --sftp-disable-hashcheck | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "SFTP probe failed" }
+          Write-Host "SFTP reachable"
 
       - name: Sync to Hestia (rclone SFTP)
         run: |
-          REMOTE="hestia:web/neovtrack.uitm.edu.my/public_html"
-          echo "Syncing repo -> $REMOTE"
-          rclone sync ./ "$REMOTE" \
-            --sftp-disable-hashcheck \
-            --transfers 8 \
-            --checkers 8 \
-            --stats=10s --stats-one-line \
-            --exclude '.git/**' \
-            --exclude '.github/**' \
-            --exclude '.claude/**' \
-            --exclude '.gitignore' \
-            --exclude 'pbsystem_app/**' \
-            --exclude '*.md' \
-            --exclude '*.txt' \
-            --exclude '*.zip' \
-            --exclude '*.ps1' \
-            --exclude '*.sh' \
-            --exclude '*.cmd' \
-            --exclude 'debug.log' \
-            --exclude 'Username*' \
-            --exclude 'test_*.php' \
-            --exclude 'test.php' \
-            --exclude 'deploy_package/**' \
+          $remote = "hestia:web/neovtrack.uitm.edu.my/public_html"
+          Write-Host "Syncing repo -> $remote"
+          rclone sync ./ $remote `
+            --sftp-disable-hashcheck `
+            --transfers 8 `
+            --checkers 8 `
+            --stats=10s --stats-one-line `
+            --exclude '.git/**' `
+            --exclude '.github/**' `
+            --exclude '.claude/**' `
+            --exclude '.gitignore' `
+            --exclude 'pbsystem_app/**' `
+            --exclude '*.md' `
+            --exclude '*.txt' `
+            --exclude '*.zip' `
+            --exclude '*.ps1' `
+            --exclude '*.sh' `
+            --exclude '*.cmd' `
+            --exclude 'debug.log' `
+            --exclude 'Username*' `
+            --exclude 'test_*.php' `
+            --exclude 'test.php' `
+            --exclude 'deploy_package/**' `
             --exclude 'runner-setup/**'
+          if ($LASTEXITCODE -ne 0) { throw "rclone sync failed ($LASTEXITCODE)" }
 
       - name: Summary
         if: success()
         run: |
-          echo "✓ Deployed commit ${GITHUB_SHA::7}"
-          echo "✓ Live at https://neovtrack.uitm.edu.my/"
+          $sha = $env:GITHUB_SHA.Substring(0,7)
+          Write-Host "Deployed commit $sha"
+          Write-Host "Live at https://neovtrack.uitm.edu.my/"
