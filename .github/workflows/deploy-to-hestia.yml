@@ -59,7 +59,7 @@ jobs:
             set sftp:auto-confirm yes;
             set net:max-retries 2;
             set net:timeout 30;
-            open sftp://${HESTIA_USER}@${HESTIA_HOST};
+            open -u ${HESTIA_USER}, sftp://${HESTIA_HOST};
             mirror -R --delete --verbose --parallel=4 \
               --exclude-glob .git/ \
               --exclude-glob .github/ \
