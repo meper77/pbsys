@@ -11,6 +11,7 @@ if (isset($_GET['logout'])) {
 
 include($_SERVER['DOCUMENT_ROOT'].'/includes/header.php');
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+include_once $_SERVER['DOCUMENT_ROOT'].'/includes/contact_links.php';
 
 if (!isset($_SESSION['email_Admin'])) {
     header('location:/auth/login_admin.php');
@@ -64,7 +65,8 @@ $text['bm'] = [
     'nav_visitor' => 'Pelawat',
     'nav_contractor' => 'Kontraktor',
     'nav_user_mgmt' => 'Pengguna',
-    'nav_admin' => 'Admin'
+    'nav_admin' => 'Admin',
+    'nav_report' => 'Laporan'
 ];
 
 // English
@@ -98,7 +100,8 @@ $text['en'] = [
     'nav_visitor' => 'Visitor',
     'nav_contractor' => 'Contractor',
     'nav_user_mgmt' => 'User',
-    'nav_admin' => 'Admin'
+    'nav_admin' => 'Admin',
+    'nav_report' => 'Report'
 ];
 
 $t = $text[$lang];
@@ -368,12 +371,14 @@ if ($result) {
         
         /* Main Content */
         .main-content {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 20px auto 40px auto;
-            padding: 0 15px;
+            padding: 0 30px;
             flex: 1;
             width: 100%;
         }
+        .data-table { width: 100% !important; }
+        .table-responsive { width: 100%; }
         
         /* Content Container */
         .content-container {
@@ -759,6 +764,11 @@ if ($result) {
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/vehicles/report.php">
+                        <i class="fas fa-flag me-1"></i><?php echo $t['nav_report']; ?>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/admin/users.php">
                         <i class="fas fa-users-cog me-1"></i><?php echo $t['nav_user_mgmt']; ?>
                     </a>
@@ -838,6 +848,7 @@ if ($result) {
                         <th width="150"><?php echo $t['plate_number']; ?></th>
                         <th width="120"><?php echo $t['vehicle_type']; ?></th>
                         <th width="100"><?php echo $t['sticker']; ?></th>
+                        <th width="140"><?php echo $lang == 'bm' ? 'Kemaskini Terakhir' : 'Last Updated'; ?></th>
                         <th width="120"><?php echo $t['action']; ?></th>
                     </tr>
                 </thead>
@@ -858,7 +869,14 @@ if ($result) {
                         <td><?php echo $counter++; ?></td>
                         <td><?php echo $visitorid; ?></td>
                         <td><strong><?php echo $visitorname; ?></strong></td>
-                        <td><?php echo $phone; ?></td>
+                        <td>
+                            <?php if (!empty($phone)): ?>
+                                <div><?php echo $phone; ?></div>
+                                <div class="contact-actions"><?php echo format_contact_links($phone); ?></div>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
+                            <?php endif; ?>
+                        </td>
                         <td><span class="vehicle-number"><?php echo $visitorplate; ?></span></td>
                         <td><?php echo $type; ?></td>
                         <td>
@@ -875,6 +893,12 @@ if ($result) {
                             <?php else: ?>
                                 <span class="text-muted">-</span>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php
+                                $ts = $row['updated_at'] ?? $row['created_at'] ?? null;
+                                echo $ts ? '<small>' . htmlspecialchars(date('d M Y, H:i', strtotime($ts))) . '</small>' : '<span class="text-muted">-</span>';
+                            ?>
                         </td>
                         <td>
                             <div class="action-buttons">

@@ -141,10 +141,10 @@ if ($admin_query && mysqli_num_rows($admin_query) > 0) {
 
 // Get vehicle counts - SAFE QUERIES
 $categories = [
-    'Staf' => ['icon' => 'fas fa-briefcase', 'class' => 'stat-staff', 'label' => $t['staff_vehicles']],
-    'Pelajar' => ['icon' => 'fas fa-graduation-cap', 'class' => 'stat-student', 'label' => $t['student_vehicles']],
-    'Pelawat' => ['icon' => 'fas fa-user-clock', 'class' => 'stat-visitor', 'label' => $t['visitor_vehicles']],
-    'Kontraktor' => ['icon' => 'fas fa-hard-hat', 'class' => 'stat-contractor', 'label' => $t['contractor_vehicles']]
+    'Staf' => ['icon' => 'fas fa-briefcase', 'class' => 'stat-staff', 'label' => $t['staff_vehicles'], 'url' => '/vehicles/staff/list.php'],
+    'Pelajar' => ['icon' => 'fas fa-graduation-cap', 'class' => 'stat-student', 'label' => $t['student_vehicles'], 'url' => '/vehicles/student/list.php'],
+    'Pelawat' => ['icon' => 'fas fa-user-clock', 'class' => 'stat-visitor', 'label' => $t['visitor_vehicles'], 'url' => '/vehicles/visitor/list.php'],
+    'Kontraktor' => ['icon' => 'fas fa-hard-hat', 'class' => 'stat-contractor', 'label' => $t['contractor_vehicles'], 'url' => '/vehicles/contractor/list.php']
 ];
 
 $total_vehicles = 0;
@@ -863,6 +863,11 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/vehicles/report.php">
+                        <i class="fas fa-flag me-1"></i><?php echo $t['nav_report'] ?? ($lang === 'bm' ? 'Laporan' : 'Report'); ?>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/admin/users.php">
                         <i class="fas fa-users-cog me-1"></i><?php echo $t['nav_user_mgmt']; ?>
                     </a>
@@ -948,16 +953,18 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
                 $percentage = $total_vehicles > 0 ? round(($count / $total_vehicles) * 100, 1) : 0;
             ?>
             <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-                <div class="stat-card <?php echo $info['class']; ?>">
-                    <div class="stat-icon">
-                        <i class="<?php echo $info['icon']; ?>"></i>
+                <a href="<?php echo $info['url']; ?>" class="stat-card-link" style="text-decoration:none;color:inherit;display:block;">
+                    <div class="stat-card <?php echo $info['class']; ?>" style="cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="stat-icon">
+                            <i class="<?php echo $info['icon']; ?>"></i>
+                        </div>
+                        <div class="stat-number"><?php echo $count; ?></div>
+                        <div class="stat-label"><?php echo $info['label']; ?></div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-chart-line"></i> <?php echo $percentage; ?>% <?php echo $t['from_total']; ?>
+                        </div>
                     </div>
-                    <div class="stat-number"><?php echo $count; ?></div>
-                    <div class="stat-label"><?php echo $info['label']; ?></div>
-                    <div class="stat-change positive">
-                        <i class="fas fa-chart-line"></i> <?php echo $percentage; ?>% <?php echo $t['from_total']; ?>
-                    </div>
-                </div>
+                </a>
             </div>
             <?php } ?>
             
