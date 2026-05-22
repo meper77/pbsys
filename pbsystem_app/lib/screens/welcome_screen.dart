@@ -1,204 +1,170 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_colors.dart';
+
+/// Welcome / role-pick screen, NEO V-TRACK branded. Centered logo lockup,
+/// wordmark, and two primary actions: user login + admin login.
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
-
-  // ==== UiTM Official Colors ====
-  static const primaryColor = Color(0xFF4B2E83); // Ungu UiTM
-  static const secondaryColor = Color(0xFFF3C143); // Kuning Emas
-  static const neutralWhite = Color(0xFFFFFFFF);
-  static const neutralGrey = Color(0xFFF5F5F5);
-  static const textPrimary = Color(0xFF000000);
-  static const textSecondary = Color(0xFF333333);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.brandPurpleDeep,
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              primaryColor,
-              Color(0xFF6A1B9A),
-              Color(0xFF7B1FA2),
-            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: AppColors.heroGradient,
           ),
         ),
-        child: Stack(
-          children: [
-            // ===== Glow frames (restored but UiTM colors) =====
-            _glowFrame(top: -120, left: -80, rotation: -0.5, color: secondaryColor.withOpacity(0.3)),
-            _glowFrame(bottom: -140, right: -100, rotation: 0.5, color: secondaryColor.withOpacity(0.3)),
-
-            SafeArea(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Spacer(),
-
-                      // ==== Logos row ====
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/images/uitm.png', height: 70),
-                          const SizedBox(width: 20),
-                          Image.asset('assets/images/kik2.png', height: 70),
-                        ],
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const Spacer(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/images/uitm.png',
+                        height: 64,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                    Container(
+                      width: 1.5,
+                      height: 48,
+                      color: Colors.white.withValues(alpha: 0.22),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-
-                      const SizedBox(height: 28),
-
-                      // ==== Welcome Text ====
-                      Text(
-                        'Welcome to NEO V-TRACK',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: neutralWhite,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 5,
-                                  color: secondaryColor.withOpacity(0.6),
-                                  offset: const Offset(2, 2),
-                                ),
-                              ],
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      Text(
-                        'Manage & monitor vehicles easily',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white70,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 40),
-
-                      // ==== Enter to Login Button ====
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/login_user',
-                              arguments: {'role': 'user'},
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: secondaryColor,
-                            foregroundColor: primaryColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 6,
-                          ),
-                          child: const Text(
-                            'ENTER TO LOGIN',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/login_user',
-                              arguments: {'role': 'admin'},
-                            );
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: neutralWhite,
-                            side: const BorderSide(color: neutralWhite, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'ADMIN LOGIN',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      // ==== Footer ====
-                      Text(
-                        '© 2026 NEO V-TRACK. All rights reserved.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white70,
-                            ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: Image.asset('assets/images/kik2.png',
+                          height: 56,
+                          errorBuilder: (_, __, ___) =>
+                              const SizedBox.shrink()),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: GoogleFonts.manrope(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.4,
+                    ),
+                    children: const [
+                      TextSpan(text: 'NEO '),
+                      TextSpan(
+                        text: 'V-TRACK',
+                        style: TextStyle(color: AppColors.brandYellow),
                       ),
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(
+                  'UiTM SEGAMAT',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.65),
+                    letterSpacing: 3.6,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Sistem Pengurusan Maklumat Kenderaan',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.75),
+                  ),
+                ),
+                const SizedBox(height: 44),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                      context, '/login_user',
+                      arguments: {'role': 'user'},
+                    ),
+                    icon: const FaIcon(FontAwesomeIcons.user,
+                        size: 14, color: AppColors.brandPurpleDeep),
+                    label: Text(
+                      'Sign in',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.brandPurpleDeep,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brandYellow,
+                      foregroundColor: AppColors.brandPurpleDeep,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                      context, '/login_user',
+                      arguments: {'role': 'admin'},
+                    ),
+                    icon: const FaIcon(FontAwesomeIcons.userShield,
+                        size: 14, color: Colors.white),
+                    label: Text(
+                      'Sign in as admin',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.4)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '© 2026 NEO V-TRACK · UiTM Cawangan Johor',
+                  style: GoogleFonts.jetBrainsMono(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 10,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ===== Glow frame decoration ====
-  Widget _glowFrame({
-    double? top,
-    double? bottom,
-    double? left,
-    double? right,
-    required double rotation,
-    required Color color,
-  }) {
-    return Positioned(
-      top: top,
-      bottom: bottom,
-      left: left,
-      right: right,
-      child: Transform.rotate(
-        angle: rotation,
-        child: Container(
-          width: 320,
-          height: 320,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.5),
-                blurRadius: 30,
-              ),
-            ],
           ),
         ),
       ),
     );
   }
 }
-

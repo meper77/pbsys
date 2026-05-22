@@ -1,32 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
-import '../services/api_service.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../screens/vehicle_detail_screen.dart';
+
+import '../services/api_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../widgets/sticker_badge.dart';
+import '../widgets/web_app_bar.dart';
+import '../widgets/web_gradient_button.dart';
+import 'vehicle_detail_screen.dart';
 
 class SearchCarScreen extends StatefulWidget {
   const SearchCarScreen({super.key});
-
   @override
   State<SearchCarScreen> createState() => _SearchCarScreenState();
 }
 
 class _SearchCarScreenState extends State<SearchCarScreen> {
-  final TextEditingController searchController = TextEditingController();
-  final ApiService api = ApiService();
-
+  final searchCtl = TextEditingController();
+  final api = ApiService();
   bool loading = false;
   String message = '';
   List<dynamic> results = [];
   String activeStatus = '';
   bool showAll = false;
-
-  // ==== UiTM Colors ====
-  static const primaryColor = Color(0xFF4B2E83); // Ungu
-  static const secondaryColor = Color(0xFFF3C143); // Kuning Emas
-  static const neutralWhite = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF000000);
-  static const cardBackground = Color(0xFFF6F2FC);
 
   Future<void> _performSearch({
     String search = '',
@@ -34,17 +31,16 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
     bool showAllRecords = false,
     bool requireQuery = false,
   }) async {
-    final query = search.trim();
-    if (requireQuery && query.isEmpty) {
+    final q = search.trim();
+    if (requireQuery && q.isEmpty) {
       setState(() {
-        message = 'PLEASE ENTER PLATE NUMBER, OWNER NAME, OR ID';
+        message = 'Please enter plate number, owner name, or ID.';
         results = [];
         activeStatus = '';
         showAll = false;
       });
       return;
     }
-
     setState(() {
       loading = true;
       message = '';
@@ -52,377 +48,236 @@ class _SearchCarScreenState extends State<SearchCarScreen> {
       activeStatus = status;
       showAll = showAllRecords;
     });
-
-    final data = await api.searchCarUser(
-      search: query,
-      status: status,
-      showAll: showAllRecords,
-    );
-
+    final data = await api.searchCarUser(search: q, status: status, showAll: showAllRecords);
+    if (!mounted) return;
     setState(() {
       loading = false;
       if (data['success'] == 1) {
-        results = data['data'];
-        if (results.isEmpty) {
-          message = 'NO VEHICLES FOUND';
-        }
+        results = data['data'] ?? [];
+        if (results.isEmpty) message = 'No vehicles found.';
       } else {
-        message = (data['message'] ?? 'SEARCH FAILED').toUpperCase();
+        message = data['message'] ?? 'Search failed';
       }
     });
   }
 
-  Future<void> handleSearch() async {
-    await _performSearch(
-      search: searchController.text,
-      requireQuery: true,
-    );
+  (List<Color>, Color) _statusPalette(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('staf'))       return (AppColors.staffGradient,      AppColors.statStaffBorder);
+    if (s.contains('pelajar'))    return (AppColors.studentGradient,    AppColors.statStudentBorder);
+    if (s.contains('pelawat'))    return (AppColors.visitorGradient,    AppColors.statVisitorBorder);
+    if (s.contains('kontraktor')) return (AppColors.contractorGradient, AppColors.statContractorBorder);
+    return (AppColors.heroGradient, AppColors.primary);
   }
 
-  Color _statusColor(String status) {
-    final normalized = status.toLowerCase();
-    if (normalized.contains('staf') || normalized.contains('staff')) {
-      return const Color(0xFF1976D2);
-    }
-    if (normalized.contains('pelajar') || normalized.contains('student')) {
-      return const Color(0xFF7B1FA2);
-    }
-    if (normalized.contains('pelawat') || normalized.contains('visitor')) {
-      return const Color(0xFF388E3C);
-    }
-    if (normalized.contains('kontraktor') || normalized.contains('contractor')) {
-      return const Color(0xFFF57C00);
-    }
-    return primaryColor;
-  }
-
-  String _searchSummary() {
-    if (showAll) {
-      return 'ALL VEHICLES (${results.length})';
-    }
-    if (activeStatus.isNotEmpty) {
-      return '${activeStatus.toUpperCase()} VEHICLES (${results.length})';
-    }
-    if (searchController.text.trim().isNotEmpty) {
-      return 'SEARCH RESULTS (${results.length})';
-    }
-    return 'SEARCH RESULTS';
-  }
-
-  Widget _filterButton({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
+  Widget _filterChip({required String label, required IconData icon, required bool selected, required List<Color> gradient, required VoidCallback onTap}) {
+    // Yellow gradients need dark text for legibility; others stay white.
+    final yellowBg = gradient.isNotEmpty && gradient.first == AppColors.brandYellow;
+    final fg = selected ? (yellowBg ? AppColors.dark : Colors.white) : AppColors.bodyText;
     return Padding(
       padding: const EdgeInsets.only(right: 8, bottom: 8),
-      child: OutlinedButton(
-        onPressed: loading ? null : onTap,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: selected ? secondaryColor : Colors.white,
-          foregroundColor: selected ? primaryColor : primaryColor,
-          side: BorderSide(
-            color: selected ? secondaryColor : primaryColor.withOpacity(0.4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: loading ? null : onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: selected ? LinearGradient(colors: gradient) : null,
+              color: selected ? null : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: selected ? Colors.transparent : AppColors.cardBorder),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              FaIcon(icon, size: 11, color: fg),
+              const SizedBox(width: 6),
+              Text(label, style: TextStyle(
+                color: fg, fontSize: 12, fontWeight: FontWeight.w600,
+              )),
+            ]),
           ),
         ),
-        child: Text(label),
       ),
     );
+  }
+
+  String _digits(String s) => s.replaceAll(RegExp(r'\D'), '');
+  Future<void> _call(String phone) async {
+    final p = _digits(phone);
+    if (p.isEmpty) return;
+    final uri = Uri.parse('tel:+$p');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
   Widget _statusBadge(String status) {
-    final color = _statusColor(status);
+    final (grad, _) = _statusPalette(status);
+    final yellowBg = grad.isNotEmpty && grad.first == AppColors.brandYellow;
+    final fg = yellowBg ? AppColors.dark : Colors.white;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.5)),
+        gradient: LinearGradient(colors: grad),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  Widget _rowLabel(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(color: textPrimary, fontSize: 14),
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: value.isEmpty ? '-' : value),
-          ],
-        ),
-      ),
+      child: Text(status.toUpperCase(),
+          style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.4)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, Color(0xFF6A1B9A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+      backgroundColor: AppColors.lightBg,
+      appBar: const WebAppBar(title: 'Search Vehicles', subtitle: 'NEO V-TRACK'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Search bar
+            TextField(
+              controller: searchCtl,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                hintText: 'Plate number / owner / ID',
+                prefixIcon: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14),
+                  child: FaIcon(FontAwesomeIcons.magnifyingGlass, size: 16, color: AppColors.primary),
+                ),
+                prefixIconConstraints: BoxConstraints(minWidth: 44),
+              ),
+              onSubmitted: (_) => _performSearch(search: searchCtl.text, requireQuery: true),
+            ),
+            const SizedBox(height: 12),
+            WebGradientButton(
+              label: loading ? 'SEARCHING…' : 'SEARCH',
+              icon: FontAwesomeIcons.magnifyingGlass,
+              loading: loading,
+              onPressed: loading ? null : () => _performSearch(search: searchCtl.text, requireQuery: true),
+            ),
+            const SizedBox(height: 14),
+
+            // Filters
+            Wrap(children: [
+              _filterChip(label: 'Staff', icon: FontAwesomeIcons.briefcase, selected: activeStatus == 'Staf' && !showAll,
+                  gradient: AppColors.staffGradient, onTap: () => _performSearch(status: 'Staf')),
+              _filterChip(label: 'Student', icon: FontAwesomeIcons.graduationCap, selected: activeStatus == 'Pelajar' && !showAll,
+                  gradient: AppColors.studentGradient, onTap: () => _performSearch(status: 'Pelajar')),
+              _filterChip(label: 'Visitor', icon: FontAwesomeIcons.userClock, selected: activeStatus == 'Pelawat' && !showAll,
+                  gradient: AppColors.visitorGradient, onTap: () => _performSearch(status: 'Pelawat')),
+              _filterChip(label: 'Contractor', icon: FontAwesomeIcons.helmetSafety, selected: activeStatus == 'Kontraktor' && !showAll,
+                  gradient: AppColors.contractorGradient, onTap: () => _performSearch(status: 'Kontraktor')),
+              _filterChip(label: 'All', icon: FontAwesomeIcons.gripVertical, selected: showAll,
+                  gradient: AppColors.totalGradient, onTap: () => _performSearch(showAllRecords: true)),
+            ]),
+
+            const SizedBox(height: 10),
+            if (message.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(message, style: const TextStyle(color: AppColors.mutedText), textAlign: TextAlign.center),
+              ),
+            if (results.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 6),
+                  child: Text('${results.length} result${results.length == 1 ? '' : 's'}',
+                      style: const TextStyle(color: AppColors.mutedText, fontWeight: FontWeight.w600)),
+                ),
+              ),
+
+            ...results.map(_buildResultCard),
+
+            if (results.isNotEmpty || message.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => setState(() {
+                  searchCtl.clear();
+                  activeStatus = '';
+                  showAll = false;
+                  results = [];
+                  message = '';
+                }),
+                icon: const FaIcon(FontAwesomeIcons.arrowRotateLeft, size: 12),
+                label: const Text('Reset Search'),
+              ),
+            ],
+          ],
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+      ),
+    );
+  }
+
+  Widget _buildResultCard(dynamic item) {
+    final phone = (item['phone'] ?? '').toString().trim();
+    final plate = (item['platenum'] ?? '-').toString().toUpperCase();
+    final status = (item['status'] ?? '').toString();
+    final owner = (item['name'] ?? '').toString();
+    final type = (item['type'] ?? '').toString();
+    final stickerStatus = (item['sticker'] ?? '').toString();
+    final stickerNo = (item['stickerno'] ?? '').toString();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: const Border.fromBorderSide(BorderSide(color: AppColors.cardBorder)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: item)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-
-                // ==== TITLE ====
-                const Text(
-                  'SEARCH VEHICLES',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: neutralWhite,
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // ==== SEARCH FIELD ====
-                TextField(
-                  controller: searchController,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    labelText: 'PLATE NUMBER / OWNER / ID',
-                    prefixIcon: const Icon(Icons.search, color: primaryColor),
-                    filled: true,
-                    fillColor: neutralWhite,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ==== SEARCH BUTTON WITH SHIMMER ====
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : handleSearch,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: secondaryColor,
-                      foregroundColor: primaryColor,
-                    ),
-                    child: loading
-                        ? Shimmer.fromColors(
-                            baseColor: primaryColor,
-                            highlightColor: neutralWhite,
-                            period: const Duration(seconds: 2),
-                            child: const Text(
-                              'SEARCHING...',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          )
-                        : const Text(
-                            'SEARCH',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: primaryColor),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                Wrap(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _filterButton(
-                      label: 'STAFF',
-                      selected: activeStatus == 'Staf' && !showAll,
-                      onTap: () => _performSearch(status: 'Staf'),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.brandYellow,
+                        border: Border.all(color: AppColors.dark, width: 1.75),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        plate,
+                        style: AppTypography.plateMono(size: 18, color: AppColors.dark)
+                            .copyWith(letterSpacing: 1.4),
+                      ),
                     ),
-                    _filterButton(
-                      label: 'STUDENT',
-                      selected: activeStatus == 'Pelajar' && !showAll,
-                      onTap: () => _performSearch(status: 'Pelajar'),
-                    ),
-                    _filterButton(
-                      label: 'VISITOR',
-                      selected: activeStatus == 'Pelawat' && !showAll,
-                      onTap: () => _performSearch(status: 'Pelawat'),
-                    ),
-                    _filterButton(
-                      label: 'CONTRACTOR',
-                      selected: activeStatus == 'Kontraktor' && !showAll,
-                      onTap: () => _performSearch(status: 'Kontraktor'),
-                    ),
-                    _filterButton(
-                      label: 'ALL',
-                      selected: showAll,
-                      onTap: () => _performSearch(showAllRecords: true),
-                    ),
+                    _statusBadge(status),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-
-                // ==== MESSAGE ====
-                if (message.isNotEmpty)
-                  Text(
-                    message,
-                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-
-                const SizedBox(height: 16),
-
-                if (results.isNotEmpty)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _searchSummary(),
-                      style: const TextStyle(
-                        color: neutralWhite,
-                        fontWeight: FontWeight.bold,
-                      ),
+                const SizedBox(height: 6),
+                Text(owner.toUpperCase(),
+                    style: const TextStyle(color: AppColors.bodyText, fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 4),
+                Row(children: [
+                  const FaIcon(FontAwesomeIcons.car, size: 11, color: AppColors.mutedText),
+                  const SizedBox(width: 6),
+                  Text(type.isEmpty ? '-' : type, style: const TextStyle(color: AppColors.mutedText, fontSize: 12)),
+                  const SizedBox(width: 14),
+                  StickerBadge(status: stickerStatus, stickerNo: stickerNo),
+                ]),
+                if (phone.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: Text(phone, style: const TextStyle(color: AppColors.bodyText, fontSize: 13))),
+                    OutlinedButton.icon(
+                      onPressed: () => _call(phone),
+                      icon: const FaIcon(FontAwesomeIcons.phone, size: 11),
+                      label: const Text('Call'),
                     ),
-                  ),
-
-                if (results.isNotEmpty) const SizedBox(height: 12),
-
-                // ==== RESULTS ====
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: results.length,
-                  itemBuilder: (context, index) {
-                    final item = results[index];
-                    final phone = (item['phone'] ?? '').toString().trim();
-                    final sticker = (item['sticker'] ?? '').toString().trim();
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      color: cardBackground,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item['platenum']?.toString().toUpperCase() ?? '-',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                _statusBadge((item['status'] ?? '-').toString()),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            _rowLabel(
-                              'OWNER',
-                              (item['name'] ?? '').toString().toUpperCase(),
-                            ),
-                            _rowLabel(
-                              'ID NUMBER',
-                              (item['idnumber'] ?? '').toString().toUpperCase(),
-                            ),
-                            Row(
-                              children: [
-                                const Text('PHONE: '),
-                                GestureDetector(
-                                  onTap: () async {
-                                    if (phone.isNotEmpty) {
-                                      final uri = Uri.parse('tel:$phone');
-                                      if (await canLaunchUrl(uri)) {
-                                        await launchUrl(uri);
-                                      }
-                                    }
-                                  },
-                                  child: Text(
-                                    item['phone'] ?? '-',
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _rowLabel(
-                              'TYPE',
-                              (item['type'] ?? '').toString().toUpperCase(),
-                            ),
-                            _rowLabel(
-                              'STICKER',
-                              sticker.isEmpty ? '-' : sticker.toUpperCase(),
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: item)),
-                                  );
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: primaryColor,
-                                ),
-                                child: const Text('VIEW DETAILS'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 8),
-                if (results.isNotEmpty || message.isNotEmpty)
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          searchController.clear();
-                          activeStatus = '';
-                          showAll = false;
-                          results = [];
-                          message = '';
-                        });
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: neutralWhite,
-                        side: const BorderSide(color: neutralWhite),
-                      ),
-                      child: const Text('RESET SEARCH'),
-                    ),
-                  ),
+                  ]),
+                ],
               ],
             ),
           ),

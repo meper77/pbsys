@@ -1,58 +1,51 @@
 <?php
-include($_SERVER['DOCUMENT_ROOT'].'/includes/header.php');
+session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 
-session_start();
 if (!isset($_SESSION['email_Admin'])) {
-	header('location:/auth/login_admin.php');
+    header('location:/auth/login_admin.php');
+    exit();
 }
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$row = null;
+if ($id > 0) {
+    $res = mysqli_query($con, "SELECT * FROM `owner` WHERE id = $id");
+    if ($res && mysqli_num_rows($res) > 0) { $row = mysqli_fetch_assoc($res); }
+}
+
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
-
-<script src="/assets/js/jquery.dataTables.min.js"></script>
-<script src="/assets/js/dataTables.bootstrap.min.js"></script>
-<link rel="stylesheet" href="/assets/css/dataTables.bootstrap.min.css" />
-<?php include($_SERVER['DOCUMENT_ROOT'].'/includes/container.php'); ?>
-<div class="container">
-
-    <?php include($_SERVER['DOCUMENT_ROOT'].'/includes/menus.php'); ?>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card card-default rounded-0 shadow">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-md-9">
-                            <h3 class="card-title">Lihat Maklumat Kenderaan Staf</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                    <?php
-                        $id = $_GET['id'];
-                        $sql = "select * from `owner` where id=$id";
-                        $result = mysqli_query($con, $sql);
-
-                        if ($result) {
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                $type = $row['type'];
-                                $contractplate = $row['platenum'];
-                        ?>
-
-                                <H5 style="color: black;">Jenis Kenderaan : </H5>
-                                <input disabled type="text" id="type" name="type" placeholder="" class="form-control mb-2" value="<?php echo $row['type']; ?>">
-
-                                <H5 style="color: black;">Nombor Plat : </H5>
-                                <input disabled type="text" id="platenum" name="platenum" placeholder="" class="form-control mb-2" value="<?php echo $row['platenum']; ?>">
-                        <?php
-                            }
-                        }
-                        ?>
-                        <br>
-                        <a href="/vehicles/staff/list.php" class="btn btn-danger">Kembali</a>
-                        </form>
-                    <?php include($_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'); ?>
-                </div>
-            </div>
+<body>
+<div class="nv-shell">
+<?php $nv_active = 'staff'; include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php'; ?>
+<main class="page">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Staf</span>
+            <h1>Vehicle record</h1>
+        </div>
+        <div class="actions">
+            <a class="btn btn-ghost" href="/vehicles/staff/list.php"><i data-lucide="arrow-left"></i> Back</a>
+            <?php if ($row): ?><a class="btn btn-primary" href="/vehicles/staff/update.php?id=<?= (int)$row['id'] ?>"><i data-lucide="pencil"></i> Edit</a><?php endif; ?>
         </div>
     </div>
+    <?php if ($row): ?>
+    <div class="card nv-stack gap-4">
+        <div class="nv-row gap-4"><span class="plate lg"><?= htmlspecialchars($row['platenum'] ?? '') ?></span>
+            <div><div class="text-display" style="font-size:20px;font-weight:700;"><?= htmlspecialchars($row['name'] ?? '') ?></div><div class="text-mono text-muted" style="font-size:12px;"><?= htmlspecialchars($row['idnumber'] ?? '') ?></div></div>
+        </div>
+        <div class="kv">
+            <div class="k">Status</div><div class="v"><?= htmlspecialchars($row['status'] ?? '') ?></div>
+            <div class="k">Vehicle type</div><div class="v"><?= htmlspecialchars($row['type'] ?? '') ?></div>
+            <div class="k">Phone</div><div class="v text-mono"><?= htmlspecialchars($row['phone'] ?? '') ?></div>
+            <div class="k">Sticker no.</div><div class="v text-mono"><?= htmlspecialchars($row['stickerno'] ?? '') ?></div>
+            <div class="k">Sticker status</div><div class="v"><?= htmlspecialchars($row['sticker'] ?? '') ?></div>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="flash bad">Vehicle record not found.</div>
+    <?php endif; ?>
+</main>
 </div>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>

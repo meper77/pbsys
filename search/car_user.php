@@ -185,12 +185,13 @@ $showAll = isset($_GET['showAll']) && $_GET['showAll'] == 'true';
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/brand.css">
 <link rel="stylesheet" href="/assets/css/dataTables.bootstrap.min.css" />
 
 <style>
 :root{
-    --purple-main:#6a1b9a;
-    --purple-dark:#4a148c;
+    --purple-main:#5A2EA6;
+    --purple-dark:#2E1465;
     --purple-light:#9c4dcc;
     --purple-bg:#f4effa;
 }
@@ -573,7 +574,7 @@ body {
             <!-- UiTM Logo -->
             <img src="/assets/images/uitm.png" alt="UiTM Logo" class="uitm-logo">
             <!-- NEO V-TRACK Logo -->
-            <img src="/assets/images/kik2.png" alt="NEO V-TRACK Logo" class="neo-logo">
+            <img src="/assets/images/neo-vtrack-logo.png" alt="NEO V-TRACK Logo" class="neo-logo">
         </div>
         <div class="header-title">
             <h4><?php echo $t['title']; ?></h4>
@@ -775,33 +776,11 @@ body {
         </div>
         <h4 style="color:#666; margin-bottom:10px;"><?php echo $t['startSearchTitle']; ?></h4>
         <p style="color:#888;"><?php echo $t['startSearchText']; ?></p>
-        <div class="mt-4">
-            <div class="row text-center">
-                <div class="col-md-3 mb-3">
-                    <div class="p-3 border rounded">
-                        <i class="fas fa-car fa-2x mb-2" style="color:var(--purple-main);"></i>
-                        <div><?php echo $t['searchByPlate']; ?></div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="p-3 border rounded">
-                        <i class="fas fa-user fa-2x mb-2" style="color:var(--purple-main);"></i>
-                        <div><?php echo $t['searchByName']; ?></div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="p-3 border rounded">
-                        <i class="fas fa-id-card fa-2x mb-2" style="color:var(--purple-main);"></i>
-                        <div><?php echo $t['searchByID']; ?></div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="p-3 border rounded">
-                        <i class="fas fa-list fa-2x mb-2" style="color:var(--purple-main);"></i>
-                        <div><?php echo $t['viewAll']; ?></div>
-                    </div>
-                </div>
-            </div>
+        <div class="nv-grid cols-4 mt-4">
+            <div class="card flat text-center"><i data-lucide="car" style="color:var(--brand-purple);"></i><div class="mt-2"><?php echo $t['searchByPlate']; ?></div></div>
+            <div class="card flat text-center"><i data-lucide="user" style="color:var(--brand-purple);"></i><div class="mt-2"><?php echo $t['searchByName']; ?></div></div>
+            <div class="card flat text-center"><i data-lucide="id-card" style="color:var(--brand-purple);"></i><div class="mt-2"><?php echo $t['searchByID']; ?></div></div>
+            <div class="card flat text-center"><i data-lucide="list" style="color:var(--brand-purple);"></i><div class="mt-2"><?php echo $t['viewAll']; ?></div></div>
         </div>
     </div>
     <?php } ?>

@@ -1,128 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+import '../theme/app_colors.dart';
+import '../widgets/web_app_bar.dart';
+import '../widgets/web_gradient_button.dart';
+import '../widgets/web_section_title.dart';
 
 class AboutSystemScreen extends StatelessWidget {
   const AboutSystemScreen({super.key});
 
-  // ===== UiTM Colors =====
-  static const Color primaryColor = Color(0xFF4B2E83); // Ungu UiTM
-  static const Color secondaryColor = Color(0xFFF3C143); // Kuning Emas
-  static const Color neutralWhite = Color(0xFFFFFFFF);
-  static const Color textDarkGrey = Color(0xFF333333);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple.shade100, // ✅ Light purple background
-
-      appBar: AppBar(
-        title: const Text(
-          'About The System',
-          style: TextStyle(color: Colors.white), // ✅ White title
-        ),
-        backgroundColor: primaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-
+      backgroundColor: AppColors.lightBg,
+      appBar: const WebAppBar(title: 'About The System', subtitle: 'NEO V-TRACK'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ===== Logos =====
-            Image.asset(
-              'assets/images/uitm.png',
-              height: 80,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/uitm.png', height: 56,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                Container(
+                  width: 1.5, height: 44,
+                  color: AppColors.brandPurple.withValues(alpha: 0.18),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                Image.asset('assets/images/kik2.png', height: 56,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink()),
+              ],
             ),
             const SizedBox(height: 20),
-            Image.asset(
-              'assets/images/kik2.png',
-              height: 80,
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(
+                  fontSize: 24, fontWeight: FontWeight.w800,
+                  color: AppColors.dark, letterSpacing: 0.4,
+                ),
+                children: [
+                  TextSpan(text: 'NEO '),
+                  TextSpan(text: 'V-TRACK',
+                      style: TextStyle(color: AppColors.brandPurple)),
+                ],
+              ),
             ),
+            const SizedBox(height: 4),
+            const Text('UiTM SEGAMAT · Sistem Pengurusan Kenderaan',
+                style: TextStyle(color: AppColors.mutedText, fontSize: 12, letterSpacing: 1.4),
+                textAlign: TextAlign.center),
             const SizedBox(height: 24),
 
-            // ===== App Title =====
-            const Text(
-              'NEO.V-TRACK',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: primaryColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-
-            // ===== Subtitle =====
-            Text(
-              'Vehicle Management & Monitoring System',
-              style: TextStyle(
-                fontSize: 16,
-                color: textDarkGrey.withOpacity(0.8),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-
-            // ===== Description Card =====
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24), // ✅ Equal spacing inside box
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: neutralWhite,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: const Border(top: BorderSide(color: AppColors.uitmRed, width: 3)),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  WebSectionTitle(title: 'About', icon: FontAwesomeIcons.circleInfo),
+                  Text(
+                    'NEO V-TRACK is a vehicle management and monitoring system developed to overcome the problem of vehicles parked at inappropriate places.\n\n'
+                    'The system functions as a centralized platform for recording and managing vehicle details, driver information, and user status classifications in a structured and controlled manner.\n\n'
+                    'With NEO V-TRACK, users can track vehicles, manage access, and maintain order efficiently.',
+                    style: TextStyle(fontSize: 14, height: 1.7, color: AppColors.bodyText),
+                    textAlign: TextAlign.justify,
                   ),
                 ],
               ),
-              child: const Text(
-                "NEO.V-TRACK is a vehicle management and monitoring system developed to overcome the problem of vehicles parked at inappropriate places.\n\n"
-                "The system functions as a centralized platform for recording and managing vehicle details, driver information, and user status classifications in a structured and controlled manner.\n\n"
-                "With NEO.V-TRACK, users can track vehicles, manage access, and maintain order efficiently.",
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.7, // ✅ Consistent line spacing
-                ),
-                textAlign: TextAlign.justify,
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // ===== Back to Dashboard Button =====
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'BACK TO DASHBOARD',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: neutralWhite),
-                ),
-              ),
             ),
 
             const SizedBox(height: 20),
-
-            // ===== Footer =====
-            Text(
-              '© 2026 NEO.V-TRACK. All rights reserved.',
-              style: TextStyle(
-                color: textDarkGrey.withOpacity(0.7),
-                fontSize: 12,
-              ),
+            WebGradientButton(
+              label: 'BACK TO DASHBOARD',
+              icon: FontAwesomeIcons.arrowLeft,
+              onPressed: () => Navigator.pop(context),
             ),
+            const SizedBox(height: 18),
+            const Text('© 2026 NEO V-TRACK · UiTM Cawangan Johor',
+                style: TextStyle(color: AppColors.mutedText, fontSize: 11)),
           ],
         ),
       ),

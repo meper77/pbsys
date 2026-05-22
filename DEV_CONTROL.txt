@@ -1,0 +1,148 @@
+NEO V-TRACK Dev Stack Control
+=============================
+
+Two scripts created:
+
+1. POWERSHELL (Windows Native)
+   File: dev.ps1
+   Usage: .\dev.ps1 [command]
+
+2. BASH (Git Bash / MSYS)
+   File: dev.sh
+   Usage: bash dev.sh [command]
+
+COMMANDS (same for both):
+  start      - Start all services (MySQL, PHP, Emulator, Flutter)
+  stop       - Stop all services
+  restart    - Restart all services
+  status     - Show status of each service
+
+================================================================================
+QUICK START
+================================================================================
+
+POWERSHELL:
+  cd C:\Users\User.J1-ALPHA-PENS\pbsys
+  .\dev.ps1 start        # Starts all services
+  .\dev.ps1 status       # Check status
+  .\dev.ps1 stop         # Stop everything
+
+GIT BASH:
+  cd /c/Users/User.J1-ALPHA-PENS/pbsys
+  bash dev.sh start      # Starts all services
+  bash dev.sh status     # Check status
+  bash dev.sh stop       # Stop everything
+
+================================================================================
+WHAT EACH SCRIPT DOES
+================================================================================
+
+START:
+  1. Launches MySQL (port 3306)
+  2. Starts PHP built-in server (port 8000)
+  3. Boots Android emulator
+  4. Builds and runs Flutter app
+
+  Each service runs in background. Flutter runs in foreground so you see
+  the build output and app logs.
+
+STOP:
+  - Terminates all processes (Flutter, PHP, Emulator, MySQL)
+  - Clean shutdown in reverse order
+
+STATUS:
+  - Shows which services are running/stopped
+  - Shows log directory location
+
+RESTART:
+  - Stops everything, waits 3 seconds, then starts again
+
+================================================================================
+LOGS
+================================================================================
+
+All logs saved to: C:\Users\User.J1-ALPHA-PENS\pbsys\.dev-logs\
+
+  mysql.log          - MySQL server output
+  mysql-error.log    - MySQL errors
+  php.log            - PHP server output
+  php-error.log      - PHP errors
+  emulator.log       - Android emulator output
+  emulator-error.log - Emulator errors
+  flutter.log        - Flutter build/run output (if using PowerShell)
+
+View logs in real-time (PowerShell):
+  Get-Content .dev-logs\php.log -Wait
+  Get-Content .dev-logs\mysql.log -Wait
+
+View logs in real-time (Bash):
+  tail -f .dev-logs/php.log
+  tail -f .dev-logs/mysql.log
+
+================================================================================
+MANUAL COMMANDS (if needed)
+================================================================================
+
+Stop only specific service:
+  pkill mysqld         # Stop MySQL
+  pkill php            # Stop PHP
+  adb emu kill         # Stop emulator
+  pkill flutter        # Stop Flutter
+
+Check which services are running:
+  Get-Process mysqld, php, flutter -ErrorAction SilentlyContinue  # PowerShell
+  pgrep -f "mysqld|php|flutter"                                    # Bash
+
+Manual test database connection:
+  C:\xampp\mysql\bin\mysql -u root -e "SELECT 1;"
+
+Manual test PHP server:
+  curl http://localhost:8000/
+
+Manual test emulator:
+  adb devices
+
+Manual test Flutter device:
+  flutter devices
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Script says "port already in use":
+  Run: .\dev.ps1 stop  (or bash dev.sh stop)
+  Wait a few seconds for processes to fully close
+  Then: .\dev.ps1 start  (or bash dev.sh start)
+
+Emulator takes forever to boot:
+  First launch is slow (1-2 min is normal)
+  Subsequent launches are faster
+  If stuck > 2 min: kill it and restart
+    adb emu kill
+    flutter emulators --launch Pixel_API_36
+
+Flutter says "no devices found":
+  Run: .\dev.ps1 status  (or bash dev.sh status)
+  If emulator shows as stopped, run: .\dev.ps1 start
+
+MySQL says "port 3306 in use":
+  Check if already running: .\dev.ps1 status
+  Or kill and restart: .\dev.ps1 restart
+
+Can't connect to database from Flutter app:
+  Verify MySQL is running: .\dev.ps1 status
+  Check database file exists: dir C:\xampp\mysql\data\neovtrack_db
+  Verify PHP connection: curl http://localhost:8000/api/
+  Check Flutter API_BASE_URL is http://localhost:8000
+
+================================================================================
+TEST CREDENTIALS
+================================================================================
+
+Once app is running on emulator, login with:
+  Email: admin@mail.com
+  Password: 111111
+
+API endpoint base: http://localhost:8000/api/
+
+================================================================================

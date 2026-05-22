@@ -1,0 +1,5 @@
+/* NEO V-TRACK — legacy brand.css.
+   Kept for pages that include it directly. Re-exports the canonical
+   design system bundle so a single import is enough. */
+
+@import url("/assets/css/style.css");

@@ -1,7 +1,12 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-import '../services/api_service.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../services/api_service.dart';
+import '../theme/app_colors.dart';
+
+/// Splash screen — both logos centered side-by-side above the
+/// "NEO V-TRACK · UiTM SEGAMAT" wordmark. Matches the guard-mobile UI kit.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -9,39 +14,17 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  // Enable only for local dev testing. Automatically attempts admin login and
-  // navigates to dashboard if successful. Set to false for normal behavior.
+class _SplashScreenState extends State<SplashScreen> {
   static const bool _autoAdminLogin = false;
 
   @override
   void initState() {
     super.initState();
-
-    // ===== Animation for logo =====
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutBack,
-    );
-
-    _controller.forward();
-
     if (_autoAdminLogin) {
-      // Try automatic admin login for developer smoke tests, then navigate.
       _attemptAutoAdminLogin();
     } else {
-      // ===== Move to WelcomeScreen after 3 seconds =====
-      Timer(const Duration(seconds: 3), () {
-        Navigator.pushReplacementNamed(context, '/welcome');
+      Timer(const Duration(milliseconds: 1800), () {
+        if (mounted) Navigator.pushReplacementNamed(context, '/welcome');
       });
     }
   }
@@ -52,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
       final res = await api.login('admin@mail.com', '111111', 'admin');
       if (res['success'] == 1) {
         final user = res['user'];
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/dashboard', arguments: {
           'userId': user['id'],
           'name': user['name'],
@@ -60,58 +44,140 @@ class _SplashScreenState extends State<SplashScreen>
         });
         return;
       }
-    } catch (e) {
-      // ignore
-    }
-
-    // fallback to normal welcome screen
+    } catch (_) {}
     Timer(const Duration(seconds: 1), () {
-      Navigator.pushReplacementNamed(context, '/welcome');
+      if (mounted) Navigator.pushReplacementNamed(context, '/welcome');
     });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use full primary color as background
-      backgroundColor: const Color(0xFF4B2E83),
-      body: Center(
-        child: ScaleTransition(
-          scale: _animation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/images/uitm.png', // UiTM logo
-                width: 120,
-                height: 120,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'NEO V-TRACK',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.2,
+      backgroundColor: AppColors.brandPurpleDeep,
+      body: GestureDetector(
+        onTap: () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/welcome');
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: AppColors.heroGradient,
+            ),
+          ),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Logos side-by-side
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/uitm.png',
+                            height: 86,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.school,
+                              size: 86,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Container(
+                            width: 1.5,
+                            height: 64,
+                            color: Colors.white.withValues(alpha: 0.22),
+                            margin: const EdgeInsets.symmetric(horizontal: 18),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Image.asset(
+                              'assets/images/kik2.png',
+                              height: 70,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.directions_car,
+                                size: 70,
+                                color: AppColors.brandPurple,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      // Wordmark
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: GoogleFonts.manrope(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.6,
+                          ),
+                          children: const [
+                            TextSpan(text: 'NEO '),
+                            TextSpan(
+                              text: 'V-TRACK',
+                              style: TextStyle(color: AppColors.brandYellow),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'UiTM SEGAMAT',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.65),
+                          letterSpacing: 3.6,
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: AppColors.brandYellow,
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Vehicle Management & Monitoring System',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
+                Positioned(
+                  bottom: 18,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Text(
+                      '© 2026 NEO V-TRACK · UiTM Cawangan Johor',
+                      style: GoogleFonts.jetBrainsMono(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 10,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

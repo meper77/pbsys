@@ -53,8 +53,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         appBar: AppBar(
           title: const Text('Admin Dashboard'),
           bottom: _isAdmin
-              ? TabBar(
-                  tabs: const [
+              ? const TabBar(
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white70,
+                  indicatorColor: Color(0xFFFFD23F),
+                  indicatorWeight: 3,
+                  tabs: [
                     Tab(text: 'Statistics'),
                     Tab(text: 'Users'),
                     Tab(text: 'Stickers'),

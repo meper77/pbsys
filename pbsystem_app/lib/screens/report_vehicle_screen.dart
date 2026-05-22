@@ -1,11 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../services/api_service.dart';
 import '../services/report_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/web_app_bar.dart';
+import '../widgets/web_gradient_button.dart';
+import '../widgets/web_section_title.dart';
 
 class ReportVehicleScreen extends StatefulWidget {
   const ReportVehicleScreen({
@@ -218,24 +223,45 @@ class _ReportVehicleScreenState extends State<ReportVehicleScreen> {
         ? 'Fetching coordinates...'
         : '${_position!.latitude.toStringAsFixed(6)}, ${_position!.longitude.toStringAsFixed(6)}';
 
+    final isSuccess = _message.toLowerCase().contains('success');
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report Vehicle'),
-      ),
+      backgroundColor: AppColors.lightBg,
+      appBar: const WebAppBar(title: 'Report Vehicle', subtitle: 'Submit offense report'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_message.isNotEmpty) ...[
-              Text(
-                _message,
-                style: TextStyle(
-                  color: _message.toLowerCase().contains('success') ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: const Border(top: BorderSide(color: AppColors.uitmRed, width: 3)),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
               ),
-              const SizedBox(height: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const WebSectionTitle(title: 'Vehicle Information', icon: FontAwesomeIcons.car),
+            if (_message.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: (isSuccess ? AppColors.success : AppColors.danger).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: (isSuccess ? AppColors.success : AppColors.danger).withValues(alpha: 0.4)),
+                ),
+                child: Row(children: [
+                  FaIcon(isSuccess ? FontAwesomeIcons.circleCheck : FontAwesomeIcons.circleExclamation,
+                      size: 14, color: isSuccess ? AppColors.success : AppColors.danger),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(_message, style: TextStyle(
+                    color: isSuccess ? AppColors.success : AppColors.danger, fontSize: 12,
+                  ))),
+                ]),
+              ),
             ],
             _field('Plate Number', _plateController),
             _field('Owner Name', _ownerController, readOnly: widget.vehicle != null),
@@ -253,12 +279,27 @@ class _ReportVehicleScreenState extends State<ReportVehicleScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: const Border.fromBorderSide(BorderSide(color: AppColors.cardBorder)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const WebSectionTitle(title: 'Photos', icon: FontAwesomeIcons.camera),
+                  Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _submitting ? null : () => _addPhoto(ImageSource.camera),
-                    icon: const Icon(Icons.photo_camera),
+                    icon: const FaIcon(FontAwesomeIcons.camera, size: 14),
                     label: const Text('Snap Photo'),
                   ),
                 ),
@@ -266,7 +307,7 @@ class _ReportVehicleScreenState extends State<ReportVehicleScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _submitting ? null : () => _addPhoto(ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library),
+                    icon: const FaIcon(FontAwesomeIcons.image, size: 14),
                     label: const Text('Upload'),
                   ),
                 ),
@@ -312,28 +353,44 @@ class _ReportVehicleScreenState extends State<ReportVehicleScreen> {
                   },
                 ),
               ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.my_location),
-                title: const Text('Coordinates'),
-                subtitle: Text(_loadingLocation ? 'Fetching location...' : coords),
-                trailing: IconButton(
-                  onPressed: _loadingLocation ? null : _loadLocation,
-                  icon: const Icon(Icons.refresh),
-                ),
+            const SizedBox(height: 12),
+                ],
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _submitting ? null : _submit,
-                child: _submitting
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('SUBMIT REPORT'),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
               ),
+              child: Row(children: [
+                const FaIcon(FontAwesomeIcons.locationDot, color: AppColors.primary, size: 18),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Coordinates',
+                          style: TextStyle(color: AppColors.mutedText, fontSize: 12)),
+                      Text(_loadingLocation ? 'Fetching location…' : coords,
+                          style: const TextStyle(color: AppColors.bodyText, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: _loadingLocation ? null : _loadLocation,
+                  icon: const FaIcon(FontAwesomeIcons.arrowsRotate, size: 14, color: AppColors.primary),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 16),
+            WebGradientButton(
+              label: 'SUBMIT REPORT',
+              icon: FontAwesomeIcons.paperPlane,
+              loading: _submitting,
+              onPressed: _submitting ? null : _submit,
             ),
           ],
         ),

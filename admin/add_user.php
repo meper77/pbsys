@@ -1,66 +1,49 @@
 <?php
-include($_SERVER['DOCUMENT_ROOT'].'/includes/header.php');
+session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 
-session_start();
-//if (!isset($_SESSION['email_Admin'])) {
-	//header('location:/auth/login_admin.php');
-//}
-
 if (isset($_POST['submit'])) {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $name = $_POST['name'];
+    $email    = mysqli_real_escape_string($con, $_POST['email']);
+    $password = mysqli_real_escape_string($con, $_POST['password']);
+    $name     = mysqli_real_escape_string($con, $_POST['name']);
 
-    $sql = "insert into `user` (`email`, `password`, `name`)
-    values('$email','$password','$name')";
-
-    $result = mysqli_query($con, $sql);
-    if ($result) {
-        echo "Pengguna berjaya didaftar!";
+    $sql = "INSERT INTO `user` (`email`, `password`, `name`) VALUES ('$email','$password','$name')";
+    if (mysqli_query($con, $sql)) {
         header('location:/admin/users.php');
+        exit();
     } else {
-        die(mysqli_error($con));
+        $add_error = mysqli_error($con);
     }
 }
 
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
-
-<script src="/assets/js/jquery.dataTables.min.js"></script>
-<script src="/assets/js/dataTables.bootstrap.min.js"></script>
-<link rel="stylesheet" href="/assets/css/dataTables.bootstrap.min.css" />
-<?php include($_SERVER['DOCUMENT_ROOT'].'/includes/container.php'); ?>
-<div class="container">
-    <p>
-    <?php //include($_SERVER['DOCUMENT_ROOT'].'/includes/menus.php'); ?>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card card-default rounded-0 shadow">
-                <div class="card-header">
-                    <div class="row">
-                        <div class="col-md-9">
-                            <h3 class="card-title">Tambah Pengguna</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <H5 style="color: black;">Emel : </H5>
-                        <input type="text" id="email" name="email" placeholder="Isi emel" class="form-control mb-2">
-
-                        <H5 style="color: black;">Kata Laluan : </H5>
-                        <input type="text" id="password" name="password" placeholder="Isi kata laluan" class="form-control mb-2">
-
-                        <H5 style="color: black;">Nama : </H5>
-                        <input type="text" id="name" name="name" placeholder="Isi nama penuh" class="form-control mb-2">
-
-                        <br>
-                        <button class="btn btn-success" name="submit">Simpan</button>
-                        <a class="btn btn-danger" href="/auth/login.php">Kembali</a>
-                        </form>
-                    </div>
-                <?php include($_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'); ?>
-            </div>
+<body>
+<div class="nv-shell">
+<?php $nv_active = 'users'; include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php'; ?>
+<main class="page">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Pengguna</span>
+            <h1>Add user</h1>
+            <p class="sub">Create a new portal account.</p>
         </div>
     </div>
+    <?php if (!empty($add_error)): ?><div class="flash bad"><?= htmlspecialchars($add_error) ?></div><?php endif; ?>
+    <form class="card nv-stack gap-6" method="POST">
+        <div class="nv-grid cols-2">
+            <div class="field"><label class="field-label" for="email">Email</label>
+                <input class="input" id="email" name="email" type="email" required placeholder="name@uitm.edu.my"></div>
+            <div class="field"><label class="field-label" for="password">Password</label>
+                <input class="input" id="password" name="password" type="password" required></div>
+            <div class="field" style="grid-column:1 / -1;"><label class="field-label" for="name">Full name</label>
+                <input class="input" id="name" name="name" type="text" required></div>
+        </div>
+        <div class="nv-row end gap-2">
+            <a class="btn btn-ghost" href="/admin/users.php"><i data-lucide="arrow-left"></i> Cancel</a>
+            <button class="btn btn-primary" type="submit" name="submit"><i data-lucide="check"></i> Save</button>
+        </div>
+    </form>
+</main>
 </div>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>

@@ -1,9 +1,18 @@
-<!-- Footer -->
-<footer class="sticky-footer">
-    <div class="container my-auto">
-        <div class="copyright text-center my-auto">
-            <span>&copy; Copyright Universiti Teknologi Mara Cawangan Johor<span> - <span>Polis Bantuan | ICT Security</span>
-        </div>
-    </div>
-</footer>
-<!-- End of Footer -->
+    </main>
+    <footer class="nv-footer">
+        &copy; Universiti Teknologi MARA Cawangan Johor<span class="dot">·</span>Polis Bantuan<span class="dot">·</span>ICT Security
+    </footer>
+</div>
+<script>
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+    } else {
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        });
+    }
+</script>
+</body>
+</html>

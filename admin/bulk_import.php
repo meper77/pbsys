@@ -254,621 +254,80 @@ if (isset($_GET['download_template'])) {
     exit();
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $t['page_title']; ?> - NEO V-TRACK</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #1a2980;
-            --secondary-color: #2575fc;
-            --success-color: #00b09b;
-            --warning-color: #ff9966;
-            --danger-color: #ff416c;
-            --dark-color: #2c3e50;
-            --light-color: #f8f9fa;
-            --uitm-red: #c30e2e;
-            --uitm-blue: #003087;
-        }
-        
-        body {
-            background-color: #f5f7fb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-        
-        /* Black Navbar */
-        .navbar-black {
-            background-color: #000000 !important;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-bottom: 3px solid var(--uitm-red);
-        }
-        
-        .navbar-black .container {
-            max-width: 1400px;
-        }
-        
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px 0;
-        }
-        
-        .uitm-logo, .neo-logo {
-            height: 45px;
-            width: auto;
-            object-fit: contain;
-        }
-        
-        .uitm-logo {
-            border-right: 2px solid rgba(255,255,255,0.3);
-            padding-right: 15px;
-        }
-        
-        .system-title {
-            border-left: 3px solid rgba(255,255,255,0.3);
-            padding-left: 15px;
-        }
-        
-        .system-title h1 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 3px;
-            color: white;
-        }
-        
-        .system-title p {
-            opacity: 0.9;
-            font-size: 12px;
-            margin: 0;
-            color: white;
-        }
-        
-        .navbar-black .navbar-nav {
-            flex-direction: row;
-            justify-content: center;
-            flex-wrap: nowrap;
-        }
-        
-        .navbar-black .nav-item {
-            border-right: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .navbar-black .nav-item:last-child {
-            border-right: none;
-        }
-        
-        .navbar-black .nav-link {
-            color: white !important;
-            padding: 15px 18px !important;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .navbar-black .nav-link:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-        
-        .navbar-black .nav-link.active {
-            background-color: var(--uitm-red);
-        }
-        
-        /* Main Header */
-        .main-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
-            color: white;
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-        
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-        
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.15);
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .admin-avatar {
-            width: 35px;
-            height: 35px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            color: white;
-            text-decoration: none;
-            transform: translateY(-2px);
-        }
-        
-        /* Language Switcher */
-        .language-switcher {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-right: 15px;
-            background: rgba(255,255,255,0.15);
-            padding: 5px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .lang-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 13px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            color: white;
-            text-decoration: none;
-        }
-        
-        .lang-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            font-weight: 600;
-        }
-        
-        /* Main Content */
-        .main-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 15px 40px;
-        }
-        
-        .form-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: none;
-            margin-bottom: 30px;
-        }
-        
-        .card-header {
-            background: transparent;
-            border-bottom: 2px solid #f0f2ff;
-            padding: 0 0 20px 0;
-            margin-bottom: 25px;
-        }
-        
-        .card-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin: 0;
-        }
-        
-        .card-subtitle {
-            color: #666;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(26, 41, 128, 0.3);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #96c93d 100%);
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-        
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.3);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-        
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.3);
-        }
-        
-        .instruction-box {
-            background: #f8f9ff;
-            border: 2px dashed #e1e5f1;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .instruction-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .step-number {
-            width: 30px;
-            height: 30px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .file-input-label {
-            display: inline-block;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--uitm-blue) 100%);
-            color: white;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(26, 41, 128, 0.3);
-        }
-        
-        .file-name {
-            margin-left: 15px;
-            font-style: italic;
-            color: #666;
-        }
-        
-        .csv-preview {
-            background: #f5f7fb;
-            border: 1px solid #e1e5f1;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            overflow-x: auto;
-        }
-        
-        @media (max-width: 768px) {
-            .navbar-black .navbar-nav {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .navbar-black .nav-item {
-                width: 100%;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-                border-right: none;
-            }
-            
-            .form-card {
-                padding: 20px;
-            }
-        }
-    </style>
-</head>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
 <body>
-
-<!-- Black Navigation Bar WITH LOGOS -->
-<nav class="navbar navbar-expand-lg navbar-black">
-    <div class="container">
-        <div class="logo-container">
-            <!-- UITM Logo -->
-            <img src="/assets/images/uitm.png" alt="UITM Logo" class="uitm-logo">
-            
-            <!-- NEO V-TRACK Logo -->
-            <img src="/assets/images/kik2.png" alt="NEO V-TRACK Logo" class="neo-logo">
-            
-            <div class="system-title">
-                <h1><i class="fas fa-file-import"></i> <?php echo $t['page_title']; ?></h1>
-                <p><?php echo $t['system_name']; ?></p>
-            </div>
+<div class="nv-shell">
+<?php $nv_active = 'bulk'; include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php'; ?>
+<main class="page">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Pentadbir</span>
+            <h1><?= htmlspecialchars($t['import_title']) ?></h1>
+            <p class="sub"><?= htmlspecialchars($t['import_desc']) ?></p>
         </div>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon" style="filter: invert(1);">☰</span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/index.php">
-                        <i class="fas fa-home me-1"></i><?php echo $t['nav_dashboard']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/search/car_admin.php">
-                        <i class="fas fa-search me-1"></i><?php echo $t['nav_search']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/vehicles/staff/list.php">
-                        <i class="fas fa-user-tie me-1"></i><?php echo $t['nav_staff']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/vehicles/student/list.php">
-                        <i class="fas fa-user-graduate me-1"></i><?php echo $t['nav_student']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/vehicles/visitor/list.php">
-                        <i class="fas fa-user-clock me-1"></i><?php echo $t['nav_visitor']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/vehicles/contractor/list.php">
-                        <i class="fas fa-hard-hat me-1"></i><?php echo $t['nav_contractor']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin/users.php">
-                        <i class="fas fa-users-cog me-1"></i><?php echo $t['nav_user_mgmt']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin/dashboard.php">
-                        <i class="fas fa-user-shield me-1"></i><?php echo $t['nav_admin']; ?>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="/admin/bulk_import.php">
-                        <i class="fas fa-file-import me-1"></i><?php echo $t['nav_import']; ?>
-                    </a>
-                </li>
-            </ul>
+        <div class="actions">
+            <a class="btn btn-ghost" href="?download_template=1"><i data-lucide="download"></i> <?= htmlspecialchars($t['download_template']) ?></a>
         </div>
     </div>
-</nav>
 
-<!-- Main Header -->
-<div class="main-header">
-    <div class="header-content">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <div class="admin-info">
-                    <div class="admin-avatar">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div>
-                        <div style="font-weight: 500; font-size: 14px;"><?php echo htmlspecialchars($admin_display); ?></div>
-                        <div style="font-size: 11px; opacity: 0.8;">Administrator</div>
-                    </div>
+    <div class="nv-grid cols-2" style="align-items:start;">
+        <div class="card">
+            <span class="eyebrow"><?= htmlspecialchars($t['instructions']) ?></span>
+            <h3 class="text-display mt-2 mb-4">CSV import steps</h3>
+            <div class="nv-stack gap-4">
+                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">1</span><div><strong><?= htmlspecialchars($t['step1']) ?></strong></div></div>
+                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">2</span><div><strong><?= htmlspecialchars($t['step2']) ?></strong><div class="text-mono text-muted mt-2" style="font-size:12px;"><?= htmlspecialchars($t['csv_columns']) ?></div></div></div>
+                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">3</span><div><strong><?= htmlspecialchars($t['step3']) ?></strong></div></div>
+                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">4</span><div><strong><?= htmlspecialchars($t['step4']) ?></strong></div></div>
+            </div>
+            <div class="card flat mt-6" style="background:var(--surface-tint);">
+                <span class="eyebrow"><?= htmlspecialchars($t['example']) ?></span>
+                <div class="text-mono mt-2" style="font-size:12px;line-height:1.7;color:var(--brand-purple-deep);">
+                    <?= htmlspecialchars($t['csv_columns']) ?><br>
+                    <?= htmlspecialchars($t['example_row']) ?><br>
+                    Siti Sarah,0134567890,2023001,MOTOSIKAL,Pelajar,DEF5678<br>
+                    John Doe,0145678901,IC123456,VAN,Pelawat,GHI9012
                 </div>
-                
-                <!-- Language Switcher -->
-                <div class="language-switcher">
-                    <a href="?lang=bm" class="lang-btn <?php echo ($lang == 'bm') ? 'active' : ''; ?>">
-                        <i class="fas fa-language me-1"></i>BM
-                    </a>
-                    <a href="?lang=en" class="lang-btn <?php echo ($lang == 'en') ? 'active' : ''; ?>">
-                        <i class="fas fa-language me-1"></i>EN
-                    </a>
+                <div class="text-muted mt-4" style="font-size:12px;">
+                    <strong><?= htmlspecialchars($t['status_options']) ?></strong><br>
+                    <strong><?= htmlspecialchars($t['type_options']) ?></strong>
                 </div>
             </div>
-            
-            <!-- Logout Button -->
-            <a href="?logout=1" class="logout-btn" onclick="return confirm('<?php echo $t['logout_confirm']; ?>')">
-                <i class="fas fa-sign-out-alt me-2"></i> <?php echo $t['logout']; ?>
-            </a>
         </div>
-    </div>
-</div>
 
-<!-- Main Content -->
-<div class="main-content">
-    <div class="form-card">
-        <div class="card-header">
-            <h2 class="card-title"><i class="fas fa-file-import me-2"></i><?php echo $t['import_title']; ?></h2>
-            <p class="card-subtitle"><?php echo $t['import_desc']; ?></p>
-        </div>
-        
-        <!-- Instructions Section -->
-        <div class="instruction-box">
-            <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i><?php echo $t['instructions']; ?></h5>
-            
-            <div class="instruction-step">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                    <strong><?php echo $t['step1']; ?></strong><br>
-                    <a href="?download_template=1" class="btn btn-success btn-sm mt-2">
-                        <i class="fas fa-download me-1"></i><?php echo $t['download_template']; ?>
-                    </a>
-                </div>
+        <form class="card nv-stack gap-6" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div>
+                <span class="eyebrow">Upload</span>
+                <h3 class="text-display mt-2"><?= htmlspecialchars($t['choose_file']) ?></h3>
             </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                    <strong><?php echo $t['step2']; ?></strong><br>
-                    <small><strong><?php echo $t['csv_format']; ?></strong> <?php echo $t['csv_columns']; ?></small><br>
-                    <small><strong><?php echo $t['example']; ?></strong> <?php echo $t['example_row']; ?></small><br>
-                    <small><strong><?php echo $t['status_options']; ?></strong></small><br>
-                    <small><strong><?php echo $t['type_options']; ?></strong></small>
-                    
-                    <div class="csv-preview mt-2">
-                        <?php echo $t['csv_columns']; ?><br>
-                        <?php echo $t['example_row']; ?><br>
-                        Siti Sarah,0134567890,2023001,MOTOSIKAL,Pelajar,DEF5678<br>
-                        John Doe,0145678901,IC123456,VAN,Pelawat,GHI9012
-                    </div>
-                </div>
+            <div class="field">
+                <label class="field-label" for="csv_file">CSV file</label>
+                <input class="input" id="csv_file" name="csv_file" type="file" accept=".csv" required onchange="updateFileName()">
+                <span class="field-hint" id="file-name">No file chosen</span>
             </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                    <strong><?php echo $t['step3']; ?></strong><br>
-                    <small>Dalam Excel: File → Save As → Pilih "CSV (Comma delimited) (*.csv)"</small>
-                </div>
-            </div>
-            
-            <div class="instruction-step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <strong><?php echo $t['step4']; ?></strong>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Upload Form -->
-        <form method="POST" enctype="multipart/form-data" id="uploadForm">
-            <div class="mb-4">
-                <label class="form-label d-block mb-3"><?php echo $t['choose_file']; ?>:</label>
-                <div class="file-input-wrapper">
-                    <input type="file" id="csv_file" name="csv_file" accept=".csv" required onchange="updateFileName()">
-                    <label for="csv_file" class="file-input-label">
-                        <i class="fas fa-upload me-2"></i><?php echo $t['choose_file']; ?>
-                    </label>
-                    <span id="file-name" class="file-name">Tiada fail dipilih</span>
-                </div>
-            </div>
-            
-            <div class="d-flex gap-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-upload me-2"></i><?php echo $t['upload']; ?>
-                </button>
-                <a href="/index.php" class="btn btn-danger">
-                    <i class="fas fa-arrow-left me-2"></i><?php echo $t['back']; ?>
-                </a>
+            <div class="nv-row end gap-2">
+                <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+                <button class="btn btn-primary" type="submit"><i data-lucide="upload"></i> <?= htmlspecialchars($t['upload']) ?></button>
             </div>
         </form>
     </div>
+</main>
 </div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
 function updateFileName() {
-    const fileInput = document.getElementById('csv_file');
-    const fileName = document.getElementById('file-name');
-    
-    if (fileInput.files.length > 0) {
-        fileName.textContent = fileInput.files[0].name;
-        fileName.style.color = '#28a745';
-        fileName.style.fontWeight = '600';
-    } else {
-        fileName.textContent = 'Tiada fail dipilih';
-        fileName.style.color = '#666';
-        fileName.style.fontWeight = 'normal';
-    }
+    var fi = document.getElementById('csv_file');
+    var fn = document.getElementById('file-name');
+    if (fi.files.length > 0) { fn.textContent = fi.files[0].name; fn.style.color = 'var(--status-ok)'; }
+    else { fn.textContent = 'No file chosen'; fn.style.color = 'var(--fg-3)'; }
 }
-
-// Form validation
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    const fileInput = document.getElementById('csv_file');
-    
-    if (!fileInput.files.length) {
-        e.preventDefault();
-        alert('<?php echo $t['file_required']; ?>');
-        return false;
-    }
-    
-    const file = fileInput.files[0];
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    
-    if (fileExt !== 'csv') {
-        e.preventDefault();
-        alert('<?php echo $t['invalid_format']; ?>');
-        return false;
-    }
-    
-    // Show loading
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memuat naik...';
-    submitBtn.disabled = true;
+    var fi = document.getElementById('csv_file');
+    if (!fi.files.length) { e.preventDefault(); alert('<?php echo addslashes($t['file_required']); ?>'); return false; }
+    var ext = fi.files[0].name.split('.').pop().toLowerCase();
+    if (ext !== 'csv') { e.preventDefault(); alert('<?php echo addslashes($t['invalid_format']); ?>'); return false; }
+    var btn = this.querySelector('button[type="submit"]');
+    btn.innerHTML = '<i data-lucide="loader"></i> ' + '<?php echo addslashes($t['upload']); ?>';
+    btn.disabled = true;
 });
 </script>
-
-</body>
-</html>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>

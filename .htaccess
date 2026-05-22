@@ -76,6 +76,10 @@ DirectoryIndex index.php index.html
   RewriteRule ^vehicle_stats_api\.php$        api/vehicle_stats_api.php         [L]
   RewriteRule ^sticker_management_api\.php$   api/sticker_management_api.php    [L]
   RewriteRule ^admin_management_api\.php$     api/admin_management_api.php      [L]
+  RewriteRule ^plate_search_api\.php$         api/plate_search_api.php          [L]
+  RewriteRule ^reports_list_api\.php$         api/reports_list_api.php          [L]
+  RewriteRule ^reports_view_api\.php$         api/reports_view_api.php          [L]
+  RewriteRule ^bulk_import_api\.php$          api/bulk_import_api.php           [L]
 
   # ---------- Legacy includes (defensive — shouldn't be hit, but include for safety) ----------
   RewriteRule ^connect\.php$                  - [F,L]

@@ -27,85 +27,94 @@ if (!empty($_SESSION['email_Admin'])) {
     exit;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Report Vehicle | NEO V-TRACK</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php'; ?>
 <style>
-    body { background:#f4f6f9; }
-    .report-card { max-width: 760px; margin: 40px auto; background:#fff; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,.06); padding:32px; }
-    h2 { margin-bottom: 20px; }
-    .geo-status { font-size: 13px; color:#666; }
-    .geo-status.ok { color:#198754; }
-    .geo-status.err { color:#dc3545; }
-    .photo-preview img { width:90px; height:90px; object-fit:cover; border-radius:6px; margin:6px 6px 0 0; border:1px solid #ddd; }
     .plate-search-wrapper { position: relative; }
     .plate-suggestions {
         position:absolute; top:100%; left:0; right:0; z-index:50;
-        background:#fff; border:1px solid #ced4da; border-top:0; border-radius: 0 0 6px 6px;
-        max-height: 280px; overflow-y:auto; box-shadow: 0 6px 16px rgba(0,0,0,.08);
+        background:#fff; border:1px solid var(--border); border-top:0; border-radius: 0 0 6px 6px;
+        max-height: 280px; overflow-y:auto; box-shadow: var(--shadow-2);
         display:none;
     }
-    .plate-suggestions .suggest-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f0; }
-    .plate-suggestions .suggest-item:hover, .plate-suggestions .suggest-item.active { background:#eef4ff; }
-    .plate-suggestions .suggest-empty { padding:10px 12px; color:#777; font-style:italic; }
-    .plate-suggestions .badge-new { background:#dc3545; color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; margin-left:6px; }
+    .plate-suggestions .suggest-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--neutral-100); }
+    .plate-suggestions .suggest-item:hover, .plate-suggestions .suggest-item.active { background:var(--surface-tint); }
+    .plate-suggestions .suggest-empty { padding:10px 12px; color:var(--fg-3); font-style:italic; }
+    .plate-suggestions .badge-new { background:var(--status-bad); color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; margin-left:6px; }
     .match-status { font-size:12px; margin-top:4px; }
-    .match-status.found { color:#198754; }
-    .match-status.new   { color:#dc3545; }
+    .match-status.found { color:var(--status-ok); }
+    .match-status.new   { color:var(--status-bad); }
+    .geo-status { font-size: 13px; color:var(--fg-3); }
+    .geo-status.ok { color:var(--status-ok); }
+    .geo-status.err { color:var(--status-bad); }
+    .photo-preview img { width:90px; height:90px; object-fit:cover; border-radius:6px; margin:6px 6px 0 0; border:1px solid var(--border); }
 </style>
-</head>
 <body>
-<div class="report-card">
-    <h2><i class="fas fa-flag text-danger me-2"></i>Report Vehicle</h2>
-    <p class="text-muted">Submit a vehicle offense report. Your account, location and photos are attached automatically.</p>
+<div class="nv-shell">
+<?php $nv_active='reports'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
+<main class="page">
+  <div class="page-head">
+    <div>
+      <span class="eyebrow">Laporan</span>
+      <h1>Report a vehicle</h1>
+      <p class="sub">Submit a vehicle offense report. Reporter, location, and photos are attached automatically.</p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-ghost" href="/admin/reports.php"><i data-lucide="arrow-left"></i> Back to reports</a>
+    </div>
+  </div>
 
-    <div id="alert-box"></div>
+  <div id="alert-box"></div>
 
-    <form id="reportForm" enctype="multipart/form-data" action="/api/report_vehicle_api.php" method="POST" novalidate>
+  <form id="reportForm" enctype="multipart/form-data" action="/api/report_vehicle_api.php" method="POST" novalidate>
         <input type="hidden" name="reporter_role" value="<?php echo htmlspecialchars($reporterRole); ?>">
 
-        <div class="row">
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Reporter Name</label>
-                <input type="text" class="form-control" name="reporter_name" value="<?php echo htmlspecialchars($reporterName); ?>" readonly>
+    <!-- HERO PLATE CARD -->
+    <div class="card nv-stack" style="margin-bottom:20px;">
+      <div>
+        <span class="eyebrow">Cari Kenderaan</span>
+        <h2 class="text-display" style="margin-top:4px;">Find vehicle</h2>
+        <p class="sub">Type a plate to autofill owner details, or enter a plate that isn't on file yet.</p>
+      </div>
+      <div class="field plate-search-wrapper">
+        <label class="field-label" for="plateInput">Plate number <span style="color:var(--status-bad);">*</span></label>
+        <input type="text" class="input mono" name="plate_number" id="plateInput" autocomplete="off" required placeholder="Type to search…" autofocus>
+        <div class="plate-suggestions" id="plateSuggestions"></div>
+        <div class="match-status" id="matchStatus"></div>
+      </div>
+    </div>
+
+    <!-- REST-OF-REPORT CARD -->
+    <div class="card nv-stack gap-6">
+        <div class="nv-grid cols-2">
+            <div class="field">
+                <label class="field-label">Reporter Name</label>
+                <input type="text" class="input" name="reporter_name" value="<?php echo htmlspecialchars($reporterName); ?>" readonly>
             </div>
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Reporter Email</label>
-                <input type="email" class="form-control" name="reporter_email" value="<?php echo htmlspecialchars($reporterEmail); ?>" readonly>
+            <div class="field">
+                <label class="field-label">Reporter Email</label>
+                <input type="email" class="input" name="reporter_email" value="<?php echo htmlspecialchars($reporterEmail); ?>" readonly>
             </div>
         </div>
 
-        <div class="mb-3 plate-search-wrapper">
-            <label class="form-label">Plate Number <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="plate_number" id="plateInput" autocomplete="off" required style="text-transform:uppercase" placeholder="Type to search…">
-            <div class="plate-suggestions" id="plateSuggestions"></div>
-            <div class="match-status" id="matchStatus"></div>
-        </div>
-
-        <div class="row">
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Owner Name</label>
-                <input type="text" class="form-control" name="owner_name" id="ownerName">
+        <div class="nv-grid cols-2">
+            <div class="field">
+                <label class="field-label">Owner Name</label>
+                <input type="text" class="input" name="owner_name" id="ownerName">
             </div>
-            <div class="mb-3 col-md-6">
-                <label class="form-label">ID / Matric / Pass No.</label>
-                <input type="text" class="form-control" name="id_number" id="idNumber">
+            <div class="field">
+                <label class="field-label">ID / Matric / Pass No.</label>
+                <input type="text" class="input" name="id_number" id="idNumber">
             </div>
         </div>
 
-        <div class="row">
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" name="phone" id="phone">
+        <div class="nv-grid cols-2">
+            <div class="field">
+                <label class="field-label">Phone</label>
+                <input type="text" class="input" name="phone" id="phone">
             </div>
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Vehicle Status</label>
-                <select class="form-select" name="vehicle_status" id="vehicleStatus">
+            <div class="field">
+                <label class="field-label">Vehicle Status</label>
+                <select class="select" name="vehicle_status" id="vehicleStatus">
                     <option value="">-- Select --</option>
                     <option value="Staf">Staf</option>
                     <option value="Pelajar">Pelajar</option>
@@ -115,10 +124,10 @@ if (!empty($_SESSION['email_Admin'])) {
             </div>
         </div>
 
-        <div class="row">
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Vehicle Type</label>
-                <select class="form-select" name="vehicle_type" id="vehicleType">
+        <div class="nv-grid cols-2">
+            <div class="field">
+                <label class="field-label">Vehicle Type</label>
+                <select class="select" name="vehicle_type" id="vehicleType">
                     <option value="">-- Select --</option>
                     <option value="KERETA">KERETA</option>
                     <option value="MOTOSIKAL">MOTOSIKAL</option>
@@ -127,9 +136,9 @@ if (!empty($_SESSION['email_Admin'])) {
                     <option value="LAIN-LAIN">LAIN-LAIN</option>
                 </select>
             </div>
-            <div class="mb-3 col-md-6">
-                <label class="form-label">Sticker</label>
-                <select class="form-select" name="sticker" id="sticker">
+            <div class="field">
+                <label class="field-label">Sticker</label>
+                <select class="select" name="sticker" id="sticker">
                     <option value="">-- Select --</option>
                     <option value="ADA">ADA</option>
                     <option value="TIADA">TIADA</option>
@@ -137,35 +146,36 @@ if (!empty($_SESSION['email_Admin'])) {
             </div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Offense Details <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="offense_details" rows="3" required placeholder="Describe what happened…"></textarea>
+        <div class="field">
+            <label class="field-label">Offense Details <span style="color:var(--status-bad);">*</span></label>
+            <textarea class="input" name="offense_details" rows="3" required placeholder="Describe what happened…"></textarea>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Photos <span class="text-danger">*</span></label>
-            <input type="file" class="form-control" name="photos[]" id="photos" multiple accept="image/*" required>
+        <div class="field">
+            <label class="field-label">Photos <span style="color:var(--status-bad);">*</span></label>
+            <input type="file" class="input" name="photos[]" id="photos" multiple accept="image/*" required>
             <small class="text-muted">JPG / PNG / WEBP. At least one photo required.</small>
             <div class="photo-preview" id="photoPreview"></div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Location (auto-detected)</label>
-            <div class="d-flex gap-2 align-items-center">
-                <input type="text" class="form-control" id="coordsDisplay" readonly placeholder="Detecting…">
-                <button type="button" class="btn btn-outline-secondary" id="retryGeo" title="Retry"><i class="fas fa-redo"></i></button>
+        <div class="field">
+            <label class="field-label">Location (auto-detected)</label>
+            <div class="nv-row gap-2">
+                <input type="text" class="input" id="coordsDisplay" readonly placeholder="Detecting…">
+                <button type="button" class="btn btn-ghost" id="retryGeo" title="Retry"><i data-lucide="refresh-cw"></i></button>
             </div>
             <div class="geo-status" id="geoStatus">Requesting browser location permission…</div>
             <input type="hidden" name="latitude" id="latitude" required>
             <input type="hidden" name="longitude" id="longitude" required>
         </div>
 
-        <button type="submit" class="btn btn-danger w-100" id="submitBtn">
-            <i class="fas fa-paper-plane me-2"></i>Submit Report
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="submitBtn">
+            <i data-lucide="send"></i> Submit report
         </button>
-    </form>
+    </div>
+  </form>
+</main>
 </div>
-
 <script>
 (function () {
     const statusEl = document.getElementById('geoStatus');
@@ -318,18 +328,18 @@ if (!empty($_SESSION['email_Admin'])) {
         e.preventDefault();
         alertBox.innerHTML = '';
         if (!latEl.value || !lngEl.value) {
-            alertBox.innerHTML = '<div class="alert alert-warning">Location is required. Please allow location access and click retry.</div>';
+            alertBox.innerHTML = '<div class="flash warn">Location is required. Please allow location access and click retry.</div>';
             return;
         }
         submit.disabled = true;
-        submit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting…';
+        submit.innerHTML = '<i data-lucide="loader-2"></i> Submitting…';
 
         try {
             const fd = new FormData(form);
             const res = await fetch(form.action, { method: 'POST', body: fd });
             const data = await res.json();
             if (data.success) {
-                alertBox.innerHTML = '<div class="alert alert-success">Report submitted (ID #' + data.report_id + '). Thank you.</div>';
+                alertBox.innerHTML = '<div class="flash ok">Report submitted (ID #' + data.report_id + '). Thank you.</div>';
                 form.reset();
                 preview.innerHTML = '';
                 coordsEl.value = '';
@@ -337,16 +347,15 @@ if (!empty($_SESSION['email_Admin'])) {
                 matchStatus.textContent = '';
                 requestLocation();
             } else {
-                alertBox.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Submission failed.') + '</div>';
+                alertBox.innerHTML = '<div class="flash bad">' + (data.message || 'Submission failed.') + '</div>';
             }
         } catch (err) {
-            alertBox.innerHTML = '<div class="alert alert-danger">Network error: ' + err.message + '</div>';
+            alertBox.innerHTML = '<div class="flash bad">Network error: ' + err.message + '</div>';
         } finally {
             submit.disabled = false;
-            submit.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Report';
+            submit.innerHTML = '<i data-lucide="send"></i> Submit report';
         }
     });
 })();
 </script>
-</body>
-</html>
+<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

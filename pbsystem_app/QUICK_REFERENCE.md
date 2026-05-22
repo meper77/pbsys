@@ -2,19 +2,33 @@
 
 ## Start Live Preview Now
 
-### Option 1: Using the script
+### Option 1 (Windows / PowerShell, recommended)
+```powershell
+cd pbsystem_app
+.\dev.ps1
+```
+Boots the `Pixel_API_36` AVD if needed and runs Flutter against the local PHP
+dev server. Internally passes `--dart-define=API_BASE_URL=http://10.0.2.2:8000`
+so the app talks to your host machine's PHP server (Android emulators reach the
+host loopback via `10.0.2.2`, not `127.0.0.1`).
+
+Prerequisites: PHP dev server running on the host at `localhost:8000`
+(`C:\xampp\php\php.exe -S localhost:8000 -t C:\Users\User.J1-ALPHA-PENS\pbsys`)
+and MySQL on `3306`.
+
+### Option 2: Using the script (bash / WSL)
 ```bash
 cd pbsystem_app
 ./run-live-preview.sh
 ```
 
-### Option 2: Direct command
+### Option 3: Direct command
 ```bash
 cd pbsystem_app
 flutter run
 ```
 
-### Option 3: Using dev menu
+### Option 4: Using dev menu (bash / WSL)
 ```bash
 cd pbsystem_app
 ./flutter-dev-menu.sh

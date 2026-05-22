@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Cleartext HTTP allowed for:
+         * 10.0.2.2          — Android emulator alias for host loopback
+         * 10.0.26.208       — UiTM intranet Hestia host
+         * neovtrack.uitm.edu.my — production intranet domain (no TLS)
+         * localhost / 127.0.0.1 — same-device PHP server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">10.0.26.208</domain>
+        <domain includeSubdomains="true">neovtrack.uitm.edu.my</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../services/api_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/nv_plate_chip.dart';
+import '../widgets/sticker_badge.dart';
+import '../widgets/web_app_bar.dart';
 import 'vehicle_detail_screen.dart';
 
 class VehicleCategoryScreen extends StatefulWidget {
@@ -20,8 +26,6 @@ class VehicleCategoryScreen extends StatefulWidget {
 }
 
 class _VehicleCategoryScreenState extends State<VehicleCategoryScreen> {
-  static const primaryColor = Color(0xFF4B2E83);
-  static const cardBackground = Color(0xFFF6F2FC);
   final ApiService api = ApiService();
   bool loading = true;
   String message = '';
@@ -34,218 +38,166 @@ class _VehicleCategoryScreenState extends State<VehicleCategoryScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      loading = true;
-      message = '';
-    });
-
-    final data = await api.searchCarUser(
-      status: widget.status,
-      showAll: widget.showAll,
-    );
-
+    setState(() { loading = true; message = ''; });
+    final data = await api.searchCarUser(status: widget.status, showAll: widget.showAll);
+    if (!mounted) return;
     setState(() {
       loading = false;
       if (data['success'] == 1) {
         results = data['data'] ?? [];
-        if (results.isEmpty) {
-          message = 'NO VEHICLES FOUND';
-        }
+        if (results.isEmpty) message = 'No vehicles found.';
       } else {
-        message = (data['message'] ?? 'FAILED TO LOAD').toUpperCase();
+        message = data['message'] ?? 'Failed to load';
       }
     });
   }
 
-  Color _statusColor(String status) {
-    final normalized = status.toLowerCase();
-    if (normalized.contains('staf') || normalized.contains('staff')) {
-      return const Color(0xFF1976D2);
-    }
-    if (normalized.contains('pelajar') || normalized.contains('student')) {
-      return const Color(0xFF7B1FA2);
-    }
-    if (normalized.contains('pelawat') || normalized.contains('visitor')) {
-      return const Color(0xFF388E3C);
-    }
-    if (normalized.contains('kontraktor') || normalized.contains('contractor')) {
-      return const Color(0xFFF57C00);
-    }
-    return primaryColor;
+  (Color, Color) _statusPalette(String status) {
+    final s = status.toLowerCase();
+    if (s.contains('staf'))       return (AppColors.statStaffBorder, Colors.white);
+    if (s.contains('pelajar'))    return (AppColors.statStudentBorder, Colors.white);
+    if (s.contains('pelawat'))    return (AppColors.statVisitorBorder, Colors.white);
+    if (s.contains('kontraktor')) return (AppColors.statContractorBorder, Colors.white);
+    return (AppColors.primary, Colors.white);
   }
 
   Widget _statusBadge(String status) {
-    final color = _statusColor(status);
+    final (bg, fg) = _statusPalette(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Text(status.toUpperCase(),
+          style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 0.4)),
     );
   }
 
-  Widget _rowLabel(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(color: Colors.black87, fontSize: 14),
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(text: value.isEmpty ? '-' : value),
-          ],
-        ),
-      ),
-    );
+  String _digitsOnly(String s) => s.replaceAll(RegExp(r'\D'), '');
+
+  Future<void> _call(String phone) async {
+    final p = _digitsOnly(phone);
+    if (p.isEmpty) return;
+    final uri = Uri.parse('tel:+$p');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  Future<void> _whatsapp(String phone) async {
+    final p = _digitsOnly(phone);
+    if (p.isEmpty) return;
+    final wa = p.startsWith('0') ? '60${p.substring(1)}' : p;
+    final uri = Uri.parse('https://wa.me/$wa');
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+      backgroundColor: AppColors.lightBg,
+      appBar: WebAppBar(title: widget.title, subtitle: 'NEO V-TRACK'),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                padding: const EdgeInsets.all(12),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                    child: Row(
+                      children: [
+                        const FaIcon(FontAwesomeIcons.list, size: 14, color: AppColors.mutedText),
+                        const SizedBox(width: 8),
+                        Text('${results.length} record${results.length == 1 ? '' : 's'}',
+                            style: const TextStyle(color: AppColors.mutedText, fontSize: 13, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  if (message.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(child: Text(message, style: const TextStyle(color: AppColors.mutedText))),
+                    ),
+                  ...results.map(_buildCard),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildCard(dynamic item) {
+    final phone = (item['phone'] ?? '').toString().trim();
+    final plate = (item['platenum'] ?? '-').toString().toUpperCase();
+    final status = (item['status'] ?? '').toString();
+    final owner = (item['name'] ?? '').toString();
+    final type = (item['type'] ?? '').toString();
+    final stickerStatus = (item['sticker'] ?? '').toString();
+    final stickerNo = (item['stickerno'] ?? '').toString();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: const Border.fromBorderSide(BorderSide(color: AppColors.cardBorder)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4B2E83), Color(0xFF6A1B9A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: item)),
           ),
-        ),
-        child: loading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (message.isNotEmpty)
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    if (results.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          '${results.length} RECORDS',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ...results.map((item) {
-                      final phone = (item['phone'] ?? '').toString().trim();
-                      final sticker = (item['sticker'] ?? '').toString().trim();
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        color: cardBackground,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    (item['platenum'] ?? '-')
-                                        .toString()
-                                        .toUpperCase(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: primaryColor,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  _statusBadge((item['status'] ?? '-').toString()),
-                                ],
-                              ),
-                              _rowLabel(
-                                'OWNER',
-                                (item['name'] ?? '').toString().toUpperCase(),
-                              ),
-                              _rowLabel(
-                                'ID NUMBER',
-                                (item['idnumber'] ?? '').toString().toUpperCase(),
-                              ),
-                              Row(
-                                children: [
-                                  const Text('PHONE: '),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      if (phone.isEmpty) {
-                                        return;
-                                      }
-                                      final uri = Uri.parse('tel:$phone');
-                                      if (await canLaunchUrl(uri)) {
-                                        await launchUrl(uri);
-                                      }
-                                    },
-                                    child: Text(
-                                      phone.isEmpty ? '-' : phone,
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              _rowLabel(
-                                'TYPE',
-                                (item['type'] ?? '').toString().toUpperCase(),
-                              ),
-                              _rowLabel(
-                                'STICKER',
-                                sticker.isEmpty ? '-' : sticker.toUpperCase(),
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: item)),
-                                    );
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: primaryColor,
-                                  ),
-                                  child: const Text('VIEW DETAILS'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
+                    NvPlateChip(plate),
+                    _statusBadge(status),
                   ],
                 ),
-              ),
+                const SizedBox(height: 6),
+                Text(owner,
+                    style: const TextStyle(color: AppColors.bodyText, fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 6),
+                Row(children: [
+                  const FaIcon(FontAwesomeIcons.car, size: 11, color: AppColors.mutedText),
+                  const SizedBox(width: 6),
+                  Text(type.isEmpty ? '-' : type, style: const TextStyle(color: AppColors.mutedText, fontSize: 12)),
+                  const SizedBox(width: 14),
+                  StickerBadge(status: stickerStatus, stickerNo: stickerNo),
+                ]),
+                if (phone.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Text(phone, style: const TextStyle(color: AppColors.bodyText, fontSize: 13)),
+                    const Spacer(),
+                    _miniBtn(FontAwesomeIcons.phone, AppColors.primary, () => _call(phone)),
+                    const SizedBox(width: 6),
+                    _miniBtn(FontAwesomeIcons.whatsapp, const Color(0xFF25D366), () => _whatsapp(phone)),
+                  ]),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+
+  Widget _miniBtn(IconData icon, Color color, VoidCallback onTap) => Material(
+        color: color,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 32, height: 32,
+            child: Center(child: FaIcon(icon, color: Colors.white, size: 13)),
+          ),
+        ),
+      );
 }

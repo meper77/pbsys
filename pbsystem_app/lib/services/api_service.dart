@@ -54,9 +54,46 @@ class ApiService {
   static String get currentUserEmail => _currentUserEmail;
   static String get currentUserRole => _currentUserRole;
 
-  Uri _uri(String path) => Uri.parse('$baseUrl/$path');
+  /// Resolves a relative path to a full API URL. Auto-prepends `api/` so the
+  /// app works both under PHP's built-in dev server (no .htaccess rewrites)
+  /// and under Apache in production. Pass paths like `vehicle_stats_api.php`
+  /// or `reports_list_api.php?limit=50`.
+  Uri _uri(String path) {
+    var clean = path.startsWith('/') ? path.substring(1) : path;
+    if (!clean.startsWith('api/')) clean = 'api/$clean';
+    return Uri.parse('$baseUrl/$clean');
+  }
 
   Uri _webUri(String path) => Uri.parse('$baseUrl/$path');
+
+  /// Merges the persisted PHP session cookie into outgoing requests so admin
+  /// endpoints that gate on `$_SESSION['email_Admin']` receive auth.
+  Map<String, String> _withCookie(Map<String, String>? headers) {
+    final hdrs = <String, String>{...?headers};
+    if (_webSessionCookie.isNotEmpty) {
+      hdrs['Cookie'] = _webSessionCookie;
+    }
+    return hdrs;
+  }
+
+  /// Public GET helper for admin/feature screens.
+  Future<http.Response> get(String path, [Map<String, String>? headers]) async {
+    final hdrs = _withCookie({'Accept': 'application/json', ...?headers});
+    try {
+      return await http.get(_uri(path), headers: hdrs);
+    } on SocketException catch (e) {
+      final isHostLookup = e.message.toLowerCase().contains('failed host lookup');
+      if (!isHostLookup) rethrow;
+      final fallbackUri = Uri.parse(_fallbackBaseUrl).replace(path: _uri(path).path);
+      hdrs['Host'] = _fallbackHostHeader;
+      return await http.get(fallbackUri, headers: hdrs);
+    }
+  }
+
+  /// Public POST helper. `body` may be a Map<String,String> (form-encoded) or a JSON string.
+  Future<http.Response> post(String path, Map<String, String> headers, Object? body) {
+    return _post(_uri(path), _withCookie(headers), body);
+  }
 
   Future<http.Response> _post(Uri url, Map<String, String> headers, Object? body) async {
     try {
