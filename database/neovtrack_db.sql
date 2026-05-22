@@ -272,17 +272,33 @@ CREATE TABLE `user_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `user_sessions`
---
+|-- Dumping data for table `user_sessions`
+--|
 
 INSERT INTO `user_sessions` (`id`, `user_id`, `session_id`, `email`, `user_type`, `login_time`, `last_activity`, `ip_address`, `user_agent`) VALUES
 (1, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'afifzaifiddin@gmail.com', 'user', '2026-01-19 07:42:12', '2026-01-19 07:42:12', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'),
 (2, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-19 09:16:17', '2026-01-19 09:16:17', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'),
 (3, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-19 09:45:00', '2026-01-19 09:45:00', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'),
-(4, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-19 09:51:56', '2026-01-19 09:51:56', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'),
-(5, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-19 10:06:17', '2026-01-19 10:06:17', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36'),
-(6, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-25 17:48:47', '2026-01-25 17:48:47', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'),
-(7, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-26 12:33:23', '2026-01-26 12:33:23', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'),
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_vehicle`
+--
+
+CREATE TABLE `user_vehicle` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `vehicle_id` int(11) NOT NULL,
+  `vehicle_type` enum('visitor','staff','student','contractor') NOT NULL,
+  `role` varchar(50) DEFAULT 'owner',
+  `assigned_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `assigned_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--|
 (8, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-26 12:35:29', '2026-01-26 12:35:29', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'),
 (9, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-27 22:12:42', '2026-01-27 22:12:42', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'),
 (10, 0, 'k9tm4md4mv3rp9lv3ndqfdrh7k', 'MUHAMMAD122731@gmail.com', 'user', '2026-01-28 16:26:14', '2026-01-28 16:26:14', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'),
@@ -360,6 +376,15 @@ ALTER TABLE `user_sessions`
   ADD KEY `idx_user_type` (`user_type`);
 
 --
+-- Indexes for table `user_vehicle`
+--
+ALTER TABLE `user_vehicle`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_vehicle` (`user_id`, `vehicle_id`, `vehicle_type`),
+  ADD KEY `idx_vehicle` (`vehicle_id`, `vehicle_type`),
+  ADD KEY `idx_user` (`user_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -404,6 +429,13 @@ ALTER TABLE `user`
 --
 ALTER TABLE `user_sessions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+
+--
+-- AUTO_INCREMENT for table `user_vehicle`
+--
+ALTER TABLE `user_vehicle`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -33,6 +33,7 @@ DirectoryIndex index.php index.html
   RewriteRule ^bulk_import\.php$              admin/bulk_import.php             [L]
   RewriteRule ^vehicle_list_drill_down\.php$  admin/vehicle_list.php            [L]
   RewriteRule ^print\.php$                    admin/print.php                   [L]
+  RewriteRule ^manage_user_vehicle_assignments\.php$  admin/user_vehicle_assignments.php  [L]
 
   # ---------- Legacy vehicles ----------
   RewriteRule ^Visitorcar\.php$               vehicles/visitor/list.php         [L]
