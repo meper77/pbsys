@@ -39,8 +39,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             <div class="k">Status</div><div class="v"><?= htmlspecialchars($row['status'] ?? '') ?></div>
             <div class="k">Vehicle type</div><div class="v"><?= htmlspecialchars($row['type'] ?? '') ?></div>
             <div class="k">Phone</div><div class="v text-mono"><?= htmlspecialchars($row['phone'] ?? '') ?></div>
-            <div class="k">Sticker no.</div><div class="v text-mono"><?= htmlspecialchars($row['stickerno'] ?? '') ?></div>
-            <div class="k">Sticker status</div><div class="v"><?= htmlspecialchars($row['sticker'] ?? '') ?></div>
         </div>
     </div>
     <?php else: ?>

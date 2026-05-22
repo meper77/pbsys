@@ -69,7 +69,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         <div class="k">Reporter</div><div class="v"><?= htmlspecialchars($report['reporter_name']) ?> <span class="text-muted">(<?= htmlspecialchars($report['reporter_role']) ?>)</span></div>
         <div class="k">Reporter email</div><div class="v"><?= htmlspecialchars($report['reporter_email'] ?: '—') ?></div>
         <div class="k">Vehicle type</div><div class="v"><?= htmlspecialchars($report['vehicle_type'] ?: '—') ?></div>
-        <div class="k">Sticker</div><div class="v"><?= htmlspecialchars($report['sticker'] ?: '—') ?></div>
         <div class="k">Owner</div><div class="v"><?= htmlspecialchars($report['owner_name'] ?: '—') ?></div>
         <div class="k">Phone</div><div class="v"><?= htmlspecialchars($report['phone'] ?: '—') ?></div>
         <div class="k">ID number</div><div class="v"><?= htmlspecialchars($report['id_number'] ?: '—') ?></div>

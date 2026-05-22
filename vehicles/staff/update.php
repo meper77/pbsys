@@ -30,14 +30,11 @@ $text['bm'] = [
     'status'          => 'Status', 'name' => 'Nama', 'phone' => 'No. telefon',
     'ic_number'       => 'No. pekerja',
     'vehicle_type'    => 'Jenis kenderaan', 'plate_number' => 'Nombor plat',
-    'sticker_number'  => 'No. stiker', 'sticker_status' => 'Status stiker',
     'save' => 'Simpan', 'cancel' => 'Batal',
     'update_success'  => 'Kenderaan staf berjaya dikemaskini.',
     'update_failed'   => 'Gagal mengemaskini kenderaan staf',
     'name_placeholder' => 'Nama staf', 'phone_placeholder' => 'cth. 012-3456789',
     'ic_placeholder' => 'No. pekerja', 'plate_placeholder' => 'cth. WPN 4421',
-    'sticker_placeholder' => 'cth. PB-12345',
-    'sticker_ada' => 'Ada', 'sticker_tiada' => 'Tiada',
 ];
 $text['en'] = [
     'eyebrow'         => 'Staff',
@@ -46,14 +43,11 @@ $text['en'] = [
     'status'          => 'Status', 'name' => 'Name', 'phone' => 'Phone',
     'ic_number'       => 'Staff number',
     'vehicle_type'    => 'Vehicle type', 'plate_number' => 'Plate number',
-    'sticker_number'  => 'Sticker no.', 'sticker_status' => 'Sticker status',
     'save' => 'Save', 'cancel' => 'Cancel',
     'update_success'  => 'Staff vehicle updated.',
     'update_failed'   => 'Failed to update staff vehicle',
     'name_placeholder' => 'Staff name', 'phone_placeholder' => 'e.g. 012-3456789',
     'ic_placeholder' => 'Staff number', 'plate_placeholder' => 'e.g. WPN 4421',
-    'sticker_placeholder' => 'e.g. PB-12345',
-    'sticker_ada' => 'Yes', 'sticker_tiada' => 'No',
 ];
 $t = $text[$lang];
 
@@ -65,10 +59,8 @@ if (isset($_POST['submit'])) {
     $type        = mysqli_real_escape_string($con, $_POST['type']);
     $status      = mysqli_real_escape_string($con, $_POST['status']);
     $staffplate  = mysqli_real_escape_string($con, $_POST['platenum']);
-    $stickerno   = mysqli_real_escape_string($con, $_POST['stickerno']);
-    $sticker     = mysqli_real_escape_string($con, $_POST['sticker']);
 
-    $sql = "UPDATE `owner` SET name='$staffname', phone='$phone', idnumber='$staffno', type='$type', status='$status', platenum='$staffplate', stickerno='$stickerno', sticker='$sticker' WHERE id=$id";
+    $sql = "UPDATE `owner` SET name='$staffname', phone='$phone', idnumber='$staffno', type='$type', status='$status', platenum='$staffplate' WHERE id=$id";
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/staff/list.php';</script>";
         exit();
@@ -128,11 +120,8 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             <div class="field"><label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
                 <input class="input mono plate-input" id="platenum" name="platenum" type="text" required placeholder="<?= htmlspecialchars($t['plate_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['platenum'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="stickerno"><?= htmlspecialchars($t['sticker_number']) ?></label>
-                <input class="input mono" id="stickerno" name="stickerno" type="text" placeholder="<?= htmlspecialchars($t['sticker_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['stickerno'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="sticker"><?= htmlspecialchars($t['sticker_status']) ?></label>
                 <select class="select" id="sticker" name="sticker">
-                    <option value="ADA" <?= (($vehicle_data['sticker'] ?? '')=='ADA')?'selected':'' ?>><?= htmlspecialchars($t['sticker_ada']) ?></option>
-                    <option value="TIADA" <?= (($vehicle_data['sticker'] ?? '')=='TIADA')?'selected':'' ?>><?= htmlspecialchars($t['sticker_tiada']) ?></option>
                 </select>
             </div>
         </div>
@@ -147,7 +136,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 document.addEventListener('DOMContentLoaded', function () {
     var plate = document.getElementById('platenum'), sn = document.getElementById('stickerno'), idn = document.getElementById('idnumber'), ph = document.getElementById('phone');
     if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (sn) sn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-]/g,''); });
 });

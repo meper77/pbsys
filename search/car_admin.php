@@ -44,7 +44,6 @@ $t = $lang === 'bm' ? [
     'col_phone'       => 'Telefon',
     'col_plate'       => 'Plat',
     'col_type'        => 'Jenis',
-    'col_sticker'     => 'Stiker',
     'no_results'      => 'Tiada padanan',
     'no_results_sub'  => 'Cuba sebahagian plat atau nama.',
     'results_eyebrow' => 'Hasil Carian',
@@ -54,7 +53,6 @@ $t = $lang === 'bm' ? [
     'idle_eyebrow'    => 'Sedia untuk carian',
     'idle_title'      => 'Mulakan carian anda',
     'idle_sub'        => 'Maklumat kenderaan akan dipaparkan di sini.',
-    'sticker_tiada'   => 'TIADA',
 ] : [
     'eyebrow'         => 'Vehicle Search',
     'page_title'      => 'Search vehicles',
@@ -69,7 +67,6 @@ $t = $lang === 'bm' ? [
     'col_phone'       => 'Phone',
     'col_plate'       => 'Plate',
     'col_type'        => 'Type',
-    'col_sticker'     => 'Sticker',
     'no_results'      => 'No match',
     'no_results_sub'  => 'Check the plate or try a partial name.',
     'results_eyebrow' => 'Search Results',
@@ -79,7 +76,6 @@ $t = $lang === 'bm' ? [
     'idle_eyebrow'    => 'Ready to search',
     'idle_title'      => 'Start your search',
     'idle_sub'        => 'Vehicle details will appear here.',
-    'sticker_tiada'   => 'NONE',
 ];
 
 // Initialize variables
@@ -150,7 +146,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <th><?= htmlspecialchars($t['col_phone']) ?></th>
           <th><?= htmlspecialchars($t['col_plate']) ?></th>
           <th><?= htmlspecialchars($t['col_type']) ?></th>
-          <th><?= htmlspecialchars($t['col_sticker']) ?></th>
         </tr>
       </thead>
       <tbody>
@@ -165,8 +160,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             elseif (in_array($status_raw, ['kontraktor', 'contractor'])) { $tone = 'ok'; $status_text = ($lang === 'bm' ? 'Kontraktor' : 'Contractor'); }
             else { $tone = 'neutral'; $status_text = htmlspecialchars($row['status'] ?? ''); }
 
-            $sticker_status = $row['sticker'] ?? '';
-            $sticker_number = $row['stickerno'] ?? '';
         ?>
         <tr>
           <td class="meta"><?= $counter++ ?></td>
@@ -177,10 +170,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <td><span class="plate"><?= htmlspecialchars($row['platenum'] ?? '') ?></span></td>
           <td><?= htmlspecialchars($row['type'] ?? '') ?></td>
           <td>
-            <?php if ($sticker_status === 'ADA' && !empty($sticker_number)): ?>
               <span class="pill ok"><span class="dot"></span> <?= htmlspecialchars($sticker_number) ?></span>
-            <?php elseif ($sticker_status === 'TIADA'): ?>
-              <span class="pill bad"><span class="dot"></span> <?= htmlspecialchars($t['sticker_tiada']) ?></span>
             <?php else: ?>
               <span class="text-muted">—</span>
             <?php endif; ?>

@@ -113,7 +113,5 @@ function normalizeVehicleRow(array $row): array
         'status' => $row['status'] ?? '',
         'brand' => $row['brand'] ?? '',
         'platenum' => strtoupper($row['platenum'] ?? ''),
-        'sticker' => $row['sticker'] ?? '',
-        'stickerno' => $row['stickerno'] ?? '',
     ];
 }

@@ -37,11 +37,7 @@ $t = ($lang === 'bm') ? [
     'type'    => 'Jenis kenderaan',
     'plate'   => 'No. plat kenderaan',
     'plate_ph'=> 'Isi nombor plat',
-    'stickerno'=> 'No. Pas',
-    'stickerno_ph'=> 'Masukkan no. pas',
-    'sticker' => 'Pas Kenderaan',
-    'sticker_ok' => 'Ada',
-    'sticker_bad'=> 'Tiada',
+
     'select_type'=> 'Sila pilih',
     'save'    => 'Simpan',
     'cancel'  => 'Batal',
@@ -60,11 +56,7 @@ $t = ($lang === 'bm') ? [
     'type'    => 'Vehicle type',
     'plate'   => 'Plate number',
     'plate_ph'=> 'Enter plate number',
-    'stickerno'=> 'Pass no.',
-    'stickerno_ph'=> 'Enter pass number',
-    'sticker' => 'Pass status',
-    'sticker_ok' => 'Available',
-    'sticker_bad'=> 'None',
+
     'select_type'=> 'Please select',
     'save'    => 'Save',
     'cancel'  => 'Cancel',
@@ -81,15 +73,13 @@ if (isset($_POST['submit'])) {
     $type      = mysqli_real_escape_string($con, $_POST['type']);
     $status    = mysqli_real_escape_string($con, $_POST['status']);
     $platenum  = mysqli_real_escape_string($con, $_POST['platenum']);
-    $stickerno = mysqli_real_escape_string($con, $_POST['stickerno']);
-    $sticker   = mysqli_real_escape_string($con, $_POST['sticker']);
 
     $check = mysqli_query($con, "SELECT id FROM owner WHERE platenum = '$platenum'");
     if ($check && mysqli_num_rows($check) > 0) {
         $error = $t['plate_exists'];
     } else {
-        $sql = "INSERT INTO `owner` (`name`, `phone`, `idnumber`, `type`, `status`, `platenum`, `stickerno`, `sticker`)
-                VALUES('$name','$phone','$pass','$type','$status','$platenum','$stickerno','$sticker')";
+        $sql = "INSERT INTO `owner` (`name`, `phone`, `idnumber`, `type`, `status`, `platenum`)
+                VALUES('$name','$phone','$pass','$type','$status','$platenum')";
         if (mysqli_query($con, $sql)) {
             $_SESSION['success_message'] = $t['success'];
             header('location:/vehicles/visitor/list.php');
@@ -153,17 +143,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                 <label class="field-label" for="phone"><?php echo $t['phone']; ?></label>
                 <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?php echo htmlspecialchars($t['phone_ph']); ?>">
             </div>
-            <div class="field">
-                <label class="field-label" for="stickerno"><?php echo $t['stickerno']; ?></label>
-                <input class="input mono" id="stickerno" name="stickerno" type="text" placeholder="<?php echo htmlspecialchars($t['stickerno_ph']); ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="sticker"><?php echo $t['sticker']; ?></label>
-                <select class="select" id="sticker" name="sticker">
-                    <option value="ADA" selected><?php echo htmlspecialchars($t['sticker_ok']); ?></option>
-                    <option value="TIADA"><?php echo htmlspecialchars($t['sticker_bad']); ?></option>
-                </select>
-            </div>
         </div>
 
         <div class="nv-row end gap-2">
@@ -175,11 +154,9 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <script>
 (function(){
     var plate = document.getElementById('platenum');
-    var sn = document.getElementById('stickerno');
     var idn = document.getElementById('idnumber');
     var ph = document.getElementById('phone');
     if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (sn) sn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+]/g,''); });
 })();

@@ -5,7 +5,7 @@
 //   csv_file=<file>   (or 'file' or 'csv' — all accepted)
 //
 // CSV columns (header row optional, skipped if first row contains 'name' or 'platenum'):
-//   name, phone, idnumber, type, status, platenum [, sticker]
+//   name, phone, idnumber, type, status, platenum
 //
 // Response: {success, inserted, skipped, errors: [{row, message}, ...]}
 
@@ -48,7 +48,7 @@ $skipped  = 0;
 $errors   = [];
 $rowNum   = 0;
 
-$insert = $con->prepare("INSERT INTO `owner` (name, phone, idnumber, type, status, platenum, sticker, stickerno) VALUES (?,?,?,?,?,?,?,?)");
+$insert = $con->prepare("INSERT INTO `owner` (name, phone, idnumber, type, status, platenum) VALUES (?,?,?,?,?,?)");
 $check  = $con->prepare("SELECT id FROM `owner` WHERE platenum = ? LIMIT 1");
 
 while (($row = fgetcsv($h, 2000, ',')) !== false) {
@@ -69,8 +69,6 @@ while (($row = fgetcsv($h, 2000, ',')) !== false) {
     }
 
     [$name, $phone, $idnumber, $type, $status, $platenum] = array_map('trim', array_slice($row, 0, 6));
-    $sticker   = isset($row[6]) ? trim($row[6]) : 'TIADA';
-    $stickerno = isset($row[7]) ? trim($row[7]) : '';
 
     if ($name === '' || $platenum === '' || $status === '') {
         $skipped++;
@@ -86,7 +84,7 @@ while (($row = fgetcsv($h, 2000, ',')) !== false) {
         continue;
     }
 
-    $insert->bind_param('ssssssss', $name, $phone, $idnumber, $type, $status, $platenum, $sticker, $stickerno);
+    $insert->bind_param('ssssss', $name, $phone, $idnumber, $type, $status, $platenum);
     if ($insert->execute()) {
         $inserted++;
     } else {

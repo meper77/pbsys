@@ -62,15 +62,12 @@ CREATE TABLE `owner` (
   `status` varchar(100) NOT NULL,
   `brand` varchar(100) NOT NULL,
   `platenum` varchar(100) NOT NULL,
-  `sticker` varchar(100) NOT NULL,
-  `stickerno` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `owner`
 --
 
-INSERT INTO `owner` (`id`, `name`, `ownerEmail`, `phone`, `idnumber`, `type`, `status`, `brand`, `platenum`, `sticker`, `stickerno`) VALUES
 (2, 'MUHAMMAD ZAIM IRFAN BIN MOHD ZAMRI', NULL, '0147668227', '2020452222', 'KERETA', 'Pelajar', 'LAIN-LAIN', 'JRL7134', 'ADA', 'jv9808989'),
 (3, 'MUHAMMAD AKIF IRFAN BIN MD SADON', NULL, '0197673917', '2020611506', 'KERETA', 'Pelajar', 'HONDA', 'JRU 3045', 'TIADA', ''),
 (4, 'IQMALIAH REZANA BINTI HAFIZ', NULL, '0135787916', '2020854318', 'KERETA', 'Pelajar', 'TOYOTA', 'VIP3451', 'TIADA', ''),
@@ -180,7 +177,6 @@ CREATE TABLE `vehicle_reports` (
   `phone` varchar(30) DEFAULT NULL,
   `vehicle_type` varchar(100) DEFAULT NULL,
   `vehicle_status` varchar(100) DEFAULT NULL,
-  `sticker` varchar(100) DEFAULT NULL,
   `offense_details` text NOT NULL,
   `latitude` decimal(10,8) NOT NULL,
   `longitude` decimal(11,8) NOT NULL,
@@ -202,7 +198,6 @@ CREATE TABLE `staffcar` (
   `staffno` varchar(20) NOT NULL,
   `model` varchar(120) NOT NULL,
   `platenum` varchar(30) NOT NULL,
-  `sticker` varchar(12) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -219,14 +214,12 @@ CREATE TABLE `studentcar` (
   `matric` varchar(12) NOT NULL,
   `model` varchar(120) NOT NULL,
   `platenum` varchar(30) NOT NULL,
-  `sticker` varchar(12) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `studentcar`
 --
 
-INSERT INTO `studentcar` (`studentid`, `name`, `gender`, `phone`, `matric`, `model`, `platenum`, `sticker`) VALUES
 (2, 'IQMALIAH REZANA BINTI HAFIZ', 'Perempuan', '0135787916', '2020854318', 'TOYOTA MARK X', 'VIP3451', 'Tiada'),
 (14, 'MUHAMMAD AKIF IRFAN BIN MD.SADON', 'Lelaki', '0197673917', '2020611506', 'HONDA CIVIC 2021', 'JRU3045', 'Ada');
 

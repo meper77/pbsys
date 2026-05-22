@@ -33,8 +33,6 @@ $text['bm'] = [
     'ic_number'       => 'No. IC',
     'vehicle_type'    => 'Jenis kenderaan',
     'plate_number'    => 'Nombor plat',
-    'sticker_number'  => 'No. stiker',
-    'sticker_status'  => 'Status stiker',
     'save'            => 'Simpan',
     'cancel'          => 'Batal',
     'update_success'  => 'Kenderaan pelawat berjaya dikemaskini.',
@@ -43,9 +41,6 @@ $text['bm'] = [
     'phone_placeholder'   => 'cth. 012-3456789',
     'ic_placeholder'      => 'cth. 990101-01-1234',
     'plate_placeholder'   => 'cth. WPN 4421',
-    'sticker_placeholder' => 'cth. PB-12345',
-    'sticker_ada'    => 'Ada',
-    'sticker_tiada'  => 'Tiada',
 ];
 $text['en'] = [
     'eyebrow'         => 'Visitor',
@@ -57,8 +52,6 @@ $text['en'] = [
     'ic_number'       => 'IC number',
     'vehicle_type'    => 'Vehicle type',
     'plate_number'    => 'Plate number',
-    'sticker_number'  => 'Sticker no.',
-    'sticker_status'  => 'Sticker status',
     'save'            => 'Save',
     'cancel'          => 'Cancel',
     'update_success'  => 'Visitor vehicle updated.',
@@ -67,9 +60,6 @@ $text['en'] = [
     'phone_placeholder'   => 'e.g. 012-3456789',
     'ic_placeholder'      => 'e.g. 990101-01-1234',
     'plate_placeholder'   => 'e.g. WPN 4421',
-    'sticker_placeholder' => 'e.g. PB-12345',
-    'sticker_ada'    => 'Yes',
-    'sticker_tiada'  => 'No',
 ];
 $t = $text[$lang];
 
@@ -81,10 +71,8 @@ if (isset($_POST['submit'])) {
     $type         = mysqli_real_escape_string($con, $_POST['type']);
     $status       = mysqli_real_escape_string($con, $_POST['status']);
     $visitorplate = mysqli_real_escape_string($con, $_POST['platenum']);
-    $stickerno    = mysqli_real_escape_string($con, $_POST['stickerno']);
-    $sticker      = mysqli_real_escape_string($con, $_POST['sticker']);
 
-    $sql = "UPDATE `owner` SET name='$visitorname', phone='$phone', idnumber='$pass', type='$type', status='$status', platenum='$visitorplate', stickerno='$stickerno', sticker='$sticker' WHERE id=$id";
+    $sql = "UPDATE `owner` SET name='$visitorname', phone='$phone', idnumber='$pass', type='$type', status='$status', platenum='$visitorplate' WHERE id=$id";
 
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/visitor/list.php';</script>";
@@ -160,17 +148,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                 <label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
                 <input class="input mono plate-input" id="platenum" name="platenum" type="text" required placeholder="<?= htmlspecialchars($t['plate_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['platenum'] ?? '') ?>">
             </div>
-            <div class="field">
-                <label class="field-label" for="stickerno"><?= htmlspecialchars($t['sticker_number']) ?></label>
-                <input class="input mono" id="stickerno" name="stickerno" type="text" placeholder="<?= htmlspecialchars($t['sticker_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['stickerno'] ?? '') ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="sticker"><?= htmlspecialchars($t['sticker_status']) ?></label>
-                <select class="select" id="sticker" name="sticker">
-                    <option value="ADA" <?= (($vehicle_data['sticker'] ?? '')=='ADA')?'selected':'' ?>><?= htmlspecialchars($t['sticker_ada']) ?></option>
-                    <option value="TIADA" <?= (($vehicle_data['sticker'] ?? '')=='TIADA')?'selected':'' ?>><?= htmlspecialchars($t['sticker_tiada']) ?></option>
-                </select>
-            </div>
         </div>
 
         <div class="nv-row end gap-2">
@@ -183,11 +160,9 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var plate = document.getElementById('platenum');
-    var sn = document.getElementById('stickerno');
     var idn = document.getElementById('idnumber');
     var ph = document.getElementById('phone');
     if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (sn) sn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-]/g,''); });
 });

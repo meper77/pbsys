@@ -23,7 +23,7 @@ $t = $lang === 'bm' ? [
     'staff' => 'Staf', 'student' => 'Pelajar', 'visitor' => 'Pelawat', 'contractor' => 'Kontraktor',
     'no' => 'Bil.', 'name' => 'Nama', 'phone' => 'No. Telefon',
     'id_number' => 'No. Pengenalan', 'model' => 'Model', 'plate_number' => 'No. Plat',
-    'sticker' => 'Stiker', 'sticker_status' => 'Status', 'created_at' => 'Tarikh daftar',
+    'sticker' => 'Stiker', 'created_at' => 'Tarikh daftar',
     'active' => 'Aktif', 'removed' => 'Dibuang',
     'no_records' => 'Tiada rekod', 'company_name' => 'Syarikat',
     'total_records' => 'Jumlah rekod',
@@ -34,7 +34,7 @@ $t = $lang === 'bm' ? [
     'staff' => 'Staff', 'student' => 'Student', 'visitor' => 'Visitor', 'contractor' => 'Contractor',
     'no' => 'No.', 'name' => 'Name', 'phone' => 'Phone',
     'id_number' => 'ID number', 'model' => 'Model', 'plate_number' => 'Plate',
-    'sticker' => 'Sticker', 'sticker_status' => 'Status', 'created_at' => 'Registered',
+    'sticker' => 'Sticker', 'created_at' => 'Registered',
     'active' => 'Active', 'removed' => 'Removed',
     'no_records' => 'No records', 'company_name' => 'Company',
     'total_records' => 'Total records',
@@ -51,13 +51,13 @@ $title = $t[$type];
 
 $vehicles = [];
 if ($type === 'staff') {
-    $q = "SELECT staffid, name, phone, staffno as id_number, model, platenum, sticker, sticker_status, created_at FROM staffcar ORDER BY created_at DESC";
+    $q = "SELECT staffid, name, phone, staffno as id_number, model, platenum, created_at FROM staffcar ORDER BY created_at DESC";
 } elseif ($type === 'student') {
-    $q = "SELECT studentid, name, phone, matric as id_number, model, platenum, sticker, sticker_status, created_at FROM studentcar ORDER BY created_at DESC";
+    $q = "SELECT studentid, name, phone, matric as id_number, model, platenum, created_at FROM studentcar ORDER BY created_at DESC";
 } elseif ($type === 'visitor') {
-    $q = "SELECT visitorid, name, phone, ic_passport as id_number, model, platenum, sticker, sticker_status, created_at FROM visitorcar ORDER BY created_at DESC";
+    $q = "SELECT visitorid, name, phone, ic_passport as id_number, model, platenum, created_at FROM visitorcar ORDER BY created_at DESC";
 } else {
-    $q = "SELECT contractorid, name, phone, ic_passport as id_number, company_name, model, platenum, sticker, sticker_status, created_at FROM contractorcar ORDER BY created_at DESC";
+    $q = "SELECT contractorid, name, phone, ic_passport as id_number, company_name, model, platenum, created_at FROM contractorcar ORDER BY created_at DESC";
 }
 $result = @mysqli_query($con, $q);
 if ($result) {
@@ -97,8 +97,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <?php if ($type === 'contractor'): ?><th><?= htmlspecialchars($t['company_name']) ?></th><?php endif; ?>
           <th><?= htmlspecialchars($t['model']) ?></th>
           <th><?= htmlspecialchars($t['plate_number']) ?></th>
-          <th><?= htmlspecialchars($t['sticker']) ?></th>
-          <th><?= htmlspecialchars($t['sticker_status']) ?></th>
+          
+          
           <th><?= htmlspecialchars($t['created_at']) ?></th>
         </tr>
       </thead>
@@ -112,7 +112,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <?php if ($type === 'contractor'): ?><td><?= htmlspecialchars($v['company_name'] ?? '—') ?></td><?php endif; ?>
           <td><?= htmlspecialchars($v['model']) ?></td>
           <td><span class="plate"><?= htmlspecialchars($v['platenum']) ?></span></td>
-          <td class="meta"><?= htmlspecialchars($v['sticker']) ?></td>
+          
           <td>
             <?php if (($v['sticker_status'] ?? '') === 'removed'): ?>
               <span class="pill bad"><span class="dot"></span><?= htmlspecialchars($t['removed']) ?></span>

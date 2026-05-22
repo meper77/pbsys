@@ -136,14 +136,6 @@ if (!empty($_SESSION['email_Admin'])) {
                     <option value="LAIN-LAIN">LAIN-LAIN</option>
                 </select>
             </div>
-            <div class="field">
-                <label class="field-label">Sticker</label>
-                <select class="select" name="sticker" id="sticker">
-                    <option value="">-- Select --</option>
-                    <option value="ADA">ADA</option>
-                    <option value="TIADA">TIADA</option>
-                </select>
-            </div>
         </div>
 
         <div class="field">
@@ -234,7 +226,6 @@ if (!empty($_SESSION['email_Admin'])) {
     const phoneFld     = document.getElementById('phone');
     const vehicleType  = document.getElementById('vehicleType');
     const vehicleStat  = document.getElementById('vehicleStatus');
-    const stickerSel   = document.getElementById('sticker');
 
     let debounceTimer = null;
     let lastMatches   = [];
@@ -245,7 +236,6 @@ if (!empty($_SESSION['email_Admin'])) {
         phoneFld.value    = m.phone || '';
         vehicleType.value = matchOption(vehicleType, m.type) || '';
         vehicleStat.value = matchOption(vehicleStat, m.status) || '';
-        stickerSel.value  = matchOption(stickerSel, m.sticker) || '';
     }
 
     function matchOption(selectEl, value) {
@@ -263,7 +253,6 @@ if (!empty($_SESSION['email_Admin'])) {
         phoneFld.value  = '';
         vehicleType.value = '';
         vehicleStat.value = '';
-        stickerSel.value  = '';
     }
 
     function renderSuggestions(items, q) {

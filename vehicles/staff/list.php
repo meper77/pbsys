@@ -39,10 +39,7 @@ $t = ($lang === 'bm') ? [
     'col_idnum' => 'No. Pekerja',
     'col_phone' => 'Telefon',
     'col_type'  => 'Jenis',
-    'col_sticker'=> 'Pas Kenderaan',
     'col_updated'=> 'Kemaskini',
-    'sticker_ok' => 'Sah',
-    'sticker_bad'=> 'Tiada',
     'empty_title'=> 'Tiada rekod',
     'empty_sub'  => 'Belum ada kenderaan staf didaftarkan.',
     'delete_confirm' => 'Padam rekod ini?',
@@ -57,10 +54,7 @@ $t = ($lang === 'bm') ? [
     'col_idnum' => 'Staff no.',
     'col_phone' => 'Phone',
     'col_type'  => 'Type',
-    'col_sticker'=> 'Sticker',
     'col_updated'=> 'Last updated',
-    'sticker_ok' => 'Valid',
-    'sticker_bad'=> 'None',
     'empty_title'=> 'No records',
     'empty_sub'  => 'No staff vehicles have been registered yet.',
     'delete_confirm' => 'Delete this record?',
@@ -100,7 +94,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     <form class="card nv-stack" onsubmit="return false;">
         <div class="field">
             <label class="field-label" for="listSearch">Cari kenderaan</label>
-            <input class="input mono" id="listSearch" type="text" placeholder="Plate, name, IC, sticker…" autofocus>
+            <input class="input mono" id="listSearch" type="text" placeholder="Plate, name, IC…" autofocus>
         </div>
     </form>
     <?php endif; ?>
@@ -120,7 +114,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                     <th><?php echo $t['col_owner']; ?></th>
                     <th><?php echo $t['col_phone']; ?></th>
                     <th><?php echo $t['col_type']; ?></th>
-                    <th><?php echo $t['col_sticker']; ?></th>
                     <th><?php echo $t['col_updated']; ?></th>
                     <th class="text-right"></th>
                 </tr>
@@ -133,8 +126,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                 $idnum = htmlspecialchars($r['idnumber']);
                 $phone = htmlspecialchars($r['phone'] ?? '');
                 $type = htmlspecialchars($r['type'] ?? '');
-                $sticker = $r['sticker'] ?? '';
-                $stickerno = htmlspecialchars($r['stickerno'] ?? '');
                 $ts = $r['updated_at'] ?? $r['created_at'] ?? null;
             ?>
                 <tr>
@@ -154,17 +145,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                         <?php endif; ?>
                     </td>
                     <td><span class="pill neutral"><span class="dot"></span> <?php echo $type; ?></span></td>
-                    <td>
-                        <?php if ($sticker === 'ADA' && $stickerno !== ''): ?>
-                            <span class="pill ok"><span class="dot"></span> <?php echo $stickerno; ?></span>
-                        <?php elseif ($sticker === 'ADA'): ?>
-                            <span class="pill ok"><span class="dot"></span> <?php echo htmlspecialchars($t['sticker_ok']); ?></span>
-                        <?php elseif ($sticker === 'TIADA'): ?>
-                            <span class="pill bad"><span class="dot"></span> <?php echo htmlspecialchars($t['sticker_bad']); ?></span>
-                        <?php else: ?>
-                            <span class="text-muted">—</span>
-                        <?php endif; ?>
-                    </td>
                     <td class="meta"><?php echo $ts ? htmlspecialchars(date('d M Y, H:i', strtotime($ts))) : '—'; ?></td>
                     <td class="text-right">
                         <a class="btn btn-quiet" href="/vehicles/staff/update.php?id=<?php echo $id; ?>" title="Edit"><i data-lucide="pencil"></i></a>
