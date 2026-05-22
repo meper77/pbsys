@@ -46,8 +46,6 @@ if (isset($_POST['submit'])) {
     $type = mysqli_real_escape_string($con, $_POST['type']);
     $status = mysqli_real_escape_string($con, $_POST['status']);
     $plate = mysqli_real_escape_string($con, $_POST['platenum']);
-    $sno = mysqli_real_escape_string($con, $_POST['stickerno']);
-    $s = mysqli_real_escape_string($con, $_POST['sticker']);
     $sql = "UPDATE `owner` SET name='$name', phone='$phone', idnumber='$idn', type='$type', status='$status', platenum='$plate' WHERE id=$id";
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/contractor/list.php';</script>";
@@ -99,11 +97,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                 <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?= htmlspecialchars($t['ic_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['idnumber'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
                 <input class="input mono plate-input" id="platenum" name="platenum" type="text" required placeholder="<?= htmlspecialchars($t['plate_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['platenum'] ?? '') ?>"></div>
-            <div class="field"><label class="field-label" for="stickerno"><?= htmlspecialchars($t['sticker_number']) ?></label>
-            <div class="field"><label class="field-label" for="sticker"><?= htmlspecialchars($t['sticker_status']) ?></label>
-                <select class="select" id="sticker" name="sticker">
-                </select></div>
-        </div>
         <div class="nv-row end gap-2">
             <a class="btn btn-ghost" href="/vehicles/contractor/list.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['cancel']) ?></a>
             <button class="btn btn-primary" type="submit" name="submit"><i data-lucide="check"></i> <?= htmlspecialchars($t['save']) ?></button>
@@ -113,7 +106,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var plate = document.getElementById('platenum'), sn = document.getElementById('stickerno'), idn = document.getElementById('idnumber'), ph = document.getElementById('phone');
+    var plate = document.getElementById('platenum'), idn = document.getElementById('idnumber'), ph = document.getElementById('phone');
     if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-]/g,''); });

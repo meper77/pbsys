@@ -170,10 +170,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <td><span class="plate"><?= htmlspecialchars($row['platenum'] ?? '') ?></span></td>
           <td><?= htmlspecialchars($row['type'] ?? '') ?></td>
           <td>
-              <span class="pill ok"><span class="dot"></span> <?= htmlspecialchars($sticker_number) ?></span>
-            <?php else: ?>
-              <span class="text-muted">—</span>
-            <?php endif; ?>
+            <span class="text-muted">—</span>
           </td>
         </tr>
         <?php endforeach; ?>
