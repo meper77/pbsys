@@ -23,7 +23,6 @@ $t = $lang === 'bm' ? [
     'staff' => 'Staf', 'student' => 'Pelajar', 'visitor' => 'Pelawat', 'contractor' => 'Kontraktor',
     'no' => 'Bil.', 'name' => 'Nama', 'phone' => 'No. Telefon',
     'id_number' => 'No. Pengenalan', 'model' => 'Model', 'plate_number' => 'No. Plat',
-    'sticker' => 'Stiker', 'created_at' => 'Tarikh daftar',
     'active' => 'Aktif', 'removed' => 'Dibuang',
     'no_records' => 'Tiada rekod', 'company_name' => 'Syarikat',
     'total_records' => 'Jumlah rekod',
@@ -34,7 +33,6 @@ $t = $lang === 'bm' ? [
     'staff' => 'Staff', 'student' => 'Student', 'visitor' => 'Visitor', 'contractor' => 'Contractor',
     'no' => 'No.', 'name' => 'Name', 'phone' => 'Phone',
     'id_number' => 'ID number', 'model' => 'Model', 'plate_number' => 'Plate',
-    'sticker' => 'Sticker', 'created_at' => 'Registered',
     'active' => 'Active', 'removed' => 'Removed',
     'no_records' => 'No records', 'company_name' => 'Company',
     'total_records' => 'Total records',
@@ -114,11 +112,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <td><span class="plate"><?= htmlspecialchars($v['platenum']) ?></span></td>
           
           <td>
-            <?php if (($v['sticker_status'] ?? '') === 'removed'): ?>
-              <span class="pill bad"><span class="dot"></span><?= htmlspecialchars($t['removed']) ?></span>
-            <?php else: ?>
-              <span class="pill ok"><span class="dot"></span><?= htmlspecialchars($t['active']) ?></span>
-            <?php endif; ?>
           </td>
           <td class="meta"><?= htmlspecialchars(date('d M Y, H:i', strtotime($v['created_at']))) ?></td>
         </tr>

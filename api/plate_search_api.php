@@ -1,6 +1,6 @@
 <?php
 // Autocomplete endpoint for vehicle plate lookup.
-// GET ?q=<prefix>  →  JSON [{plate, name, idnumber, phone, type, status, sticker}, ...]
+// GET ?q=<prefix>  →  JSON [{plate, name, idnumber, phone, type, status}, ...]
 
 header('Content-Type: application/json');
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
@@ -12,7 +12,7 @@ if ($q === '' || strlen($q) < 2) {
 }
 
 $stmt = $con->prepare(
-    "SELECT platenum, name, idnumber, phone, type, status, sticker
+    "SELECT platenum, name, idnumber, phone, type, status
      FROM `owner`
      WHERE platenum LIKE CONCAT('%', ?, '%')
      ORDER BY platenum ASC
@@ -31,7 +31,6 @@ while ($row = $res->fetch_assoc()) {
         'phone'    => $row['phone'],
         'type'     => $row['type'],
         'status'   => $row['status'],
-        'sticker'  => $row['sticker'],
     ];
 }
 

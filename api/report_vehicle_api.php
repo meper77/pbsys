@@ -18,7 +18,6 @@ function report_vehicle_ensure_table(mysqli $con): void {
         phone VARCHAR(30) DEFAULT NULL,
         vehicle_type VARCHAR(100) DEFAULT NULL,
         vehicle_status VARCHAR(100) DEFAULT NULL,
-        sticker VARCHAR(100) DEFAULT NULL,
         offense_details TEXT NOT NULL,
         latitude DECIMAL(10,8) NOT NULL,
         longitude DECIMAL(11,8) NOT NULL,
@@ -98,7 +97,6 @@ $idNumber = report_vehicle_clean_string($_POST['id_number'] ?? '');
 $phone = report_vehicle_clean_string($_POST['phone'] ?? '');
 $vehicleType = report_vehicle_clean_string($_POST['vehicle_type'] ?? '');
 $vehicleStatus = report_vehicle_clean_string($_POST['vehicle_status'] ?? '');
-$sticker = report_vehicle_clean_string($_POST['sticker'] ?? '');
 $reporterName = report_vehicle_clean_string($_POST['reporter_name'] ?? '');
 $reporterEmail = report_vehicle_clean_string($_POST['reporter_email'] ?? '');
 $reporterRole = strtolower(report_vehicle_clean_string($_POST['reporter_role'] ?? 'user')) ?: 'user';
@@ -133,16 +131,16 @@ try {
     $photoPaths = json_encode($storedPhotos);
     $stmt = $con->prepare("INSERT INTO vehicle_reports (
         user_id, reporter_name, reporter_email, reporter_role, plate_number,
-        owner_name, id_number, phone, vehicle_type, vehicle_status, sticker,
+        owner_name, id_number, phone, vehicle_type, vehicle_status,
         offense_details, latitude, longitude, photo_paths
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     if (!$stmt) {
         throw new RuntimeException('Failed to prepare report insert');
     }
 
     $stmt->bind_param(
-        'issssssssssssss',
+        'isssssssssssss',
         $reporterId,
         $reporterName,
         $reporterEmail,
@@ -153,7 +151,6 @@ try {
         $phone,
         $vehicleType,
         $vehicleStatus,
-        $sticker,
         $offenseDetails,
         $latitude,
         $longitude,

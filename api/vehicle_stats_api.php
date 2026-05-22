@@ -64,7 +64,7 @@ if ($action === 'get_vehicles_by_type') {
     $total = (int)($cstmt->get_result()->fetch_assoc()['c'] ?? 0);
 
     $qstmt = $con->prepare(
-        "SELECT id, name, phone, idnumber, type, status, brand, platenum, sticker, stickerno
+        "SELECT id, name, phone, idnumber, type, status, brand, platenum
          FROM `owner` WHERE status = ? ORDER BY id DESC LIMIT ? OFFSET ?"
     );
     $qstmt->bind_param('sii', $status, $limit, $offset);
