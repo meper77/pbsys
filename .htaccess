@@ -36,6 +36,8 @@ DirectoryIndex index.php index.html
   RewriteRule ^manage_user_vehicle_assignments\.php$  admin/user_vehicle_assignments.php  [L]
 
   # ---------- Legacy vehicles ----------
+  RewriteRule ^register_vehicle\.php$         vehicles/daftar_kenderaan.php      [L]
+  RewriteRule ^daftar_kenderaan\.php$         vehicles/daftar_kenderaan.php      [L]
   RewriteRule ^Visitorcar\.php$               vehicles/visitor/list.php         [L]
   RewriteRule ^addVisitorcar\.php$            vehicles/visitor/add.php          [L]
   RewriteRule ^updateVisitorcar\.php$         vehicles/visitor/update.php       [L]
