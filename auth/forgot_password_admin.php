@@ -136,7 +136,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <div class="auth-hero">
   <div class="auth-card">
     <div class="auth-brand">
-      <img class="uitm" src="/assets/images/uitm-logo-white.png" alt="UiTM" style="filter:invert(1) brightness(0);">
+      <img class="uitm" src="/assets/images/uitm.png" alt="UiTM">
       <div class="divider"></div>
       <img class="neo" src="/assets/images/neo-vtrack-logo.png" alt="NEO V-TRACK">
       <div class="word"><span class="name">NEO <span class="y">V-TRACK</span></span><span class="sub"><?= htmlspecialchars($t['brand_sub']) ?></span></div>
