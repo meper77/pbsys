@@ -45,30 +45,29 @@ $text['bm'] = [
     'system_name' => 'NEO V-TRACK - Sistem Pengurusan & Pemantauan Kenderaan',
     'nav_import' => 'Import Kenderaan',
     'import_title' => 'Import Kenderaan (Banyak)',
-    'import_desc' => 'Muat naik fail CSV untuk menambah banyak kenderaan sekaligus',
+    'import_desc' => 'Muat naik fail XLSX untuk menambah banyak kenderaan sekaligus',
     'download_template' => 'Muat Turun Template',
-    'choose_file' => 'Pilih Fail CSV',
+    'choose_file' => 'Pilih Fail XLSX',
     'upload' => 'Muat Naik',
     'back' => 'Kembali',
     'success' => 'Berjaya',
     'error' => 'Ralat',
     'instructions' => 'Arahan',
-    'step1' => 'Langkah 1: Muat turun template CSV',
+    'step1' => 'Langkah 1: Muat turun template XLSX',
     'step2' => 'Langkah 2: Isi data dalam Excel',
-    'step3' => 'Langkah 3: Simpan sebagai fail CSV',
+    'step3' => 'Langkah 3: Simpan sebagai fail XLSX',
     'step4' => 'Langkah 4: Muat naik fail di bawah',
-    'csv_format' => 'Format CSV:',
-    'csv_columns' => 'nama,telefon,id number,jenis,status,nombor plat',
+    'xlsx_format' => 'Format XLSX:',
+    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Brand, Category',
     'example' => 'Contoh:',
-    'example_row' => 'Ali Ahmad,0123456789,12345,KERETA,Staf,ABC1234',
-    'status_options' => 'Status: Staf, Pelajar, Pelawat, Kontraktor',
-    'type_options' => 'Jenis: KERETA, MOTOSIKAL, LORI, 4WD, VAN, MPV',
-    'file_required' => 'Sila pilih fail CSV',
+    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, Honda, staff',
+    'category_options' => 'Kategori: visitor, staff, student, contractor',
+    'file_required' => 'Sila pilih fail XLSX',
     'upload_success' => 'Data berjaya diimport!',
     'upload_error' => 'Ralat semasa mengimport data',
     'rows_imported' => 'rekod berjaya diimport',
     'rows_failed' => 'rekod gagal',
-    'invalid_format' => 'Format fail tidak sah',
+    'invalid_format' => 'Format fail tidak sah. Sila gunakan fail XLSX sahaja.',
     'duplicate_plate' => 'Nombor plat sudah wujud: ',
     'logout' => 'Log Keluar',
     'logout_confirm' => 'Adakah anda pasti ingin log keluar?',
@@ -88,30 +87,29 @@ $text['en'] = [
     'system_name' => 'NEO V-TRACK - Vehicle Management & Monitoring System',
     'nav_import' => 'Import Vehicles',
     'import_title' => 'Import Vehicles (Multiple)',
-    'import_desc' => 'Upload CSV file to add multiple vehicles at once',
+    'import_desc' => 'Upload XLSX file to add multiple vehicles at once',
     'download_template' => 'Download Template',
-    'choose_file' => 'Choose CSV File',
+    'choose_file' => 'Choose XLSX File',
     'upload' => 'Upload',
     'back' => 'Back',
     'success' => 'Success',
     'error' => 'Error',
     'instructions' => 'Instructions',
-    'step1' => 'Step 1: Download CSV template',
+    'step1' => 'Step 1: Download XLSX template',
     'step2' => 'Step 2: Fill data in Excel',
-    'step3' => 'Step 3: Save as CSV file',
+    'step3' => 'Step 3: Save as XLSX file',
     'step4' => 'Step 4: Upload file below',
-    'csv_format' => 'CSV Format:',
-    'csv_columns' => 'name,phone,id number,type,status,plate number',
+    'xlsx_format' => 'XLSX Format:',
+    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Brand, Category',
     'example' => 'Example:',
-    'example_row' => 'Ali Ahmad,0123456789,12345,CAR,Staff,ABC1234',
-    'status_options' => 'Status: Staff, Student, Visitor, Contractor',
-    'type_options' => 'Type: CAR, MOTORCYCLE, LORRY, 4WD, VAN, MPV',
-    'file_required' => 'Please select CSV file',
+    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, Honda, staff',
+    'category_options' => 'Categories: visitor, staff, student, contractor',
+    'file_required' => 'Please select XLSX file',
     'upload_success' => 'Data imported successfully!',
     'upload_error' => 'Error importing data',
     'rows_imported' => 'records imported successfully',
     'rows_failed' => 'records failed',
-    'invalid_format' => 'Invalid file format',
+    'invalid_format' => 'Invalid file format. Please use XLSX file only.',
     'duplicate_plate' => 'Plate number already exists: ',
     'logout' => 'Log Out',
     'logout_confirm' => 'Are you sure you want to log out?',
@@ -141,124 +139,227 @@ if ($admin_query && mysqli_num_rows($admin_query) > 0) {
     }
 }
 
-// Handle CSV upload
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['csv_file'])) {
+$message = null;
+$message_type = null;
+
+// Handle XLSX upload
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['xlsx_file'])) {
     $success_count = 0;
     $error_count = 0;
     $errors = [];
     
-    if ($_FILES['csv_file']['error'] == UPLOAD_ERR_OK) {
-        $tmp_name = $_FILES['csv_file']['tmp_name'];
-        $name = $_FILES['csv_file']['name'];
-        $ext = pathinfo($name, PATHINFO_EXTENSION);
+    if ($_FILES['xlsx_file']['error'] == UPLOAD_ERR_OK) {
+        $tmp_name = $_FILES['xlsx_file']['tmp_name'];
+        $name = $_FILES['xlsx_file']['name'];
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         
-        if (strtolower($ext) == 'csv') {
-            if (($handle = fopen($tmp_name, 'r')) !== FALSE) {
-                // Skip header row if exists
-                $header = fgetcsv($handle);
-                
-                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
-                    // Check if we have enough columns
-                    if (count($data) >= 6) {
-                        $name = mysqli_real_escape_string($con, trim($data[0]));
-                        $phone = mysqli_real_escape_string($con, trim($data[1]));
-                        $idnumber = mysqli_real_escape_string($con, trim($data[2]));
-                        $type = mysqli_real_escape_string($con, trim($data[3]));
-                        $status = mysqli_real_escape_string($con, trim($data[4]));
-                        $platenum = mysqli_real_escape_string($con, trim($data[5]));
-                        
-                        // Validate required fields
-                        if (!empty($name) && !empty($platenum) && !empty($status)) {
-                            // Check if vehicle already exists
-                            $check_sql = "SELECT id FROM owner WHERE platenum = '$platenum'";
-                            $check_result = mysqli_query($con, $check_sql);
-                            
-                            if (mysqli_num_rows($check_result) == 0) {
-                                // Insert new vehicle
-                                $sql = "INSERT INTO owner (name, phone, idnumber, type, status, platenum) 
-                                        VALUES ('$name', '$phone', '$idnumber', '$type', '$status', '$platenum')";
-                                
-                                if (mysqli_query($con, $sql)) {
-                                    $success_count++;
-                                } else {
-                                    $error_count++;
-                                    $errors[] = "Baris " . ($success_count + $error_count) . ": " . mysqli_error($con);
-                                }
-                            } else {
-                                $error_count++;
-                                $errors[] = $t['duplicate_plate'] . $platenum;
-                            }
-                        } else {
-                            $error_count++;
-                            $errors[] = "Baris " . ($success_count + $error_count) . ": Data tidak lengkap";
-                        }
-                    } else {
-                        $error_count++;
-                        $errors[] = "Baris " . ($success_count + $error_count) . ": Format tidak sah";
-                    }
-                }
-                fclose($handle);
-                
-                if ($success_count > 0) {
-                    $message = "$success_count {$t['rows_imported']}";
-                    if ($error_count > 0) {
-                        $message .= ", $error_count {$t['rows_failed']}";
-                    }
-                    
-                    echo "<script>
-                        alert('{$t['upload_success']}\\n$message');
-                        window.location.href='/admin/bulk_import.php';
-                    </script>";
-                } else {
-                    $error_msg = implode('\\n', $errors);
-                    echo "<script>
-                        alert('{$t['upload_error']}\\n$error_msg');
-                    </script>";
-                }
-                exit();
-            } else {
-                echo "<script>alert('{$t['upload_error']}: Tidak dapat membaca fail');</script>";
-            }
+        // Check MIME type
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $tmp_name);
+        finfo_close($finfo);
+        
+        if ($ext !== 'xlsx' || !in_array($mime, ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])) {
+            $message = $t['invalid_format'];
+            $message_type = 'error';
         } else {
-            echo "<script>alert('{$t['invalid_format']}: Sila gunakan fail CSV');</script>";
+            // Process XLSX file
+            try {
+                require $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
+                
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+                $spreadsheet = $reader->load($tmp_name);
+                $worksheet = $spreadsheet->getActiveSheet();
+                
+                $result = import_vehicles_from_xlsx($con, $worksheet, $admin_email);
+                
+                if ($result['imported'] > 0 || $result['skipped'] > 0) {
+                    $message = "{$result['imported']} {$t['rows_imported']}";
+                    if ($result['skipped'] > 0) {
+                        $message .= ", {$result['skipped']} {$t['rows_failed']}";
+                    }
+                    $message_type = 'success';
+                    
+                    if (!empty($result['errors'])) {
+                        $message .= "\n\n" . implode("\n", array_slice($result['errors'], 0, 5));
+                    }
+                } else {
+                    $message = $t['upload_error'];
+                    $message_type = 'error';
+                }
+            } catch (Exception $e) {
+                $message = $t['upload_error'] . ': ' . $e->getMessage();
+                $message_type = 'error';
+            }
         }
     } else {
-        echo "<script>alert('{$t['upload_error']}: Ralat muat naik fail');</script>";
+        $message = $t['upload_error'];
+        $message_type = 'error';
     }
 }
 
-// Generate template CSV file
+// Generate template XLSX file
 if (isset($_GET['download_template'])) {
-    header('Content-Type: text/csv');
-    header('Content-Disposition: attachment; filename="template_kenderaan.csv"');
-    
-    $output = fopen('php://output', 'w');
-    
-    // Add BOM for Excel compatibility
-    fwrite($output, "\xEF\xBB\xBF");
-    
-    // Header row in both languages based on current language
-    if ($lang == 'bm') {
-        $header = ['nama', 'telefon', 'idnumber', 'jenis', 'status', 'platenum'];
-    } else {
-        $header = ['name', 'phone', 'idnumber', 'type', 'status', 'platenum'];
+    try {
+        require $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
+        
+        use PhpOffice\PhpSpreadsheet\Spreadsheet;
+        use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+        
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        // Set header row
+        $headers = ['Plate Number', 'Owner Name', 'Owner Phone', 'Brand', 'Category'];
+        $sheet->fromArray([$headers], null, 'A1');
+        
+        // Format header row
+        $headerStyle = [
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4472C4'],
+            ],
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        
+        $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+        
+        // Add example rows
+        $examples = [
+            ['ABC1234', 'Ali Ahmad', '0123456789', 'Honda', 'staff'],
+            ['DEF5678', 'Siti Sarah', '0134567890', 'Toyota', 'student'],
+            ['GHI9012', 'John Doe', '0145678901', 'Ford', 'visitor'],
+            ['JKL3456', 'Ahmad Kontraktor', '0156789012', 'Nissan', 'contractor'],
+        ];
+        
+        $row = 2;
+        foreach ($examples as $example) {
+            $sheet->fromArray([$example], null, 'A' . $row);
+            $row++;
+        }
+        
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(15);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(15);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        
+        // Output XLSX file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="template_vehicles_' . date('Y-m-d') . '.xlsx"');
+        
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit();
+    } catch (Exception $e) {
+        $message = 'Error generating template: ' . $e->getMessage();
+        $message_type = 'error';
     }
-    fputcsv($output, $header);
+}
+
+// Function to import vehicles from XLSX
+function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
+  $inserted = 0;
+  $skipped = 0;
+  $errors = [];
+  $seen_plates = [];
+  
+  // Row 1 is header, start from row 2
+  foreach ($worksheet->getRowIterator(2) as $row) {
+    $cells = $row->getCellIterator();
+    $cells->setIterateOnlyExistingCells(false);
     
-    // Example rows
-    $examples = [
-        ['Ali Ahmad', '0123456789', '12345', 'KERETA', 'Staf', 'ABC1234'],
-        ['Siti Sarah', '0134567890', '2023001', 'MOTOSIKAL', 'Pelajar', 'DEF5678'],
-        ['John Doe', '0145678901', 'IC123456', 'VAN', 'Pelawat', 'GHI9012'],
-        ['Ahmad Kontraktor', '0156789012', 'K001', 'LORI', 'Kontraktor', 'JKL3456']
-    ];
-    
-    foreach ($examples as $example) {
-        fputcsv($output, $example);
+    $data = [];
+    $col_index = 0;
+    foreach ($cells as $cell) {
+      $data[$col_index++] = $cell->getValue();
+      if ($col_index >= 5) break;
     }
     
-    fclose($output);
-    exit();
+    if (empty($data[0])) continue;
+    
+    try {
+      $plate_number = trim($data[0] ?? '');
+      $owner_name = trim($data[1] ?? '');
+      $owner_phone = trim($data[2] ?? '');
+      $brand = trim($data[3] ?? '');
+      $category = strtolower(trim($data[4] ?? ''));
+      
+      if (empty($plate_number) || empty($owner_name) || empty($owner_phone) || empty($category)) {
+        throw new Exception('Missing required fields');
+      }
+      
+      if (!in_array($category, ['visitor', 'staff', 'student', 'contractor'])) {
+        throw new Exception('Invalid category');
+      }
+      
+      if (!preg_match('/^\d{10,15}$/', preg_replace('/[\s\-\+\(\)]/', '', $owner_phone))) {
+        throw new Exception('Invalid phone number');
+      }
+      
+      if (in_array($plate_number, $seen_plates)) {
+        throw new Exception('Duplicate plate in file');
+      }
+      $seen_plates[] = $plate_number;
+      
+      // Check all tables
+      $tables = ['visitorcar', 'staffcar', 'studentcar', 'contractorcar'];
+      foreach ($tables as $tbl) {
+        $check = $con->query("SELECT 1 FROM `$tbl` WHERE platenum = '{$con->real_escape_string($plate_number)}' LIMIT 1");
+        if ($check && $check->num_rows > 0) {
+          throw new Exception('Plate exists');
+        }
+      }
+      
+      // Insert vehicle
+      $table_name = $category . 'car';
+      $insert_sql = "INSERT INTO `$table_name` (name, phone, model, platenum, created_at) 
+                     VALUES ('{$con->real_escape_string($owner_name)}', 
+                             '{$con->real_escape_string($owner_phone)}', 
+                             '{$con->real_escape_string($brand)}', 
+                             '{$con->real_escape_string($plate_number)}',
+                             NOW())";
+      
+      if (!$con->query($insert_sql)) {
+        throw new Exception($con->error);
+      }
+      
+      $vehicle_id = $con->insert_id;
+      
+      // Create status
+      $status_sql = "INSERT INTO vehicle_status (vehicle_id, vehicle_type, status, created_at) 
+                     VALUES ($vehicle_id, '$category', 'active', NOW())";
+      $con->query($status_sql);
+      
+      // Log
+      $log_sql = "INSERT INTO admin_action_logs (admin_email, action, description, created_at) 
+                  VALUES ('{$con->real_escape_string($admin_email)}', 
+                          'import_vehicle', 
+                          'Imported vehicle: $plate_number ($category)', 
+                          NOW())";
+      @$con->query($log_sql);
+      
+      $inserted++;
+      
+    } catch (Exception $e) {
+      $skipped++;
+      $errors[] = "Row " . ($row->getRowIndex()) . ": " . $e->getMessage();
+    }
+  }
+  
+  return [
+    'success' => true,
+    'imported' => $inserted,
+    'skipped' => $skipped,
+    'errors' => $errors
+  ];
 }
 ?>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php'; ?>
@@ -277,27 +378,33 @@ if (isset($_GET['download_template'])) {
         </div>
     </div>
 
+    <?php if ($message): ?>
+    <div class="flash <?= $message_type === 'success' ? 'ok' : 'error' ?> mb-6">
+        <i data-lucide="<?= $message_type === 'success' ? 'check-circle' : 'alert-circle' ?>"></i>
+        <div style="white-space:pre-wrap;"><?= htmlspecialchars($message) ?></div>
+    </div>
+    <?php endif; ?>
+
     <div class="nv-grid cols-2" style="align-items:start;">
         <div class="card">
             <span class="eyebrow"><?= htmlspecialchars($t['instructions']) ?></span>
-            <h3 class="text-display mt-2 mb-4">CSV import steps</h3>
+            <h3 class="text-display mt-2 mb-4">XLSX import steps</h3>
             <div class="nv-stack gap-4">
                 <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">1</span><div><strong><?= htmlspecialchars($t['step1']) ?></strong></div></div>
-                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">2</span><div><strong><?= htmlspecialchars($t['step2']) ?></strong><div class="text-mono text-muted mt-2" style="font-size:12px;"><?= htmlspecialchars($t['csv_columns']) ?></div></div></div>
+                <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">2</span><div><strong><?= htmlspecialchars($t['step2']) ?></strong><div class="text-mono text-muted mt-2" style="font-size:12px;"><?= htmlspecialchars($t['xlsx_columns']) ?></div></div></div>
                 <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">3</span><div><strong><?= htmlspecialchars($t['step3']) ?></strong></div></div>
                 <div class="nv-row gap-3"><span class="plate" style="min-width:32px;text-align:center;">4</span><div><strong><?= htmlspecialchars($t['step4']) ?></strong></div></div>
             </div>
             <div class="card flat mt-6" style="background:var(--surface-tint);">
                 <span class="eyebrow"><?= htmlspecialchars($t['example']) ?></span>
                 <div class="text-mono mt-2" style="font-size:12px;line-height:1.7;color:var(--brand-purple-deep);">
-                    <?= htmlspecialchars($t['csv_columns']) ?><br>
+                    <?= htmlspecialchars($t['xlsx_columns']) ?><br>
                     <?= htmlspecialchars($t['example_row']) ?><br>
-                    Siti Sarah,0134567890,2023001,MOTOSIKAL,Pelajar,DEF5678<br>
-                    John Doe,0145678901,IC123456,VAN,Pelawat,GHI9012
+                    DEF5678, Siti Sarah, 0134567890, Toyota, student<br>
+                    GHI9012, John Doe, 0145678901, Ford, visitor
                 </div>
                 <div class="text-muted mt-4" style="font-size:12px;">
-                    <strong><?= htmlspecialchars($t['status_options']) ?></strong><br>
-                    <strong><?= htmlspecialchars($t['type_options']) ?></strong>
+                    <strong><?= htmlspecialchars($t['category_options']) ?></strong>
                 </div>
             </div>
         </div>
@@ -308,8 +415,8 @@ if (isset($_GET['download_template'])) {
                 <h3 class="text-display mt-2"><?= htmlspecialchars($t['choose_file']) ?></h3>
             </div>
             <div class="field">
-                <label class="field-label" for="csv_file">CSV file</label>
-                <input class="input" id="csv_file" name="csv_file" type="file" accept=".csv" required onchange="updateFileName()">
+                <label class="field-label" for="xlsx_file">XLSX file (required)</label>
+                <input class="input" id="xlsx_file" name="xlsx_file" type="file" accept=".xlsx" required onchange="updateFileName()">
                 <span class="field-hint" id="file-name">No file chosen</span>
             </div>
             <div class="nv-row end gap-2">
@@ -322,16 +429,30 @@ if (isset($_GET['download_template'])) {
 </div>
 <script>
 function updateFileName() {
-    var fi = document.getElementById('csv_file');
+    var fi = document.getElementById('xlsx_file');
     var fn = document.getElementById('file-name');
-    if (fi.files.length > 0) { fn.textContent = fi.files[0].name; fn.style.color = 'var(--status-ok)'; }
-    else { fn.textContent = 'No file chosen'; fn.style.color = 'var(--fg-3)'; }
+    if (fi.files.length > 0) { 
+        fn.textContent = fi.files[0].name; 
+        fn.style.color = 'var(--status-ok)'; 
+    }
+    else { 
+        fn.textContent = 'No file chosen'; 
+        fn.style.color = 'var(--fg-3)'; 
+    }
 }
 document.getElementById('uploadForm').addEventListener('submit', function(e) {
-    var fi = document.getElementById('csv_file');
-    if (!fi.files.length) { e.preventDefault(); alert('<?php echo addslashes($t['file_required']); ?>'); return false; }
+    var fi = document.getElementById('xlsx_file');
+    if (!fi.files.length) { 
+        e.preventDefault(); 
+        alert('<?php echo addslashes($t['file_required']); ?>'); 
+        return false; 
+    }
     var ext = fi.files[0].name.split('.').pop().toLowerCase();
-    if (ext !== 'csv') { e.preventDefault(); alert('<?php echo addslashes($t['invalid_format']); ?>'); return false; }
+    if (ext !== 'xlsx') { 
+        e.preventDefault(); 
+        alert('<?php echo addslashes($t['invalid_format']); ?>'); 
+        return false; 
+    }
     var btn = this.querySelector('button[type="submit"]');
     btn.innerHTML = '<i data-lucide="loader"></i> ' + '<?php echo addslashes($t['upload']); ?>';
     btn.disabled = true;

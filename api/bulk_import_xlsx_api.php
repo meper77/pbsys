@@ -1,12 +1,9 @@
 <?php
 /**
  * API: Bulk Import Vehicles from XLSX
- * POST /api/bulk_import_xlsx_api.php
+ * POST /admin/bulk_import.php
  * 
- * Expects:
- *   - file: XLSX file upload
- *   - vehicle_type: staff|visitor|student|contractor
- *   - assume_owner: email of user to assign as owner
+ * Handles XLSX file uploads and imports vehicle data
  */
 
 header('Content-Type: application/json');
@@ -22,22 +19,17 @@ if (!isset($_SESSION['email_Admin'])) {
   die(json_encode(['success' => false, 'message' => 'Admin access required']));
 }
 
-$vehicle_type = $_POST['vehicle_type'] ?? null;
-$assume_owner = $_POST['assume_owner'] ?? null;
-
-if (!$vehicle_type || !in_array($vehicle_type, ['visitor', 'staff', 'student', 'contractor'])) {
-  http_response_code(400);
-  die(json_encode(['success' => false, 'message' => 'Invalid vehicle type']));
-}
-
-if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+// Check file upload
+if (!isset($_FILES['xlsx_file']) || $_FILES['xlsx_file']['error'] !== UPLOAD_ERR_OK) {
   http_response_code(400);
   die(json_encode(['success' => false, 'message' => 'File upload failed']));
 }
 
+$admin_email = $_SESSION['email_Admin'];
+
 // Verify XLSX file
 $finfo = finfo_open(FILEINFO_MIME_TYPE);
-$mime = finfo_file($finfo, $_FILES['file']['tmp_name']);
+$mime = finfo_file($finfo, $_FILES['xlsx_file']['tmp_name']);
 finfo_close($finfo);
 
 if (!in_array($mime, ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])) {
@@ -50,27 +42,30 @@ try {
   require $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
   
   $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-  $spreadsheet = $reader->load($_FILES['file']['tmp_name']);
+  $spreadsheet = $reader->load($_FILES['xlsx_file']['tmp_name']);
   $worksheet = $spreadsheet->getActiveSheet();
   
-  $result = import_vehicles_from_xlsx($con, $vehicle_type, $worksheet, $assume_owner, $_SESSION['email_Admin']);
+  $result = import_vehicles_from_xlsx($con, $worksheet, $admin_email);
   
-  echo json_encode($result);
+  // Return response based on request header
+  if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+    echo json_encode($result);
+  } else {
+    // Browser request - redirect with message
+    $_SESSION['import_result'] = $result;
+    header('Location: /admin/bulk_import.php?result=1');
+  }
   
 } catch (Exception $e) {
   http_response_code(500);
   die(json_encode(['success' => false, 'message' => $e->getMessage()]));
 }
 
-function import_vehicles_from_xlsx($con, $vehicle_type, $worksheet, $assume_owner, $admin_email) {
+function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
   $inserted = 0;
   $skipped = 0;
   $errors = [];
-  
-  $table = $vehicle_type . 'car';
-  $id_col = $vehicle_type === 'visitor' ? 'visitorid' : 
-            ($vehicle_type === 'staff' ? 'staffid' : 
-             ($vehicle_type === 'student' ? 'studentid' : 'contractorid'));
+  $seen_plates = [];
   
   // Row 1 is header, start from row 2
   foreach ($worksheet->getRowIterator(2) as $row) {
@@ -81,59 +76,84 @@ function import_vehicles_from_xlsx($con, $vehicle_type, $worksheet, $assume_owne
     $col_index = 0;
     foreach ($cells as $cell) {
       $data[$col_index++] = $cell->getValue();
+      if ($col_index >= 5) break; // Only need 5 columns
     }
     
     // Skip empty rows
     if (empty($data[0])) continue;
     
     try {
-      // Parse row based on vehicle type
-      $vehicle = parse_vehicle_row($data, $vehicle_type);
+      // Parse row: Plate Number, Owner Name, Owner Phone, Brand, Category
+      $plate_number = trim($data[0] ?? '');
+      $owner_name = trim($data[1] ?? '');
+      $owner_phone = trim($data[2] ?? '');
+      $brand = trim($data[3] ?? '');
+      $category = strtolower(trim($data[4] ?? ''));
       
-      // Check uniqueness: plate + status=active
-      $check_query = "
-        SELECT $id_col FROM $table 
-        WHERE plate_number = '{$vehicle['plate_number']}' 
-        LIMIT 1
-      ";
-      $check = $con->query($check_query);
-      
-      if ($check && $check->num_rows > 0) {
-        $skipped++;
-        $errors[] = "Row " . ($row->getRowIndex()) . ": Plate {$vehicle['plate_number']} already exists";
-        continue;
+      // Validate required fields
+      if (empty($plate_number) || empty($owner_name) || empty($owner_phone) || empty($category)) {
+        throw new Exception('Missing required fields');
       }
       
-      // Insert vehicle
-      $columns = implode(',', array_keys($vehicle));
-      $values = implode(',', array_map(function($v) use ($con) {
-        return "'{$con->real_escape_string($v)}'";
-      }, array_values($vehicle)));
+      // Validate category
+      if (!in_array($category, ['visitor', 'staff', 'student', 'contractor'])) {
+        throw new Exception('Invalid category. Must be: visitor, staff, student, contractor');
+      }
       
-      $insert_query = "INSERT INTO $table ($columns) VALUES ($values)";
+      // Validate phone format (basic)
+      if (!preg_match('/^\d{10,15}$/', preg_replace('/[\s\-\+\(\)]/', '', $owner_phone))) {
+        throw new Exception('Invalid phone number format');
+      }
       
-      if (!$con->query($insert_query)) {
+      // Check for duplicates within file
+      if (in_array($plate_number, $seen_plates)) {
+        throw new Exception('Duplicate plate number in file');
+      }
+      $seen_plates[] = $plate_number;
+      
+      // Check if vehicle already exists in any category table
+      $tables = ['visitorcar', 'staffcar', 'studentcar', 'contractorcar'];
+      foreach ($tables as $tbl) {
+        $check = $con->query("SELECT 1 FROM `$tbl` WHERE platenum = '{$con->real_escape_string($plate_number)}' LIMIT 1");
+        if ($check && $check->num_rows > 0) {
+          throw new Exception('Plate already exists in system');
+        }
+      }
+      
+      // Insert into appropriate table
+      $table_name = $category . 'car';
+      $id_col = match($category) {
+        'visitor' => 'visitorid',
+        'staff' => 'staffid',
+        'student' => 'studentid',
+        'contractor' => 'contractorid'
+      };
+      
+      $insert_sql = "INSERT INTO `$table_name` (name, phone, model, platenum, created_at) 
+                     VALUES ('{$con->real_escape_string($owner_name)}', 
+                             '{$con->real_escape_string($owner_phone)}', 
+                             '{$con->real_escape_string($brand)}', 
+                             '{$con->real_escape_string($plate_number)}',
+                             NOW())";
+      
+      if (!$con->query($insert_sql)) {
         throw new Exception($con->error);
       }
       
       $vehicle_id = $con->insert_id;
       
-      // Assign owner if provided
-      if ($assume_owner) {
-        $owner_query = "SELECT userid FROM user WHERE email = '{$con->real_escape_string($assume_owner)}' LIMIT 1";
-        $owner_result = $con->query($owner_query);
-        
-        if ($owner_result && $owner_result->num_rows > 0) {
-          $owner = $owner_result->fetch_assoc();
-          assign_user_to_vehicle($con, $owner['userid'], $vehicle_id, $vehicle_type, 'owner', 0);
-        }
-      }
+      // Create vehicle_status entry
+      $status_sql = "INSERT INTO vehicle_status (vehicle_id, vehicle_type, status, created_at) 
+                     VALUES ($vehicle_id, '$category', 'active', NOW())";
+      $con->query($status_sql);
       
-      // Create status record
-      $con->query("
-        INSERT INTO vehicle_status (vehicle_id, vehicle_type, status)
-        VALUES ($vehicle_id, '$vehicle_type', 'active')
-      ");
+      // Log action
+      $log_sql = "INSERT INTO admin_action_logs (admin_email, action, description, created_at) 
+                  VALUES ('{$con->real_escape_string($admin_email)}', 
+                          'import_vehicle', 
+                          'Imported vehicle: $plate_number ($category)', 
+                          NOW())";
+      $con->query($log_sql);
       
       $inserted++;
       
@@ -145,19 +165,9 @@ function import_vehicles_from_xlsx($con, $vehicle_type, $worksheet, $assume_owne
   
   return [
     'success' => true,
-    'inserted' => $inserted,
+    'imported' => $inserted,
     'skipped' => $skipped,
     'errors' => array_slice($errors, 0, 10) // Return first 10 errors
-  ];
-}
-
-function parse_vehicle_row($data, $vehicle_type) {
-  // Expected columns: plate, brand, color, year, [owner_name], [owner_phone]
-  return [
-    'plate_number' => $data[0] ?? '',
-    'brand' => $data[1] ?? '',
-    'color' => $data[2] ?? '',
-    'year' => $data[3] ?? date('Y')
   ];
 }
 ?>
