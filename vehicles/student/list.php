@@ -63,6 +63,8 @@ if ($result) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>
+<link rel="stylesheet" href="/assets/vehicle-autocomplete.css">
+
 <body>
 <div class="nv-shell">
 <?php $nv_active = 'student'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
@@ -84,9 +86,11 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 
     <?php if (count($rows) > 0): ?>
     <form class="card nv-stack" onsubmit="return false;">
-        <div class="field">
-            <label class="field-label" for="listSearch">Cari kenderaan</label>
-            <input class="input mono" id="listSearch" type="text" placeholder="Plate, name, matric…" autofocus>
+        <div class="field" style="position: relative;">
+            <label class="field-label" for="plateInput">Cari kenderaan</label>
+            <input class="input mono" id="plateInput" type="text" placeholder="Type to search…" 
+                   autocomplete="off" autofocus="" data-autocomplete 
+                   data-api-endpoint="/api/vehicle_search_api.php">
         </div>
     </form>
     <?php endif; ?>
@@ -148,9 +152,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         </table>
         <?php endif; ?>
     </div>
+<script src="/assets/vehicle-autocomplete.js"></script>
 <script>
 (function(){
-  var input = document.getElementById('listSearch');
+  var input = document.getElementById('plateInput');
   if (!input) return;
   var rows = document.querySelectorAll('#vehicleTable tbody tr');
   input.addEventListener('input', function () {
