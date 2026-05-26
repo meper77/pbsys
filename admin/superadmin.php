@@ -10,6 +10,9 @@ if (isset($_GET['logout'])) {
 // ========== END LOGOUT HANDLER ==========
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
+
+require_admin();
 
 // Check if user is admin
 if (!isset($_SESSION['email_Admin'])) {

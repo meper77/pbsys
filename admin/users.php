@@ -8,6 +8,13 @@ if (isset($_GET['logout'])) {
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
+
+require_admin();
+
+if (!can_view_user_list()) {
+  redirect_unauthorized();
+}
 
 if (!isset($_SESSION['email_Admin'])) {
     header('location:/auth/login_admin.php');
