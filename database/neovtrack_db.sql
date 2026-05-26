@@ -296,6 +296,56 @@ CREATE TABLE `user_vehicle` (
   `assigned_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vehicle_status`
+--
+
+CREATE TABLE `vehicle_status` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `vehicle_id` int(11) NOT NULL,
+  `vehicle_type` enum('visitor','staff','student','contractor') NOT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `status_changed_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `status_changed_by` int(11),
+  `auto_inactive_date` date,
+  `reactivated_at` timestamp NULL,
+  
+  UNIQUE KEY `unique_vehicle_status` (`vehicle_id`, `vehicle_type`),
+  KEY `idx_vehicle_type` (`vehicle_type`, `status`),
+  KEY `idx_auto_inactive_date` (`auto_inactive_date`),
+  
+  CONSTRAINT `fk_vehicle_status_admin` FOREIGN KEY (`status_changed_by`) 
+    REFERENCES `admin`(`userid`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vehicle_search_cache`
+--
+
+CREATE TABLE `vehicle_search_cache` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `vehicle_id` int(11) NOT NULL,
+  `vehicle_type` enum('visitor','staff','student','contractor') NOT NULL,
+  `plate_number` varchar(20) NOT NULL,
+  `brand` varchar(100),
+  `color` varchar(50),
+  `phone` varchar(20),
+  `staff_number` varchar(20),
+  `matric_number` varchar(20),
+  `owner_name` varchar(255),
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `last_updated` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  FULLTEXT INDEX `ft_search` (`plate_number`, `brand`, `owner_name`),
+  UNIQUE KEY `unique_cache` (`vehicle_id`, `vehicle_type`),
+  KEY `idx_status` (`status`),
+  KEY `idx_vehicle_type` (`vehicle_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indexes for dumped tables
 --|
@@ -385,6 +435,22 @@ ALTER TABLE `user_vehicle`
   ADD KEY `idx_user` (`user_id`);
 
 --
+-- Indexes for table `vehicle_status`
+--
+ALTER TABLE `vehicle_status`
+  ADD KEY `idx_vehicle_type` (`vehicle_type`, `status`),
+  ADD KEY `idx_auto_inactive_date` (`auto_inactive_date`),
+  ADD UNIQUE KEY `unique_vehicle_status` (`vehicle_id`, `vehicle_type`);
+
+--
+-- Indexes for table `vehicle_search_cache`
+--
+ALTER TABLE `vehicle_search_cache`
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_vehicle_type` (`vehicle_type`),
+  ADD UNIQUE KEY `unique_cache` (`vehicle_id`, `vehicle_type`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -434,6 +500,18 @@ ALTER TABLE `user_sessions`
 -- AUTO_INCREMENT for table `user_vehicle`
 --
 ALTER TABLE `user_vehicle`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `vehicle_status`
+--
+ALTER TABLE `vehicle_status`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `vehicle_search_cache`
+--
+ALTER TABLE `vehicle_search_cache`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 COMMIT;
