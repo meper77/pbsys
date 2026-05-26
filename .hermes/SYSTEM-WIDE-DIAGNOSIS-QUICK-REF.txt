@@ -1,0 +1,139 @@
+SYSTEM-WIDE UI/UX DIAGNOSIS - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 THREE DIAGNOSTIC TOOLS
+
+1. FAST DEMO (Public Pages Only) — ~20 seconds
+   $ node scripts/system-wide-diagnosis-demo.js
+   ✓ 4 auth pages (login, register, forgot_password, reset_password)
+   ✓ Exit code 0 = all pass, 1 = issues found
+   ✓ Perfect for: pre-commit, quick health check
+
+2. FULL SYSTEM LOOP (Infinite) — 2-minute intervals
+   $ node scripts/system-wide-diagnosis-loop.js
+   ✓ 22 pages across 5 modules
+   ✓ Continuous monitoring with formatted output
+   ✓ Generates JSON reports + screenshots per loop
+   ✓ Press Ctrl+C to stop
+
+3. WATCHDOG (Silent Background) — 5-minute intervals
+   $ node scripts/ui-ux-watchdog.js &
+   ✓ Silent unless issues detected
+   ✓ Alerts to .hermes/ui-ux-alert.log
+   ✓ Run in background: `node scripts/ui-ux-watchdog.js &`
+
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ PAGES COVERED
+
+Auth Module (4):
+  ✓ /auth/login.php                          [PASS]
+  ✓ /auth/register.php                       [PASS]
+  ✓ /auth/forgot_password_smtp.php           [PASS]
+  ✓ /auth/reset_password_token.php           [PASS]
+
+Admin Module (7):
+  • /admin/dashboard.php                     (requires admin)
+  • /admin/users/list.php                    (requires admin)
+  • /admin/users/add.php                     (requires admin)
+  • /admin/admins/list.php                   (requires admin)
+  • /admin/admins/add.php                    (requires admin)
+  • /admin/bulk_import.php                   (requires admin)
+  • /admin/reports.php                       (requires admin)
+
+Vehicles Module (8):
+  • /vehicles/{visitor,staff,student,contractor}/list.php    (requires auth)
+  • /vehicles/{visitor,staff,student,contractor}/add.php     (requires auth)
+
+Search Module (2):
+  • /search/admin_search.php                 (requires admin)
+  • /search/user_search.php                  (requires user)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🔍 DESIGN QUALITY CHECKS
+
+For Each Page:
+  ✓ Bootstrap class detection (NEO V-TRACK only)
+  ✓ Inline style audit (CSS variables allowed)
+  ✓ Form label validation
+  ✓ Button class compliance
+  ✓ Heading structure (h1 required)
+  ✓ ARIA attributes
+  ✓ Responsive design (mobile/tablet/desktop)
+  ✓ Performance metrics (load time)
+  ✓ Screenshot capture
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📁 OUTPUT FILES
+
+Reports:
+  .hermes/regression-reports/demo-*.json              (demo results)
+  .hermes/regression-reports/system-wide-*.json       (full system runs)
+
+Screenshots:
+  .hermes/regression-screenshots/demo-auth-*.png      (demo pages)
+  .hermes/regression-screenshots/*-{module}-*-1.png   (loop pages)
+
+Logs:
+  .hermes/system-wide-diagnosis.log                   (full loop output)
+  .hermes/ui-ux-alert.log                             (watchdog alerts only)
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 USAGE PATTERNS
+
+PRE-COMMIT VERIFICATION:
+  node scripts/system-wide-diagnosis-demo.js
+  [ $? -eq 0 ] && git commit -m "feat: ..."
+
+CONTINUOUS MONITORING (5-minute intervals):
+  while true; do
+    node scripts/system-wide-diagnosis-demo.js
+    sleep 300
+  done
+
+BACKGROUND MONITORING (with logging):
+  node scripts/system-wide-diagnosis-loop.js >> .hermes/system-wide-diagnosis.log 2>&1 &
+
+CHECK LATEST REPORT:
+  tail -f .hermes/system-wide-diagnosis.log
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 LATEST RESULTS
+
+Demo Run (May 27, 2026):
+  Status: ✅ ALL PASS
+  Pages: 4/4 ✓
+  Issues: 0
+  Duration: ~20s
+
+System-Wide Loop:
+  Status: 🔄 ACTIVE (background)
+  Pages: 22 (auth + admin + vehicles + search)
+  Modules: 5
+  Interval: 2 minutes
+  Process ID: Check .hermes/system-wide-diagnosis.log
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 QUICK COMMANDS
+
+Start everything:
+  $ node scripts/system-wide-diagnosis-demo.js        # Test auth pages first
+  $ node scripts/system-wide-diagnosis-loop.js &      # Start full loop
+  $ node scripts/ui-ux-watchdog.js &                  # Start watchdog
+
+Check status:
+  $ ps aux | grep diagnosis                           # See running processes
+  $ tail -20 .hermes/system-wide-diagnosis.log        # Check loop output
+  $ tail -f .hermes/ui-ux-alert.log                   # Watch watchdog alerts
+
+View reports:
+  $ ls -lt .hermes/regression-reports/                # List reports by date
+  $ cat .hermes/regression-reports/demo-*.json | jq   # View latest demo report
+
+═══════════════════════════════════════════════════════════════════════════════
+For full documentation, see: .hermes/SYSTEM-WIDE-DIAGNOSIS-GUIDE.md
