@@ -135,3 +135,63 @@ function guardAdminPage() {
 function guardUserPage() {
     requireLogin();
 }
+
+/**
+ * Log admin action to audit trail
+ * @param string $action Action type (delete, create, update, download, etc.)
+ * @param string $details Details about the action
+ * @param string $entity_type Type of entity (user, vehicle, report, etc.)
+ * @param int|string $entity_id ID of the entity affected
+ */
+function logAdminAction($action, $details = '', $entity_type = '', $entity_id = '') {
+    global $conn;
+    
+    if (!isAdmin()) return; // Only log admin actions
+    
+    $user_email = getUserEmail() ?? 'system';
+    $page = $_SERVER['REQUEST_URI'] ?? '';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    
+    $stmt = $conn->prepare("
+        INSERT INTO admin_action_logs 
+        (admin_email, action, details, page, ip_address) 
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    
+    $action_detail = $action;
+    if (!empty($entity_type)) {
+        $action_detail .= " [{$entity_type}:" . (string)$entity_id . "]";
+    }
+    if (!empty($details)) {
+        $action_detail .= ": {$details}";
+    }
+    
+    $stmt->bind_param("sssss", $user_email, $action, $action_detail, $page, $ip);
+    $stmt->execute();
+    $stmt->close();
+}
+
+/**
+ * Log sensitive user action
+ * @param string $action Action type (login, export, search, etc.)
+ * @param string $details Additional details
+ */
+function logUserAction($action, $details = '') {
+    global $conn;
+    
+    if (!isUser()) return; // Only log user actions
+    
+    $user_email = getUserEmail() ?? 'unknown';
+    $page = $_SERVER['REQUEST_URI'] ?? '';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    
+    $stmt = $conn->prepare("
+        INSERT INTO admin_action_logs 
+        (admin_email, action, details, page, ip_address) 
+        VALUES (?, ?, ?, ?, ?)
+    ");
+    
+    $stmt->bind_param("sssss", $user_email, $action, $details, $page, $ip);
+    $stmt->execute();
+    $stmt->close();
+}
