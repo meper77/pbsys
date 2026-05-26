@@ -10,12 +10,8 @@ if (isset($_GET['logout'])) {
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
 
-require_admin();
-
-if (!isset($_SESSION['email_Admin'])) {
-    header('location:/auth/login_admin.php');
-    exit();
-}
+// Admin only
+requireAdmin();
 
 if (!isset($_SESSION['language'])) { $_SESSION['language'] = 'bm'; }
 if (isset($_GET['lang'])) {
