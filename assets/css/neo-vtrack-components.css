@@ -68,6 +68,7 @@ body { background: var(--bg); }
 .lang-selector { font-size: 11px; }
 .lang-active { font-weight: 700; }
 .lang-inactive { color: var(--fg-3); }
+.icon-small { width: 14px; height: 14px; vertical-align: -2px; }
 
 .plate { font-family: var(--font-display); font-weight: 800; background: var(--brand-yellow); color: var(--neutral-900); padding: 4px 9px; border-radius: 4px; border: 1.5px solid var(--neutral-900); letter-spacing: 0.06em; display: inline-block; font-size: 14px; white-space: nowrap; }
 .plate.lg { font-size: 28px; padding: 8px 16px; border-radius: 6px; border-width: 2px; }

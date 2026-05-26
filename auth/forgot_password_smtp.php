@@ -312,6 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="sub">Forgot Password</span>
             </div>
         </div>
+        <h1><?= htmlspecialchars($t['forgot_password'] ?? 'Forgot Password') ?></h1>
         
         <div class="auth-head">
             <h2>Reset Password</h2>

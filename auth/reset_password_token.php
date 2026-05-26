@@ -294,6 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
                 <span class="sub">Password Reset</span>
             </div>
         </div>
+        <h1><?= htmlspecialchars($t['reset_password'] ?? 'Password Reset') ?></h1>
         
         <div class="auth-head">
             <h2><?php echo $success ? 'Password Reset Successful' : 'Reset Your Password'; ?></h2>
