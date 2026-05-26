@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-05-26T06:57:53.636Z",
+  "summary": {
+    "totalPages": 3,
+    "pagesAudited": 3,
+    "issuesFound": 0,
+    "criticalIssues": 0
+  },
+  "pages": [
+    {
+      "name": "login",
+      "url": "/auth/login.php",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [],
+        "problematicInlineStyles": [],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-login.png",
+      "status": "pass"
+    },
+    {
+      "name": "forgot_password",
+      "url": "/auth/forgot_password_smtp.php",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [],
+        "problematicInlineStyles": [],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-forgot_password.png",
+      "status": "pass"
+    },
+    {
+      "name": "reset_password",
+      "url": "/auth/reset_password_token.php?token=test",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [],
+        "problematicInlineStyles": [],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-reset_password.png",
+      "status": "pass"
+    }
+  ]
+}

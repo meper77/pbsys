@@ -1,0 +1,305 @@
+{
+  "timestamp": "2026-05-26T06:55:17.303Z",
+  "summary": {
+    "totalPages": 7,
+    "totalForms": 4,
+    "pagesAudited": 7,
+    "formsTestd": 4,
+    "issuesFound": 31
+  },
+  "pages": [
+    {
+      "name": "login",
+      "url": "/auth/login.php",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n    \n      \n      \n      \n      NEO V-TRACKLog ma"
+          },
+          {
+            "tag": "button",
+            "class": "btn btn-primary",
+            "text": "\n      Log masuk \n    "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "button",
+            "style": "justify-content:center;width:100%;",
+            "text": "\n      Log masuk \n    "
+          },
+          {
+            "tag": "span",
+            "style": "font-size:11px;",
+            "text": "\n        BM\n        ·\n        EN\n      "
+          },
+          {
+            "tag": "a",
+            "style": "font-weight:700;",
+            "text": "BM"
+          },
+          {
+            "tag": "a",
+            "style": "color:var(--fg-3);",
+            "text": "EN"
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-login.png"
+    },
+    {
+      "name": "forgot_password",
+      "url": "/auth/forgot_password_smtp.php",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n        \n            \n            \n            \n "
+          },
+          {
+            "tag": "button",
+            "class": "btn btn-primary",
+            "text": "\n                    Send Reset Link\n             "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "a",
+            "style": "text-align: center;",
+            "text": "\n                    Back to Login\n               "
+          },
+          {
+            "tag": "div",
+            "style": "margin-top: var(--space-6);",
+            "text": "\n                Don't have an account? \n         "
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-forgot_password.png"
+    },
+    {
+      "name": "reset_password",
+      "url": "/auth/reset_password_token.php?token=test",
+      "type": "auth",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n        \n            \n            \n            \n "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "div",
+            "style": "margin-top: var(--space-6);",
+            "text": "\n                Invalid or expired reset link. Pl"
+          },
+          {
+            "tag": "p",
+            "style": "margin-bottom: var(--space-4);",
+            "text": "Invalid or expired reset link. Please request a ne"
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-reset_password.png"
+    },
+    {
+      "name": "dashboard",
+      "url": "/admin/dashboard.php",
+      "type": "admin",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n    \n      \n      \n      \n      NEO V-TRACKAdmin\n"
+          },
+          {
+            "tag": "button",
+            "class": "btn btn-primary",
+            "text": "\n      Log masuk \n    "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "button",
+            "style": "justify-content:center;width:100%;",
+            "text": "\n      Log masuk \n    "
+          },
+          {
+            "tag": "span",
+            "style": "font-size:11px;",
+            "text": "\n        BM\n        ·\n        EN\n      "
+          },
+          {
+            "tag": "a",
+            "style": "font-weight:700;",
+            "text": "BM"
+          },
+          {
+            "tag": "a",
+            "style": "color:var(--fg-3);",
+            "text": "EN"
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-dashboard.png"
+    },
+    {
+      "name": "users",
+      "url": "/admin/users.php",
+      "type": "admin",
+      "issues": {
+        "bootstrapClasses": [],
+        "inlineStyles": [],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-users.png"
+    },
+    {
+      "name": "visitor_vehicles",
+      "url": "/vehicles/visitor/list.php",
+      "type": "vehicles",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n    \n      \n      \n      \n      NEO V-TRACKAdmin\n"
+          },
+          {
+            "tag": "button",
+            "class": "btn btn-primary",
+            "text": "\n      Log masuk \n    "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "button",
+            "style": "justify-content:center;width:100%;",
+            "text": "\n      Log masuk \n    "
+          },
+          {
+            "tag": "span",
+            "style": "font-size:11px;",
+            "text": "\n        BM\n        ·\n        EN\n      "
+          },
+          {
+            "tag": "a",
+            "style": "font-weight:700;",
+            "text": "BM"
+          },
+          {
+            "tag": "a",
+            "style": "color:var(--fg-3);",
+            "text": "EN"
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-visitor_vehicles.png"
+    },
+    {
+      "name": "staff_vehicles",
+      "url": "/vehicles/staff/list.php",
+      "type": "vehicles",
+      "issues": {
+        "bootstrapClasses": [
+          {
+            "tag": "form",
+            "class": "auth-card",
+            "text": "\n    \n      \n      \n      \n      NEO V-TRACKAdmin\n"
+          },
+          {
+            "tag": "button",
+            "class": "btn btn-primary",
+            "text": "\n      Log masuk \n    "
+          }
+        ],
+        "inlineStyles": [
+          {
+            "tag": "button",
+            "style": "justify-content:center;width:100%;",
+            "text": "\n      Log masuk \n    "
+          },
+          {
+            "tag": "span",
+            "style": "font-size:11px;",
+            "text": "\n        BM\n        ·\n        EN\n      "
+          },
+          {
+            "tag": "a",
+            "style": "font-weight:700;",
+            "text": "BM"
+          },
+          {
+            "tag": "a",
+            "style": "color:var(--fg-3);",
+            "text": "EN"
+          }
+        ],
+        "missingLabels": [],
+        "noButtonClass": []
+      },
+      "screenshot": ".hermes\\regression-screenshots\\audit-staff_vehicles.png"
+    }
+  ],
+  "forms": [
+    {
+      "name": "Login - Empty Email",
+      "url": "/auth/login.php",
+      "status": "fail",
+      "error": "Form loginForm not found",
+      "formFound": false,
+      "fieldsFilled": 0,
+      "submitted": false,
+      "errorDisplayed": false
+    },
+    {
+      "name": "Login - Invalid Email",
+      "url": "/auth/login.php",
+      "status": "fail",
+      "error": "Form loginForm not found",
+      "formFound": false,
+      "fieldsFilled": 0,
+      "submitted": false,
+      "errorDisplayed": false
+    },
+    {
+      "name": "Forgot Password - Empty Email",
+      "url": "/auth/forgot_password_smtp.php",
+      "status": "fail",
+      "error": "Form forgotForm not found",
+      "formFound": false,
+      "fieldsFilled": 0,
+      "submitted": false,
+      "errorDisplayed": false
+    },
+    {
+      "name": "Reset Password - Empty Password",
+      "url": "/auth/reset_password_token.php?token=test",
+      "status": "fail",
+      "error": "Form resetForm not found",
+      "formFound": false,
+      "fieldsFilled": 0,
+      "submitted": false,
+      "errorDisplayed": false
+    }
+  ]
+}

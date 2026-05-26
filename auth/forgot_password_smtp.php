@@ -350,7 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="submit" class="btn btn-primary">
                     Send Reset Link
                 </button>
-                <a href="/auth/login.php" class="btn btn-ghost" style="text-align: center;">
+                <a href="/auth/login.php" class="btn btn-ghost btn-text-center">
                     Back to Login
                 </a>
             </div>

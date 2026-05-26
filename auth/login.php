@@ -118,7 +118,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <input class="input" id="password" name="password" type="password" required>
     </div>
 
-    <button class="btn btn-primary" type="submit" style="justify-content:center;width:100%;">
+    <button class="btn btn-primary btn-full-width" type="submit">
       <?= htmlspecialchars($t['login_button']) ?> <i data-lucide="arrow-right"></i>
     </button>
 
@@ -126,10 +126,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <a href="<?= htmlspecialchars($forgot_link) ?>"><?= htmlspecialchars($t['forgot_password']) ?></a>
       <span><?= htmlspecialchars($t['new_user_question']) ?> <a href="<?= htmlspecialchars($register_link) ?>"><?= htmlspecialchars($t['register_here']) ?></a></span>
       <span><a href="<?= htmlspecialchars($admin_login_link) ?>"><?= htmlspecialchars($t['switch_to_admin']) ?></a></span>
-      <span class="text-mono" style="font-size:11px;">
-        <a href="?lang=bm" style="<?= $lang == 'bm' ? 'font-weight:700;' : 'color:var(--fg-3);' ?>">BM</a>
+      <span class="text-mono lang-selector">
+        <a href="?lang=bm" class="<?= $lang == 'bm' ? 'lang-active' : 'lang-inactive' ?>">BM</a>
         ·
-        <a href="?lang=en" style="<?= $lang == 'en' ? 'font-weight:700;' : 'color:var(--fg-3);' ?>">EN</a>
+        <a href="?lang=en" class="<?= $lang == 'en' ? 'lang-active' : 'lang-inactive' ?>">EN</a>
       </span>
     </div>
   </form>
