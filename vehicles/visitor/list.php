@@ -9,6 +9,7 @@ if (isset($_GET['logout'])) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include_once $_SERVER['DOCUMENT_ROOT'].'/includes/contact_links.php';
+include_once $_SERVER['DOCUMENT_ROOT'].'/includes/bulk_delete_component.php';
 
 if (!isset($_SESSION['email_Admin'])) {
     header('location:/auth/login_admin.php');
@@ -103,9 +104,17 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                 <a class="btn btn-primary mt-4" href="/vehicles/visitor/add.php"><i data-lucide="plus"></i> <?php echo htmlspecialchars($t['add']); ?></a>
             </div>
         <?php else: ?>
+        <form id="bulkDeleteForm" method="POST">
+            <div style="margin-bottom: 16px; padding: 0 16px; padding-top: 16px;">
+                <?php echo bulk_delete_button([
+                    'endpoint' => '/api/bulk_delete_api.php',
+                    'confirm_message' => 'Delete selected visitor vehicles? This cannot be undone.'
+                ]); ?>
+            </div>
         <table class="table" id="vehicleTable">
             <thead>
                 <tr>
+                    <?php echo bulk_delete_checkbox_header(); ?>
                     <th><?php echo $t['col_plate']; ?></th>
                     <th><?php echo $t['col_owner']; ?></th>
                     <th><?php echo $t['col_phone']; ?></th>
@@ -125,6 +134,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                 $ts = $r['updated_at'] ?? $r['created_at'] ?? null;
             ?>
                 <tr>
+                    <?php echo bulk_delete_checkbox($id); ?>
                     <td><span class="plate"><?php echo $plate; ?></span></td>
                     <td>
                         <div class="owner">
@@ -144,12 +154,12 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                     <td class="meta"><?php echo $ts ? htmlspecialchars(date('d M Y, H:i', strtotime($ts))) : '—'; ?></td>
                     <td class="text-right">
                         <a class="btn btn-quiet" href="/vehicles/visitor/update.php?id=<?php echo $id; ?>" title="Edit"><i data-lucide="pencil"></i></a>
-                        <a class="btn btn-quiet" href="/vehicles/visitor/delete.php?id=<?php echo $id; ?>" title="Delete" onclick="return confirm('<?php echo addslashes($t['delete_confirm']); ?>')"><i data-lucide="trash-2"></i></a>
                     </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
+        </form>
         <?php endif; ?>
     </div>
 <script src="/assets/vehicle-autocomplete.js"></script>
@@ -166,4 +176,5 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   });
 })();
 </script>
+<?php echo bulk_delete_select_all_script(); ?>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

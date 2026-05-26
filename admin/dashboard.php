@@ -16,6 +16,20 @@ if (!isset($_SESSION['email_Admin'])) {
     exit();
 }
 
+// Get vehicle status counts
+$vehicle_active = 0;
+$vehicle_inactive = 0;
+$result = mysqli_query($con, "SELECT status, COUNT(*) as count FROM vehicle_status GROUP BY status");
+if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
+        if ($row['status'] === 'active') {
+            $vehicle_active = (int)$row['count'];
+        } elseif ($row['status'] === 'inactive') {
+            $vehicle_inactive = (int)$row['count'];
+        }
+    }
+}
+
 // LANGUAGE SYSTEM
 if (!isset($_SESSION['language'])) {
     $_SESSION['language'] = 'bm';
@@ -43,6 +57,10 @@ $t = $lang === 'bm' ? [
     'delete'       => 'Padam',
     'no_records'   => 'Tiada rekod admin',
     'delete_confirm' => 'Padam admin ini?',
+    'vehicles'     => 'Kenderaan',
+    'active'       => 'Aktif',
+    'inactive'     => 'Tidak Aktif',
+    'total'        => 'Jumlah',
 ] : [
     'eyebrow'      => 'Administration',
     'admins_list'  => 'Admins',
@@ -57,6 +75,10 @@ $t = $lang === 'bm' ? [
     'delete'       => 'Delete',
     'no_records'   => 'No admin records yet',
     'delete_confirm' => 'Delete this admin?',
+    'vehicles'     => 'Vehicles',
+    'active'       => 'Active',
+    'inactive'     => 'Inactive',
+    'total'        => 'Total',
 ];
 
 // Detect PK column
@@ -192,6 +214,22 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <div class="nv-shell">
 <?php $nv_active = 'admin'; include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php'; ?>
 <main class="page">
+  <!-- Vehicle Status Widget -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: clamp(1rem, 2vw, 2rem); margin-bottom: clamp(2rem, 3vw, 3rem);">
+    <div class="card" style="padding: clamp(1.5rem, 2vw, 2rem); text-align: center;">
+      <div style="font-size: 32px; font-weight: bold; color: #667eea;"><?php echo $vehicle_active; ?></div>
+      <div style="font-size: 14px; color: #666; margin-top: 8px;"><?php echo htmlspecialchars($t['vehicles']); ?> - <?php echo htmlspecialchars($t['active']); ?></div>
+    </div>
+    <div class="card" style="padding: clamp(1.5rem, 2vw, 2rem); text-align: center;">
+      <div style="font-size: 32px; font-weight: bold; color: #764ba2;"><?php echo $vehicle_inactive; ?></div>
+      <div style="font-size: 14px; color: #666; margin-top: 8px;"><?php echo htmlspecialchars($t['vehicles']); ?> - <?php echo htmlspecialchars($t['inactive']); ?></div>
+    </div>
+    <div class="card" style="padding: clamp(1.5rem, 2vw, 2rem); text-align: center;">
+      <div style="font-size: 32px; font-weight: bold; color: #333;"><?php echo $vehicle_active + $vehicle_inactive; ?></div>
+      <div style="font-size: 14px; color: #666; margin-top: 8px;"><?php echo htmlspecialchars($t['vehicles']); ?> - <?php echo htmlspecialchars($t['total']); ?></div>
+    </div>
+  </div>
+
   <div class="page-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: clamp(1rem, 2vw, 2rem);">
     <div>
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
