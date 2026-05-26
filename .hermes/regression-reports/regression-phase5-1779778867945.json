@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-05-26T07:01:01.116Z",
+  "summary": {
+    "totalTests": 5,
+    "passed": 5,
+    "failed": 0
+  },
+  "tests": [
+    {
+      "name": "Login Page Loads",
+      "url": "/auth/login.php",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Forgot Password Page Loads",
+      "url": "/auth/forgot_password_smtp.php",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Reset Password Page Loads",
+      "url": "/auth/reset_password_token.php?token=test",
+      "passed": true,
+      "details": {}
+    },
+    {
+      "name": "Login Form Has Required Fields",
+      "url": "/auth/login.php",
+      "passed": true,
+      "details": {
+        "formCheck": {
+          "emailField": {
+            "found": true,
+            "hasAttribute": false
+          },
+          "passwordField": {
+            "found": true,
+            "hasAttribute": false
+          },
+          "submitButton": {
+            "found": true,
+            "hasAttribute": false
+          }
+        }
+      }
+    },
+    {
+      "name": "Forgot Password Form Has Email Field",
+      "url": "/auth/forgot_password_smtp.php",
+      "passed": true,
+      "details": {
+        "formCheck": {
+          "emailField": {
+            "found": true,
+            "hasAttribute": false
+          },
+          "submitButton": {
+            "found": true,
+            "hasAttribute": false
+          }
+        }
+      }
+    }
+  ]
+}
