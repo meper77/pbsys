@@ -514,6 +514,30 @@ ALTER TABLE `vehicle_status`
 ALTER TABLE `vehicle_search_cache`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `user_id` int(11),
+  `token_hash` varchar(64) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  
+  KEY `idx_email` (`email`),
+  KEY `idx_expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- AUTO_INCREMENT for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
