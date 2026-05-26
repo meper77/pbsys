@@ -1,0 +1,71 @@
+{
+  "type": "demo",
+  "timestamp": "2026-05-26T07:24:23.966Z",
+  "pagesCount": 4,
+  "passed": 4,
+  "warned": 0,
+  "errored": 0,
+  "totalIssues": 0,
+  "results": [
+    {
+      "name": "login",
+      "url": "/auth/login.php",
+      "module": "auth",
+      "loadTime": 1387,
+      "issues": {
+        "bootstrapClasses": 0,
+        "inlineStyles": 0,
+        "missingLabels": 0,
+        "noButtonClass": 0,
+        "missingHeadings": 0
+      },
+      "totalIssues": 0,
+      "status": "pass"
+    },
+    {
+      "name": "register",
+      "url": "/auth/register.php",
+      "module": "auth",
+      "loadTime": 1391,
+      "issues": {
+        "bootstrapClasses": 0,
+        "inlineStyles": 0,
+        "missingLabels": 0,
+        "noButtonClass": 0,
+        "missingHeadings": 0
+      },
+      "totalIssues": 0,
+      "status": "pass"
+    },
+    {
+      "name": "forgot_password",
+      "url": "/auth/forgot_password_smtp.php",
+      "module": "auth",
+      "loadTime": 1266,
+      "issues": {
+        "bootstrapClasses": 0,
+        "inlineStyles": 0,
+        "missingLabels": 0,
+        "noButtonClass": 0,
+        "missingHeadings": 0
+      },
+      "totalIssues": 0,
+      "status": "pass"
+    },
+    {
+      "name": "reset_password",
+      "url": "/auth/reset_password_token.php?token=test",
+      "module": "auth",
+      "loadTime": 1277,
+      "issues": {
+        "bootstrapClasses": 0,
+        "inlineStyles": 0,
+        "missingLabels": 0,
+        "noButtonClass": 0,
+        "missingHeadings": 0
+      },
+      "totalIssues": 0,
+      "status": "pass"
+    }
+  ]
+}

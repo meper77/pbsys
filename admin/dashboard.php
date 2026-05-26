@@ -233,7 +233,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   <div class="page-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: clamp(1rem, 2vw, 2rem);">
     <div>
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
-      <h1 style="margin: clamp(0.5rem, 1vw, 1rem) 0 0 0;"><?= htmlspecialchars($t['admins_list']) ?></h1>
+      <h1 class="h1-compact"><?= htmlspecialchars($t['admins_list']) ?></h1>
     </div>
     <div class="actions">
       <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
