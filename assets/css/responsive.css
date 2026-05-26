@@ -1,0 +1,81 @@
+/* File: assets/css/responsive.css */
+
+/* Mobile-first approach */
+
+/* Tablets (768px+) */
+@media (min-width: 768px) {
+  .container {
+    width: 750px;
+  }
+  
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  table {
+    font-size: 14px;
+  }
+}
+
+/* Desktops (1024px+) */
+@media (min-width: 1024px) {
+  .container {
+    width: 960px;
+  }
+  
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+/* Large screens (1200px+) */
+@media (min-width: 1200px) {
+  .container {
+    width: 1140px;
+  }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  body {
+    font-size: 14px;
+  }
+  
+  table {
+    font-size: 12px;
+    overflow-x: auto;
+    display: block;
+  }
+  
+  .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+}
+
+/* Flexible typography */
+body {
+  font-size: clamp(14px, 2vw, 16px);
+}
+
+h1 {
+  font-size: clamp(24px, 5vw, 32px);
+}
+
+h2 {
+  font-size: clamp(20px, 4vw, 28px);
+}
+
+/* Fluid images */
+img {
+  max-width: 100%;
+  height: auto;
+}
