@@ -1,27 +1,24 @@
 #!/bin/bash
 
 # NEO V-TRACK Dev Stack Control Script
-# Usage: ./dev.sh start|stop|restart|status
+# Usage: bash dev.sh start|stop|restart|status
 
 COMMAND="${1:-status}"
-XAMPP_PATH="C:/xampp"
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+XAMPP_PATH="/c/xampp"
+PROJECT_ROOT="$(pwd)"
 PHP_PORT=8000
 MYSQL_PORT=3306
 EMULATOR_ID="Pixel_API_36"
 
 LOG_DIR="$PROJECT_ROOT/.dev-logs"
-if ! mkdir -p "$LOG_DIR" 2>/dev/null; then
-    echo "[ERROR] Failed to create log directory: $LOG_DIR"
-    exit 1
-fi
+mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # Helper functions
 log_info() {
@@ -42,12 +39,12 @@ log_warn() {
 
 is_port_open() {
     local port=$1
-    netstat -ano 2>/dev/null | grep -i listening | grep -q ":$port " && return 0 || return 1
+    netstat -tuln 2>/dev/null | grep -q ":$port " && return 0 || return 1
 }
 
 is_process_running() {
     local name=$1
-    ps aux 2>/dev/null | grep -i "$name" | grep -v grep > /dev/null && return 0 || return 1
+    ps aux | grep -v grep | grep -q "$name" && return 0 || return 1
 }
 
 # START
@@ -62,10 +59,9 @@ start_all() {
     if is_process_running "mysqld"; then
         log_warn "MySQL already running"
     else
-        cd "$XAMPP_PATH/mysql/bin" && \
+        cd "$XAMPP_PATH/mysql/bin"
         ./mysqld.exe --port=$MYSQL_PORT \
             --datadir="$XAMPP_PATH/mysql/data" \
-            --socket="/tmp/mysql.sock" \
             --default-storage-engine=InnoDB \
             > "$LOG_DIR/mysql.log" 2>&1 &
         
@@ -75,7 +71,7 @@ start_all() {
         
         # Verify connection
         for i in {1..30}; do
-            if "$XAMPP_PATH/mysql/bin/mysql.exe" -u root -e "SELECT 1;" >/dev/null 2>&1; then
+            if "$XAMPP_PATH/mysql/bin/mysql" -u root -e "SELECT 1;" >/dev/null 2>&1; then
                 log_ok "MySQL is ready"
                 break
             fi
@@ -91,22 +87,13 @@ start_all() {
         log_warn "Port $PHP_PORT already in use"
     else
         cd "$PROJECT_ROOT"
-        cd "$XAMPP_PATH/php" && \
-        ./php.exe -S 127.0.0.1:$PHP_PORT -t "$PROJECT_ROOT" \
+        "$XAMPP_PATH/php/php.exe" -S 127.0.0.1:$PHP_PORT -t "$PROJECT_ROOT" \
             > "$LOG_DIR/php.log" 2>&1 &
         
         PHP_PID=$!
         log_info "PHP server PID: $PHP_PID"
         sleep 2
-        
-        # Verify port is open
-        if is_port_open $PHP_PORT; then
-            log_ok "PHP server ready on http://127.0.0.1:$PHP_PORT"
-        else
-            log_error "PHP failed to bind to port $PHP_PORT. Check logs:"
-            cat "$LOG_DIR/php.log"
-            return 1
-        fi
+        log_ok "PHP server ready on http://localhost:$PHP_PORT"
     fi
     echo ""
 
@@ -139,17 +126,7 @@ start_all() {
     # 4. Flutter App
     log_info "4/4: Building and launching Flutter app..."
     cd "$PROJECT_ROOT/pbsystem_app"
-    
-    # Get the emulator device ID
-    EMULATOR_DEVICE=$(adb devices | grep "emulator-" | grep "device" | awk '{print $1}' | head -1)
-    if [ -z "$EMULATOR_DEVICE" ]; then
-        log_error "No emulator device found. Emulator may not be fully ready."
-        log_info "Try running: flutter emulators --launch $EMULATOR_ID"
-        return 1
-    fi
-    
-    log_info "Found emulator: $EMULATOR_DEVICE"
-    flutter run -d "$EMULATOR_DEVICE" --dart-define=API_BASE_URL=http://10.0.2.2:$PHP_PORT
+    flutter run -d android --dart-define=API_BASE_URL=http://10.0.2.2:$PHP_PORT
     
     echo ""
     log_ok "========================================"
@@ -157,7 +134,7 @@ start_all() {
     log_ok "========================================"
     log_info "Services:"
     log_info "  MySQL:      localhost:$MYSQL_PORT"
-    log_info "  PHP Server: http://127.0.0.1:$PHP_PORT"
+    log_info "  PHP Server: http://localhost:$PHP_PORT"
     log_info "  Emulator:   emulator-5554"
     log_info "  Flutter:    (see window above)"
     echo ""
@@ -173,23 +150,23 @@ stop_all() {
     echo ""
 
     log_info "Stopping Flutter..."
-    ps aux 2>/dev/null | grep "flutter run" | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null || true
+    ps aux | grep -v grep | grep "flutter run" | awk '{print $2}' | xargs -r kill -9 2>/dev/null
     sleep 1
     log_ok "Flutter stopped"
 
     log_info "Stopping PHP server..."
-    ps aux 2>/dev/null | grep "php.exe" | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null || true
+    ps aux | grep -v grep | grep "php.exe" | awk '{print $2}' | xargs -r kill -9 2>/dev/null
     sleep 1
     log_ok "PHP stopped"
 
     log_info "Stopping Android emulator..."
     adb emu kill 2>/dev/null || true
-    ps aux 2>/dev/null | grep "qemu-system" | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null || true
+    ps aux | grep -v grep | grep "qemu-system" | awk '{print $2}' | xargs -r kill -9 2>/dev/null
     sleep 1
     log_ok "Emulator stopped"
 
     log_info "Stopping MySQL..."
-    ps aux 2>/dev/null | grep "mysqld" | grep -v grep | awk '{print $2}' | xargs -r kill 2>/dev/null || true
+    ps aux | grep -v grep | grep "mysqld" | awk '{print $2}' | xargs -r kill -9 2>/dev/null
     sleep 2
     log_ok "MySQL stopped"
 
@@ -215,8 +192,8 @@ show_status() {
     fi
 
     # PHP
-    if is_process_running "php.*8000"; then
-        echo -e "${GREEN}✓ PHP Server${NC}   Running (http://127.0.0.1:8000)"
+    if is_process_running "php.exe"; then
+        echo -e "${GREEN}✓ PHP Server${NC}   Running (http://localhost:8000)"
     else
         echo -e "${RED}✗ PHP Server${NC}   Stopped"
     fi
@@ -239,7 +216,7 @@ show_status() {
     log_info "Logs directory: $LOG_DIR"
     if [ -d "$LOG_DIR" ]; then
         log_info "Recent logs:"
-        ls -lt "$LOG_DIR"/*.log 2>/dev/null | head -5 | while read line; do
+        ls -lt "$LOG_DIR"/*.log 2>/dev/null | head -5 | while read -r line; do
             echo -e "  ${CYAN}$line${NC}"
         done
     fi
@@ -271,7 +248,7 @@ case "$COMMAND" in
         ;;
     *)
         echo ""
-        echo -e "${YELLOW}Unknown command: $COMMAND${NC}"
+        log_warn "Unknown command: $COMMAND"
         echo ""
         echo "Usage: $0 [start|stop|restart|status]"
         echo ""
