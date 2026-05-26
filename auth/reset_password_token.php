@@ -76,6 +76,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
     <link rel="stylesheet" href="/assets/css/neo-vtrack-components.css">
     <link rel="stylesheet" href="/assets/css/responsive.css">
     <style>
+        /* Auth page button styles */
+        .btn {
+            display: inline-block;
+            padding: var(--space-3) var(--space-6);
+            font-size: var(--text-md);
+            font-weight: 600;
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 200ms var(--ease-out);
+            font-family: var(--font-sans);
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .btn-ghost:hover {
+            background: rgba(var(--accent-rgb), 0.1);
+            border-color: var(--accent-hover);
+            color: var(--accent-hover);
+        }
+    </style>
+    <style>
         .auth-hero {
             display: flex;
             align-items: center;

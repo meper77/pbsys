@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-26T06:43:32.018Z",
+  "timestamp": "2026-05-26T06:45:51.327Z",
   "baseUrl": "http://localhost:8000",
   "pages": [
     {
@@ -21,12 +21,39 @@
       "url": "/auth/forgot_password_smtp.php",
       "violations": [],
       "elementScan": {
-        "allDivs": 0,
+        "allDivs": 8,
         "buttonsWithInlineStyle": [],
         "inputsWithoutLabels": [],
         "imagesWithoutAlt": [],
-        "bootstrapClasses": [],
-        "colorScheme": [],
+        "bootstrapClasses": [
+          {
+            "element": "BUTTON",
+            "class": "btn btn-primary"
+          }
+        ],
+        "colorScheme": [
+          {
+            "element": "H2",
+            "class": "",
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(20, 18, 30)",
+            "fontSize": "28px"
+          },
+          {
+            "element": "INPUT",
+            "class": "",
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(20, 18, 30)",
+            "fontSize": "16px"
+          },
+          {
+            "element": "BUTTON",
+            "class": "btn btn-primary",
+            "bg": "rgb(90, 46, 166)",
+            "fg": "rgb(255, 255, 255)",
+            "fontSize": "14px"
+          }
+        ],
         "fontSizes": []
       },
       "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-forgot_password.png"
@@ -37,23 +64,18 @@
       "url": "/auth/reset_password_token.php?token=invalid",
       "violations": [],
       "elementScan": {
-        "allDivs": 6,
+        "allDivs": 7,
         "buttonsWithInlineStyle": [],
         "inputsWithoutLabels": [],
         "imagesWithoutAlt": [],
-        "bootstrapClasses": [
-          {
-            "element": "DIV",
-            "class": "alert alert-danger"
-          }
-        ],
+        "bootstrapClasses": [],
         "colorScheme": [
           {
             "element": "H2",
             "class": "",
             "bg": "rgba(0, 0, 0, 0)",
             "fg": "rgb(20, 18, 30)",
-            "fontSize": "32px"
+            "fontSize": "28px"
           }
         ],
         "fontSizes": []
