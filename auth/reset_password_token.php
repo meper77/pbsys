@@ -48,34 +48,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
         // Update password in user or admin table
         $stmt = $con->prepare("UPDATE user SET password = ? WHERE email = ?");
         $stmt->bind_param("ss", $hashed_password, $token_email);
-        $stmt->execute();
-        $user_updated = $stmt->affected_rows > 0;
-        $stmt->close();
+        $result = $stmt->execute();
         
-        if (!$user_updated) {
-            // Try admin table
-            $stmt = $con->prepare("UPDATE admin SET password = ? WHERE email = ?");
-            $stmt->bind_param("ss", $hashed_password, $token_email);
-            $stmt->execute();
-            $admin_updated = $stmt->affected_rows > 0;
-            $stmt->close();
-            
-            if (!$admin_updated) {
-                $message = 'Failed to update password. User not found.';
-            }
-        }
-        
-        // Delete used token
-        if ($user_updated || $admin_updated) {
-            $stmt = $con->prepare("DELETE FROM password_reset_tokens WHERE token = ?");
-            $stmt->bind_param("s", $token);
-            $stmt->execute();
-            $stmt->close();
+        if ($result) {
+            // Delete used token
+            $delete_stmt = $con->prepare("DELETE FROM password_reset_tokens WHERE token = ?");
+            $delete_stmt->bind_param("s", $token);
+            $delete_stmt->execute();
+            $delete_stmt->close();
             
             $success = true;
-            $show_form = false;
-            $message = 'Password successfully reset. You can now log in with your new password.';
+            $message = 'Password reset successfully! You can now log in with your new password.';
+        } else {
+            $message = 'Error updating password. Please try again.';
         }
+        $stmt->close();
     }
 }
 ?>
@@ -85,9 +72,176 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password - NEO V-TRACK</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/neo-vtrack-tokens.css">
+    <link rel="stylesheet" href="/assets/css/neo-vtrack-components.css">
     <link rel="stylesheet" href="/assets/css/responsive.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        .auth-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--brand-purple-deep) 0%, var(--brand-purple) 100%);
+            padding: var(--space-4);
+        }
+        
+        .auth-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-3);
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 400ms var(--ease-out);
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+        
+        .auth-brand .uitm {
+            height: 32px;
+            width: auto;
+        }
+        
+        .auth-brand .divider {
+            width: 1px;
+            height: 40px;
+            background: var(--border);
+        }
+        
+        .auth-brand .neo {
+            height: 32px;
+            width: auto;
+            background: var(--brand-white);
+            border-radius: var(--radius-xs);
+            padding: 2px 4px;
+        }
+        
+        .auth-brand .word {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .auth-brand .name {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: var(--text-lg);
+            letter-spacing: 0.02em;
+            color: var(--fg-1);
+        }
+        
+        .auth-brand .name .y {
+            color: var(--brand-yellow);
+        }
+        
+        .auth-brand .sub {
+            font-size: var(--text-xs);
+            letter-spacing: 0.1em;
+            color: var(--fg-3);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .auth-head {
+            margin-bottom: var(--space-6);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: var(--space-4);
+        }
+        
+        .auth-head h2 {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            color: var(--fg-1);
+        }
+        
+        .auth-form-group {
+            margin-bottom: var(--space-4);
+        }
+        
+        .auth-form-group label {
+            display: block;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--fg-1);
+            margin-bottom: var(--space-2);
+        }
+        
+        .auth-form-group input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-size: var(--text-md);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--fg-1);
+            font-family: var(--font-sans);
+            transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+        }
+        
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--brand-purple-tint);
+        }
+        
+        .auth-form-group input::placeholder {
+            color: var(--fg-4);
+        }
+        
+        .auth-message {
+            padding: var(--space-4);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-4);
+            font-size: var(--text-sm);
+            font-weight: 500;
+        }
+        
+        .auth-message.error {
+            background: var(--status-bad-bg);
+            color: var(--status-bad);
+            border-left: 4px solid var(--status-bad);
+        }
+        
+        .auth-message.success {
+            background: var(--status-ok-bg);
+            color: var(--status-ok);
+            border-left: 4px solid var(--status-ok);
+        }
+        
+        .auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+        }
+        
+        .auth-text-center {
+            text-align: center;
+            color: var(--fg-2);
+            font-size: var(--text-sm);
+        }
+        
+        .auth-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 120ms var(--ease-out);
+        }
+        
+        .auth-link:hover {
+            color: var(--accent-hover);
+        }
+    </style>
 </head>
 <body>
 <div class="auth-hero">
@@ -96,45 +250,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
             <img class="uitm" src="/assets/images/uitm.png" alt="UiTM">
             <div class="divider"></div>
             <img class="neo" src="/assets/images/neo-vtrack-logo.png" alt="NEO V-TRACK">
-            <div class="word"><span class="name">NEO <span class="y">V-TRACK</span></span><span class="sub">Password Reset</span></div>
+            <div class="word">
+                <span class="name">NEO <span class="y">V-TRACK</span></span>
+                <span class="sub">Password Reset</span>
+            </div>
         </div>
+        
         <div class="auth-head">
             <h2><?php echo $success ? 'Password Reset Successful' : 'Reset Your Password'; ?></h2>
         </div>
 
         <?php if (!empty($message)): ?>
-            <div class="alert alert-<?php echo $success ? 'success' : 'danger'; ?>">
+            <div class="auth-message <?php echo $success ? 'success' : 'error'; ?>">
                 <?php echo htmlspecialchars($message); ?>
             </div>
         <?php endif; ?>
 
         <?php if ($show_form): ?>
-            <div class="form-group">
+            <div class="auth-form-group">
                 <label for="new_password">New Password</label>
                 <input type="password" id="new_password" name="new_password" placeholder="At least 8 characters" required>
             </div>
 
-            <div class="form-group">
+            <div class="auth-form-group">
                 <label for="confirm_password">Confirm Password</label>
                 <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
             </div>
 
-            <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; border: none; border-radius: 8px; background-color: #007bff; color: white; font-weight: bold; cursor: pointer;">
-                Reset Password
-            </button>
+            <div class="auth-actions">
+                <button type="submit" class="btn btn-primary">
+                    Reset Password
+                </button>
+            </div>
         <?php elseif ($success): ?>
-            <p style="text-align: center; margin-top: 20px;">
-                <a href="/auth/login.php" class="btn-primary" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 8px;">
+            <div class="auth-actions">
+                <a href="/auth/login.php" class="btn btn-primary" style="text-align: center;">
                     Go to Login
                 </a>
-            </p>
+            </div>
         <?php else: ?>
-            <p style="text-align: center; color: #dc3545; margin-top: 20px;">
-                Invalid or expired reset link. Please request a new password reset.
-            </p>
-            <p style="text-align: center; margin-top: 20px;">
-                <a href="/auth/forgot_password_smtp.php" style="color: #007bff; text-decoration: none;">Request Password Reset</a>
-            </p>
+            <div class="auth-text-center" style="margin-top: var(--space-6);">
+                <p style="margin-bottom: var(--space-4);">Invalid or expired reset link. Please request a new password reset.</p>
+                <p>
+                    <a href="/auth/forgot_password_smtp.php" class="auth-link">Request Password Reset</a>
+                </p>
+            </div>
         <?php endif; ?>
     </form>
 </div>

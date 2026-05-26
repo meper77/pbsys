@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-05-26T06:43:32.018Z",
+  "baseUrl": "http://localhost:8000",
+  "pages": [
+    {
+      "page": "login",
+      "label": "Login Page",
+      "url": "/auth/login.php",
+      "violations": [
+        {
+          "type": "error",
+          "message": "page.evaluate: TypeError: classes.includes is not a function\n    at eval (eval at evaluate (:302:30), <anonymous>:45:34)\n    at Array.forEach (<anonym"
+        }
+      ],
+      "elementScan": {},
+      "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-login.png"
+    },
+    {
+      "page": "forgot_password",
+      "label": "Forgot Password",
+      "url": "/auth/forgot_password_smtp.php",
+      "violations": [],
+      "elementScan": {
+        "allDivs": 0,
+        "buttonsWithInlineStyle": [],
+        "inputsWithoutLabels": [],
+        "imagesWithoutAlt": [],
+        "bootstrapClasses": [],
+        "colorScheme": [],
+        "fontSizes": []
+      },
+      "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-forgot_password.png"
+    },
+    {
+      "page": "reset_password",
+      "label": "Reset Password",
+      "url": "/auth/reset_password_token.php?token=invalid",
+      "violations": [],
+      "elementScan": {
+        "allDivs": 6,
+        "buttonsWithInlineStyle": [],
+        "inputsWithoutLabels": [],
+        "imagesWithoutAlt": [],
+        "bootstrapClasses": [
+          {
+            "element": "DIV",
+            "class": "alert alert-danger"
+          }
+        ],
+        "colorScheme": [
+          {
+            "element": "H2",
+            "class": "",
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(20, 18, 30)",
+            "fontSize": "32px"
+          }
+        ],
+        "fontSizes": []
+      },
+      "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-reset_password.png"
+    },
+    {
+      "page": "dashboard",
+      "label": "Dashboard",
+      "url": "/admin/dashboard.php",
+      "violations": [
+        {
+          "type": "error",
+          "message": "page.evaluate: TypeError: classes.includes is not a function\n    at eval (eval at evaluate (:302:30), <anonymous>:45:34)\n    at Array.forEach (<anonym"
+        }
+      ],
+      "elementScan": {},
+      "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-dashboard.png"
+    },
+    {
+      "page": "users",
+      "label": "Users List",
+      "url": "/admin/users.php",
+      "violations": [],
+      "elementScan": {
+        "allDivs": 0,
+        "buttonsWithInlineStyle": [],
+        "inputsWithoutLabels": [],
+        "imagesWithoutAlt": [],
+        "bootstrapClasses": [],
+        "colorScheme": [],
+        "fontSizes": []
+      },
+      "screenshot": "C:\\Users\\User.J1-ALPHA-PENS\\pbsys\\.hermes\\screenshot-users.png"
+    }
+  ]
+}
