@@ -86,15 +86,116 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <link rel="stylesheet" href="/assets/css/neo-vtrack-tokens.css">
 <link rel="stylesheet" href="/assets/css/neo-vtrack-components.css">
 <link rel="stylesheet" href="/assets/css/neo-vtrack-app.css">
+<link rel="stylesheet" href="/assets/css/responsive.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<style>
+  /* Dashboard gradient background */
+  body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  
+  .nv-shell {
+    background: linear-gradient(180deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  }
+  
+  .page-head {
+    background: linear-gradient(120deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+    border-radius: clamp(4px, 1vw, 8px);
+    padding: clamp(1rem, 2vw, 2rem);
+    margin-bottom: clamp(1rem, 2vw, 2rem);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .page-head h1 {
+    font-size: clamp(24px, 5vw, 32px);
+    color: #333;
+  }
+  
+  .card {
+    border-radius: clamp(4px, 1vw, 8px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .table {
+    border-collapse: collapse;
+    background: #fff;
+  }
+  
+  thead {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+  
+  th {
+    font-weight: 600;
+    color: #333;
+    font-size: clamp(12px, 1.5vw, 14px);
+  }
+  
+  td {
+    padding: clamp(0.75rem, 1.5vw, 1rem);
+    font-size: clamp(12px, 1.5vw, 14px);
+  }
+  
+  /* Responsive utilities */
+  .field {
+    margin-bottom: clamp(0.75rem, 1.5vw, 1.5rem);
+  }
+  
+  .field-label {
+    font-size: clamp(12px, 1.5vw, 14px);
+    font-weight: 500;
+    margin-bottom: clamp(0.25rem, 0.75vw, 0.5rem);
+  }
+  
+  .input {
+    width: 100%;
+    max-width: 100%;
+    font-size: clamp(12px, 1.5vw, 14px);
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+  }
+  
+  .mt-6 {
+    margin-top: clamp(1.5rem, 3vw, 2rem);
+  }
+  
+  .actions {
+    display: flex;
+    gap: clamp(0.5rem, 1vw, 1rem);
+    flex-wrap: wrap;
+  }
+  
+  @media (max-width: 640px) {
+    .page-head {
+      flex-direction: column;
+      gap: clamp(1rem, 2vw, 1.5rem);
+    }
+    
+    .actions {
+      width: 100%;
+      justify-content: stretch;
+    }
+    
+    .actions .btn {
+      flex: 1;
+    }
+  }
+</style>
 <body>
 <div class="nv-shell">
 <?php $nv_active = 'admin'; include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php'; ?>
 <main class="page">
-  <div class="page-head">
+  <div class="page-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: clamp(1rem, 2vw, 2rem);">
     <div>
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
-      <h1><?= htmlspecialchars($t['admins_list']) ?></h1>
+      <h1 style="margin: clamp(0.5rem, 1vw, 1rem) 0 0 0;"><?= htmlspecialchars($t['admins_list']) ?></h1>
     </div>
     <div class="actions">
       <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
