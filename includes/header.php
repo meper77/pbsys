@@ -11,6 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <link rel="icon" type="image/png" href="/assets/images/neo-vtrack-logo.png">
 
     <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/responsive.css">
 
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
