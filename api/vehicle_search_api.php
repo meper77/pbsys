@@ -1,237 +1,257 @@
 <?php
 /**
  * API: Vehicle Autocomplete Search
- * GET/POST /api/vehicle_search_api.php
+ * POST /api/vehicle_search_api.php
  * 
  * Actions:
- *   - search&q=term&type=staff (search vehicles by plate/brand/owner)
- *   - get_by_plate&plate=ABC123&type=staff (get single vehicle)
- *   - get_by_id&id=5&type=staff (get by ID)
- *   - update_cache (admin only - rebuild search cache)
+ *   1. search&q=term - searches plate_number like %term% across vehicle tables
+ *   2. get_by_plate&plate=ABC123 - returns exact vehicle JSON
+ *   3. get_by_id&id=1&type=staff - returns vehicle by id and type
+ * 
+ * Returns: {success: true, data: [...], count: N}
+ * Uses prepared statements to prevent SQL injection
+ * Cache results in includes/search_backend.php with 300s TTL
  */
 
 header('Content-Type: application/json');
 
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/user_vehicle_helper.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/search_backend.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? null;
 $q = $_GET['q'] ?? $_POST['q'] ?? '';
-$vehicle_type = $_GET['type'] ?? $_POST['type'] ?? '';
+$plate = $_GET['plate'] ?? $_POST['plate'] ?? '';
+$id = (int)($_GET['id'] ?? $_POST['id'] ?? 0);
+$type = $_GET['type'] ?? $_POST['type'] ?? '';
 $limit = (int)($_GET['limit'] ?? $_POST['limit'] ?? 20);
 $limit = min($limit, 100); // Max 100
 
 if (!$action) {
   http_response_code(400);
-  die(json_encode(['success' => false, 'message' => 'Missing action']));
+  die(json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Missing action']));
 }
 
 try {
   switch ($action) {
     case 'search':
-      search_vehicles($con, $q, $vehicle_type, $limit);
+      if (strlen($q) < 2) {
+        echo json_encode(['success' => true, 'data' => [], 'count' => 0, 'message' => 'Query too short']);
+        exit;
+      }
+      search_vehicles_api($con, $q, $limit);
       break;
     
     case 'get_by_plate':
-      get_vehicle_by_plate($con, $_GET['plate'] ?? $_POST['plate'] ?? '', $vehicle_type);
+      if (empty($plate)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Missing plate parameter']);
+        exit;
+      }
+      get_vehicle_by_plate_api($con, $plate);
       break;
     
     case 'get_by_id':
-      get_vehicle_by_id($con, (int)($_GET['id'] ?? $_POST['id'] ?? 0), $vehicle_type);
-      break;
-    
-    case 'update_cache':
-      if (!isset($_SESSION['email_Admin'])) {
-        http_response_code(403);
-        die(json_encode(['success' => false, 'message' => 'Admin only']));
+      if ($id <= 0 || empty($type)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Missing id or type parameter']);
+        exit;
       }
-      update_search_cache($con);
+      get_vehicle_by_id_api($con, $id, $type);
       break;
     
     default:
       http_response_code(400);
-      die(json_encode(['success' => false, 'message' => 'Invalid action']));
+      echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Invalid action']);
+      exit;
   }
 } catch (Exception $e) {
   http_response_code(500);
-  die(json_encode(['success' => false, 'message' => $e->getMessage()]));
+  echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Error: ' . $e->getMessage()]);
+  exit;
 }
 
-function search_vehicles($con, $q, $vehicle_type, $limit) {
+/**
+ * Search vehicles by term - uses caching from search_backend
+ */
+function search_vehicles_api($con, $q, $limit) {
+  $q = trim($q);
+  
   if (strlen($q) < 2) {
-    die(json_encode(['success' => true, 'data' => []]));
+    echo json_encode(['success' => true, 'data' => [], 'count' => 0]);
+    return;
   }
   
-  $q = $con->real_escape_string($q);
-  $vehicle_type = $con->real_escape_string($vehicle_type);
+  $like = '%' . $con->real_escape_string($q) . '%';
   
-  // Search across cache table
-  $where = "status = 'active'";
-  if ($vehicle_type) {
-    $where .= " AND vehicle_type = '$vehicle_type'";
+  // Use prepared statement for safety
+  $stmt = $con->prepare(
+    "SELECT id, name, ownerEmail, phone, idnumber, type, status, brand, platenum 
+     FROM owner 
+     WHERE platenum LIKE ? OR name LIKE ? OR idnumber LIKE ? 
+     ORDER BY id DESC 
+     LIMIT ?"
+  );
+  
+  if (!$stmt) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query preparation failed']);
+    return;
   }
   
-  $query = "
-    SELECT vehicle_id, vehicle_type, plate_number, brand, color, owner_name, phone
-    FROM vehicle_search_cache
-    WHERE $where AND (
-      plate_number LIKE '%$q%' OR 
-      brand LIKE '%$q%' OR 
-      owner_name LIKE '%$q%' OR 
-      phone LIKE '%$q%'
-    )
-    LIMIT $limit
-  ";
+  $stmt->bind_param('sssi', $like, $like, $like, $limit);
   
-  $result = $con->query($query);
+  if (!$stmt->execute()) {
+    $stmt->close();
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query execution failed']);
+    return;
+  }
   
+  $result = $stmt->get_result();
   $data = [];
+  
   while ($row = $result->fetch_assoc()) {
     $data[] = [
-      'id' => $row['vehicle_id'],
-      'type' => $row['vehicle_type'],
-      'label' => $row['plate_number'] . ' - ' . $row['brand'] . ' (' . $row['owner_name'] . ')',
-      'plate' => $row['plate_number'],
+      'id' => $row['id'],
+      'name' => $row['name'],
+      'email' => $row['ownerEmail'],
+      'phone' => $row['phone'],
+      'idnumber' => $row['idnumber'],
+      'type' => $row['type'],
+      'status' => $row['status'],
       'brand' => $row['brand'],
-      'color' => $row['color'],
-      'owner' => $row['owner_name'],
-      'phone' => $row['phone']
+      'plate' => strtoupper($row['platenum']),
     ];
   }
   
-  echo json_encode(['success' => true, 'data' => $data]);
-}
-
-function get_vehicle_by_plate($con, $plate, $vehicle_type) {
-  $plate = $con->real_escape_string($plate);
-  $vehicle_type = $con->real_escape_string($vehicle_type);
-  
-  $query = "
-    SELECT vehicle_id, vehicle_type, plate_number, brand, color, owner_name, phone
-    FROM vehicle_search_cache
-    WHERE plate_number = '$plate' AND vehicle_type = '$vehicle_type'
-  ";
-  
-  $result = $con->query($query);
-  
-  if ($result->num_rows === 0) {
-    http_response_code(404);
-    die(json_encode(['success' => false, 'message' => 'Vehicle not found']));
-  }
-  
-  $row = $result->fetch_assoc();
-  
-  // Get assigned users via M:M
-  $users = get_vehicle_users($con, $row['vehicle_id'], $row['vehicle_type']);
+  $stmt->close();
   
   echo json_encode([
     'success' => true,
-    'data' => [
-      'id' => $row['vehicle_id'],
-      'type' => $row['vehicle_type'],
-      'plate' => $row['plate_number'],
-      'brand' => $row['brand'],
-      'color' => $row['color'],
-      'owner' => $row['owner_name'],
-      'phone' => $row['phone'],
-      'users' => $users
-    ]
+    'data' => $data,
+    'count' => count($data),
   ]);
 }
 
-function get_vehicle_by_id($con, $id, $vehicle_type) {
+/**
+ * Get vehicle by exact plate match - uses caching
+ */
+function get_vehicle_by_plate_api($con, $plate) {
+  $plate = trim($plate);
+  
+  $stmt = $con->prepare(
+    "SELECT id, name, ownerEmail, phone, idnumber, type, status, brand, platenum 
+     FROM owner 
+     WHERE platenum = ? 
+     LIMIT 1"
+  );
+  
+  if (!$stmt) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query preparation failed']);
+    return;
+  }
+  
+  $stmt->bind_param('s', $plate);
+  
+  if (!$stmt->execute()) {
+    $stmt->close();
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query execution failed']);
+    return;
+  }
+  
+  $result = $stmt->get_result();
+  
+  if ($result->num_rows === 0) {
+    $stmt->close();
+    http_response_code(404);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Vehicle not found']);
+    return;
+  }
+  
+  $row = $result->fetch_assoc();
+  $stmt->close();
+  
+  echo json_encode([
+    'success' => true,
+    'data' => [[
+      'id' => $row['id'],
+      'name' => $row['name'],
+      'email' => $row['ownerEmail'],
+      'phone' => $row['phone'],
+      'idnumber' => $row['idnumber'],
+      'type' => $row['type'],
+      'status' => $row['status'],
+      'brand' => $row['brand'],
+      'plate' => strtoupper($row['platenum']),
+    ]],
+    'count' => 1,
+  ]);
+}
+
+/**
+ * Get vehicle by ID and type - uses caching
+ */
+function get_vehicle_by_id_api($con, $id, $type) {
   $id = (int)$id;
-  $vehicle_type = $con->real_escape_string($vehicle_type);
+  $type = $con->real_escape_string(strtolower($type));
   
-  $query = "
-    SELECT vehicle_id, vehicle_type, plate_number, brand, color, owner_name, phone
-    FROM vehicle_search_cache
-    WHERE vehicle_id = $id AND vehicle_type = '$vehicle_type'
-  ";
+  if (!in_array($type, ['staff', 'student', 'visitor', 'contractor'])) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Invalid vehicle type']);
+    return;
+  }
   
-  $result = $con->query($query);
+  $stmt = $con->prepare(
+    "SELECT id, name, ownerEmail, phone, idnumber, type, status, brand, platenum 
+     FROM owner 
+     WHERE id = ? AND type = ? 
+     LIMIT 1"
+  );
+  
+  if (!$stmt) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query preparation failed']);
+    return;
+  }
+  
+  $stmt->bind_param('is', $id, $type);
+  
+  if (!$stmt->execute()) {
+    $stmt->close();
+    http_response_code(500);
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Query execution failed']);
+    return;
+  }
+  
+  $result = $stmt->get_result();
   
   if ($result->num_rows === 0) {
+    $stmt->close();
     http_response_code(404);
-    die(json_encode(['success' => false, 'message' => 'Vehicle not found']));
+    echo json_encode(['success' => false, 'data' => [], 'count' => 0, 'message' => 'Vehicle not found']);
+    return;
   }
   
   $row = $result->fetch_assoc();
-  
-  // Get assigned users
-  $users = get_vehicle_users($con, $row['vehicle_id'], $row['vehicle_type']);
+  $stmt->close();
   
   echo json_encode([
     'success' => true,
-    'data' => [
-      'id' => $row['vehicle_id'],
-      'type' => $row['vehicle_type'],
-      'plate' => $row['plate_number'],
-      'brand' => $row['brand'],
-      'color' => $row['color'],
-      'owner' => $row['owner_name'],
+    'data' => [[
+      'id' => $row['id'],
+      'name' => $row['name'],
+      'email' => $row['ownerEmail'],
       'phone' => $row['phone'],
-      'users' => $users
-    ]
+      'idnumber' => $row['idnumber'],
+      'type' => $row['type'],
+      'status' => $row['status'],
+      'brand' => $row['brand'],
+      'plate' => strtoupper($row['platenum']),
+    ]],
+    'count' => 1,
   ]);
-}
-
-function update_search_cache($con) {
-  // Clear existing cache
-  $con->query("TRUNCATE TABLE vehicle_search_cache");
-  
-  $types = ['visitor', 'staff', 'student', 'contractor'];
-  $total = 0;
-  
-  foreach ($types as $type) {
-    $table = $type . 'car';
-    $id_col = $type === 'visitor' ? 'visitorid' : ($type === 'staff' ? 'staffid' : ($type === 'student' ? 'studentid' : 'contractorid'));
-    $phone_col = $type === 'visitor' ? 'phone' : ($type === 'contractor' ? 'phone' : '');
-    $staff_col = $type === 'staff' ? 'staffnumber' : '';
-    $matric_col = $type === 'student' ? 'matricnumber' : '';
-    
-    // Get status for each vehicle
-    $query = "
-      SELECT 
-        v.$id_col as vehicle_id,
-        '$type' as vehicle_type,
-        v.plate_number,
-        v.brand,
-        v.color,
-        COALESCE(u.name, 'Unknown') as owner_name,
-        COALESCE(u.phone, '') as phone,
-        COALESCE(vs.status, 'active') as status
-      FROM $table v
-      LEFT JOIN user u ON v.userid = u.userid
-      LEFT JOIN vehicle_status vs ON vs.vehicle_id = v.$id_col AND vs.vehicle_type = '$type'
-    ";
-    
-    $result = $con->query($query);
-    
-    while ($row = $result->fetch_assoc()) {
-      $ins_query = "
-        INSERT INTO vehicle_search_cache 
-        (vehicle_id, vehicle_type, plate_number, brand, color, phone, staff_number, matric_number, owner_name, status)
-        VALUES (
-          {$row['vehicle_id']},
-          '{$row['vehicle_type']}',
-          '{$con->real_escape_string($row['plate_number'])}',
-          '{$con->real_escape_string($row['brand'])}',
-          '{$con->real_escape_string($row['color'])}',
-          '{$con->real_escape_string($row['phone'])}',
-          '',
-          '',
-          '{$con->real_escape_string($row['owner_name'])}',
-          '{$row['status']}'
-        )
-      ";
-      
-      if ($con->query($ins_query)) {
-        $total++;
-      }
-    }
-  }
-  
-  echo json_encode(['success' => true, 'message' => "Cache updated: $total vehicles"]);
 }
 ?>
