@@ -10,11 +10,8 @@ if (isset($_GET['logout'])) {
 // ========== END LOGOUT HANDLER ==========
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-
-if (!isset($_SESSION['email_Admin'])) {
-    header('location:/auth/login_admin.php');
-    exit();
-}
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_require_login();
 
 // LANGUAGE SYSTEM
 if (!isset($_SESSION['language'])) {

@@ -10,11 +10,9 @@ if (isset($_GET['logout'])) {
 // ========== END LOGOUT HANDLER ==========
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-
-if (!isset($_SESSION['email_Admin'])) {
-    header('location:/auth/login_admin.php');
-    exit();
-}
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_require_login();
+$nv_admin = nv_is_admin();
 
 // LANGUAGE SYSTEM
 if (!isset($_SESSION['language'])) {
@@ -76,7 +74,7 @@ $text['en'] = [
 $t = $text[$lang];
 
 // Get admin display name
-$admin_email = $_SESSION['email_Admin'];
+$admin_email = $_SESSION['email_Admin'] ?? $_SESSION['email'] ?? '';
 $admin_display = $admin_email;
 
 $admin_query = @mysqli_query($con, "SELECT name FROM admin WHERE email = '$admin_email'");
@@ -124,7 +122,9 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <a class="btn btn-ghost" href="/search/car_admin.php"><i data-lucide="search"></i> <?= htmlspecialchars($t['search_title']) ?></a>
+      <?php if ($nv_admin): ?>
       <a class="btn btn-primary" href="/admin/dashboard.php"><i data-lucide="shield-check"></i> <?= htmlspecialchars($t['admin_title']) ?></a>
+      <?php endif; ?>
     </div>
   </div>
 

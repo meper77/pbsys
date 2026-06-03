@@ -14,6 +14,9 @@
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/contact_links.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/bulk_delete_component.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+
+$nv_admin = nv_is_admin();  // mutating actions are admin-only (view permission)
 
 $cat = mysqli_real_escape_string($con, $category);
 
@@ -31,13 +34,15 @@ $L = ($lang === 'bm')
 $total = count($active) + count($inactive);
 
 /** Render one <table> of rows. */
-$nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_all) {
+$nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_all) use ($nv_admin) {
     if (empty($rows)) {
         echo '<div class="text-muted" style="padding:16px;">—</div>';
         return;
     }
     echo '<table class="table" id="'.htmlspecialchars($table_id).'"><thead><tr>';
-    echo $show_select_all ? bulk_delete_checkbox_header() : '<th style="width:40px;"></th>';
+    if ($nv_admin) {
+        echo $show_select_all ? bulk_delete_checkbox_header() : '<th style="width:40px;"></th>';
+    }
     echo '<th>'.$t['col_plate'].'</th><th>'.$t['col_owner'].'</th><th>'.$t['col_phone'].'</th>';
     echo '<th>'.$t['col_type'].'</th><th>'.$t['col_updated'].'</th><th class="text-right"></th></tr></thead><tbody>';
     foreach ($rows as $r) {
@@ -49,7 +54,7 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
         $type  = htmlspecialchars($r['type'] ?? '');
         $ts    = $r['reactivated_at'] ?? $r['updated_at'] ?? $r['created_at'] ?? null;
         echo '<tr>';
-        echo bulk_delete_checkbox($id);
+        if ($nv_admin) { echo bulk_delete_checkbox($id); }
         echo '<td><span class="plate">'.$plate.'</span></td>';
         echo '<td><div class="owner"><span class="name">'.$name.'</span><span class="id">'.$idnum.'</span></div></td>';
         if ($phone !== '') {
@@ -59,7 +64,11 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
         }
         echo '<td><span class="pill neutral"><span class="dot"></span> '.$type.'</span></td>';
         echo '<td class="meta">'.($ts ? htmlspecialchars(date('d M Y, H:i', strtotime($ts))) : '—').'</td>';
-        echo '<td class="text-right"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>';
+        if ($nv_admin) {
+            echo '<td class="text-right"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>';
+        } else {
+            echo '<td class="text-right"></td>';
+        }
         echo '</tr>';
     }
     echo '</tbody></table>';
@@ -73,7 +82,9 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
             <p class="sub"><?php echo htmlspecialchars($t['sub']); ?></p>
         </div>
         <div class="actions">
+            <?php if ($nv_admin): ?>
             <a class="btn btn-primary" href="/vehicles/<?php echo $nv_slug; ?>/add.php"><i data-lucide="plus"></i> <?php echo htmlspecialchars($t['add']); ?></a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -85,7 +96,9 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
         <div class="card flat"><div class="text-center" style="padding:48px 24px;">
             <h3 style="margin-bottom:6px;"><?php echo htmlspecialchars($t['empty_title']); ?></h3>
             <p class="text-muted"><?php echo htmlspecialchars($t['empty_sub']); ?></p>
+            <?php if ($nv_admin): ?>
             <a class="btn btn-primary mt-4" href="/vehicles/<?php echo $nv_slug; ?>/add.php"><i data-lucide="plus"></i> <?php echo htmlspecialchars($t['add']); ?></a>
+            <?php endif; ?>
         </div></div>
     <?php else: ?>
         <form class="card nv-stack" onsubmit="return false;">
@@ -97,12 +110,14 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
 
         <form id="bulkDeleteForm" method="POST">
             <input type="hidden" name="vehicle_type" value="<?php echo htmlspecialchars($nv_slug); ?>">
+            <?php if ($nv_admin): ?>
             <div style="margin:16px 0;">
                 <?php echo bulk_delete_button([
                     'endpoint' => '/api/bulk_delete_api.php',
                     'confirm_message' => 'Delete selected vehicles? This cannot be undone.'
                 ]); ?>
             </div>
+            <?php endif; ?>
 
             <div class="card flat mt-2">
                 <div class="nv-row between" style="padding:12px 16px;align-items:center;">
