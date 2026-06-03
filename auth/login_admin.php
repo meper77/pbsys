@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 $lang_param = isset($_SESSION['language']) ? "?lang=" . $_SESSION['language'] : "";
-$forgot_link = "/auth/forgot_password_admin.php" . $lang_param;
+$forgot_link = "/auth/forgot_password_smtp.php" . $lang_param;
 $user_login_link = "/auth/login.php" . $lang_param;
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';

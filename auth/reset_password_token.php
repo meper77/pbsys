@@ -42,27 +42,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $token_valid && !empty($token_email
     } elseif ($new_password !== $confirm_password) {
         $message = 'Passwords do not match.';
     } else {
-        // Hash password using bcrypt
-        $hashed_password = password_hash($new_password, PASSWORD_BCRYPT);
-        
-        // Update password in user or admin table
-        $stmt = $con->prepare("UPDATE user SET password = ? WHERE email = ?");
-        $stmt->bind_param("ss", $hashed_password, $token_email);
-        $result = $stmt->execute();
-        
-        if ($result) {
+        // NOTE: the rest of NEO V-TRACK authenticates against plaintext passwords
+        // (login compares password directly), so the reset must store the value in
+        // the same format to keep login working. Update whichever table holds the email
+        // (user and admin are separate tables).
+        $updated = false;
+        foreach (['user', 'admin'] as $tbl) {
+            $stmt = $con->prepare("UPDATE `$tbl` SET password = ? WHERE email = ?");
+            $stmt->bind_param("ss", $new_password, $token_email);
+            $stmt->execute();
+            if ($stmt->affected_rows > 0) { $updated = true; }
+            $stmt->close();
+        }
+
+        if ($updated) {
             // Delete used token
             $delete_stmt = $con->prepare("DELETE FROM password_reset_tokens WHERE token = ?");
             $delete_stmt->bind_param("s", $token);
             $delete_stmt->execute();
             $delete_stmt->close();
-            
+
             $success = true;
             $message = 'Password reset successfully! You can now log in with your new password.';
         } else {
             $message = 'Error updating password. Please try again.';
         }
-        $stmt->close();
     }
 }
 ?>

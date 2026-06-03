@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
         // Check if email exists in user or admin table
-        $stmt = $con->prepare("SELECT id, email FROM user WHERE email = ? UNION SELECT id, email FROM admin WHERE email = ?");
+        $stmt = $con->prepare("SELECT email FROM user WHERE email = ? UNION SELECT email FROM admin WHERE email = ?");
         $stmt->bind_param("ss", $email, $email);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -29,16 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email_sent = true;
         
         if ($user_exists) {
-            // Generate secure token
+            // Generate secure token. Expiry is computed in SQL (DATE_ADD(NOW(),...)) so it
+            // always uses the database clock — avoids PHP/MySQL timezone skew expiring tokens.
             $token = bin2hex(random_bytes(32));
-            $expires_at = date('Y-m-d H:i:s', strtotime('+1 hour'));
-            
-            // Store token in database
+
+            // Store token in database (valid for 1 hour)
             $stmt = $con->prepare("
-                INSERT INTO password_reset_tokens (email, token, expires_at) 
-                VALUES (?, ?, ?)
+                INSERT INTO password_reset_tokens (email, token, expires_at)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))
             ");
-            $stmt->bind_param("sss", $email, $token, $expires_at);
+            $stmt->bind_param("ss", $email, $token);
             $stmt->execute();
             $stmt->close();
             

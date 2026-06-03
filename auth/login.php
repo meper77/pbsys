@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Build links with language parameter
 $lang_param = isset($_SESSION['language']) ? "?lang=" . $_SESSION['language'] : "";
-$forgot_link = "/auth/forgot_password.php" . $lang_param;
+$forgot_link = "/auth/forgot_password_smtp.php" . $lang_param;
 $admin_login_link = "/auth/login_admin.php" . $lang_param;
 $register_link = "/auth/register.php" . $lang_param;
 
