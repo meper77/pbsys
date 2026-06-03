@@ -95,7 +95,7 @@ if (isset($_POST['submit'])) {
         foreach ($update_fields as $field => $value) { $set_clause[] = "$field = '$value'"; }
         $sql = "UPDATE `admin` SET " . implode(', ', $set_clause) . " WHERE $id_column = $id";
         if (mysqli_query($con, $sql)) {
-            echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/admin/admins.php';</script>";
             exit();
         } else {
             $err = $t['update_failed'] . ': ' . mysqli_error($con);
@@ -125,11 +125,11 @@ if ($id > 0) {
         $password = $row['password'] ?? '';
         $name = $row['name'] ?? '';
     } else {
-        echo "<script>alert('Admin not found.'); window.location.href='/admin/dashboard.php';</script>";
+        echo "<script>alert('Admin not found.'); window.location.href='/admin/admins.php';</script>";
         exit();
     }
 } else {
-    echo "<script>alert('Invalid admin ID.'); window.location.href='/admin/dashboard.php';</script>";
+    echo "<script>alert('Invalid admin ID.'); window.location.href='/admin/admins.php';</script>";
     exit();
 }
 
@@ -148,7 +148,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <h1><?= htmlspecialchars($t['title']) ?></h1>
     </div>
     <div class="actions">
-      <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+      <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
     </div>
   </div>
 
@@ -167,7 +167,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         <input class="input" type="text" id="name" name="name" value="<?= htmlspecialchars($name) ?>" placeholder="<?= htmlspecialchars($t['name_placeholder']) ?>" required>
       </div>
       <div class="nv-row end">
-        <a href="/admin/dashboard.php" class="btn btn-ghost"><i data-lucide="x"></i> <?= htmlspecialchars($t['back']) ?></a>
+        <a href="/admin/admins.php" class="btn btn-ghost"><i data-lucide="x"></i> <?= htmlspecialchars($t['back']) ?></a>
         <button type="submit" name="submit" class="btn btn-primary"><i data-lucide="save"></i> <?= htmlspecialchars($t['save']) ?></button>
       </div>
     </form>

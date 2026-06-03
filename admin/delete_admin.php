@@ -64,7 +64,7 @@ if (isset($_GET['id'])) {
     
     // Prevent deleting if it's the last admin
     if ($admin_count <= 1) {
-        echo "<script>alert('Tidak boleh membuang admin terakhir!'); window.location.href='/admin/dashboard.php';</script>";
+        echo "<script>alert('Tidak boleh membuang admin terakhir!'); window.location.href='/admin/admins.php';</script>";
         exit();
     }
     
@@ -78,7 +78,7 @@ if (isset($_GET['id'])) {
         
         // Prevent self-deletion
         if ($id == $current_admin_id) {
-            echo "<script>alert('Anda tidak boleh membuang akaun sendiri!'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('Anda tidak boleh membuang akaun sendiri!'); window.location.href='/admin/admins.php';</script>";
             exit();
         }
     }
@@ -89,10 +89,10 @@ if (isset($_GET['id'])) {
     
     if ($result) {
         if (mysqli_affected_rows($con) > 0) {
-            echo "<script>alert('Admin berjaya dibuang!'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('Admin berjaya dibuang!'); window.location.href='/admin/admins.php';</script>";
             exit();
         } else {
-            echo "<script>alert('Admin tidak ditemui!'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('Admin tidak ditemui!'); window.location.href='/admin/admins.php';</script>";
             exit();
         }
     } else {
@@ -112,16 +112,16 @@ if (isset($_GET['id'])) {
         }
         
         if ($deleted) {
-            echo "<script>alert('Admin berjaya dibuang!'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('Admin berjaya dibuang!'); window.location.href='/admin/admins.php';</script>";
             exit();
         } else {
             $error_msg = "Gagal membuang admin: " . mysqli_error($con);
-            echo "<script>alert('$error_msg'); window.location.href='/admin/dashboard.php';</script>";
+            echo "<script>alert('$error_msg'); window.location.href='/admin/admins.php';</script>";
             exit();
         }
     }
 } else {
-    echo "<script>alert('ID Admin tidak sah!'); window.location.href='/admin/dashboard.php';</script>";
+    echo "<script>alert('ID Admin tidak sah!'); window.location.href='/admin/admins.php';</script>";
     exit();
 }
 ?>

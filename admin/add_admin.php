@@ -73,7 +73,7 @@ if (isset($_POST['submit'])) {
         $sql = "INSERT INTO `admin` (`email`, `password`, `name`) VALUES('$email','$hashed_password','$name')";
         if (mysqli_query($con, $sql)) {
             $_SESSION['success_message'] = $t['registration_success'];
-            header('location:/admin/dashboard.php');
+            header('location:/admin/admins.php');
             exit();
         } else {
             $errors[] = mysqli_error($con);
@@ -99,7 +99,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <h1><?= htmlspecialchars($t['title']) ?></h1>
     </div>
     <div class="actions">
-      <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+      <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
     </div>
   </div>
 
@@ -120,7 +120,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         <input class="input" type="text" id="name_Admin" name="name_Admin" placeholder="<?= htmlspecialchars($t['name_placeholder']) ?>" required>
       </div>
       <div class="nv-row end">
-        <a href="/admin/dashboard.php" class="btn btn-ghost"><i data-lucide="x"></i> <?= htmlspecialchars($t['cancel']) ?></a>
+        <a href="/admin/admins.php" class="btn btn-ghost"><i data-lucide="x"></i> <?= htmlspecialchars($t['cancel']) ?></a>
         <button type="submit" name="submit" class="btn btn-primary"><i data-lucide="save"></i> <?= htmlspecialchars($t['save']) ?></button>
       </div>
     </form>

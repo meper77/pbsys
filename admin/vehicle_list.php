@@ -167,7 +167,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <div class="sub text-mono"><?= htmlspecialchars($t['total_records']) ?>: <?= $total ?></div>
     </div>
     <div class="actions">
-      <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+      <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
     </div>
   </div>
 

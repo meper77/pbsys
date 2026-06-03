@@ -19,7 +19,9 @@ DirectoryIndex index.php index.html
   RewriteRule ^action\.php$                   auth/action.php                   [L]
 
   # ---------- Legacy admin ----------
-  RewriteRule ^admin\.php$                    admin/dashboard.php               [L]
+  # admin/dashboard.php was renamed to admin/admins.php (it is the admins list, not a dashboard).
+  RewriteRule ^admin\.php$                    admin/admins.php                  [L]
+  RewriteRule ^admin/dashboard\.php$          admin/admins.php                  [L]
   RewriteRule ^superadmin\.php$               admin/superadmin.php              [L]
   RewriteRule ^addAdmin\.php$                 admin/add_admin.php               [L]
   RewriteRule ^updateAdmin\.php$              admin/update_admin.php            [L]

@@ -26,7 +26,7 @@ $admin_query = mysqli_query($con, "SELECT userid, name FROM admin WHERE email = 
 $admin = mysqli_fetch_assoc($admin_query);
 
 if (!$admin) {
-    header('Location: /admin/dashboard.php');
+    header('Location: /admin/admins.php');
     exit();
 }
 

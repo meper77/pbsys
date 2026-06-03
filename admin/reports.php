@@ -123,7 +123,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <a class="btn btn-signal" href="/vehicles/report.php"><i data-lucide="plus"></i> <?= htmlspecialchars($t['new_report']) ?></a>
-      <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+      <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
     </div>
   </div>
 

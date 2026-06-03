@@ -413,7 +413,7 @@ function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
                 <span class="field-hint" id="file-name">No file chosen</span>
             </div>
             <div class="nv-row end gap-2">
-                <a class="btn btn-ghost" href="/admin/dashboard.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+                <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
                 <button class="btn btn-primary" type="submit"><i data-lucide="upload"></i> <?= htmlspecialchars($t['upload']) ?></button>
             </div>
         </form>

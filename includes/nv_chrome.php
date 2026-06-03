@@ -108,7 +108,7 @@ function nv_item($slug, $href, $lucide, $label, $active) {
         $nv_is_admin = isset($_SESSION['email_Admin']) && !empty($_SESSION['email_Admin']);
         if ($nv_is_admin) {
             nv_item('users',      '/admin/users.php',                 'users',            $nv_t['users'],      $nv_active);
-            nv_item('admin',      '/admin/dashboard.php',             'shield-check',     $nv_t['admin'],      $nv_active);
+            nv_item('admin',      '/admin/admins.php',             'shield-check',     $nv_t['admin'],      $nv_active);
             nv_item('reports',    '/admin/reports.php',               'file-text',        $nv_t['reports'],    $nv_active);
             nv_item('bulk',       '/admin/bulk_import.php',           'upload-cloud',     $nv_t['bulk'],       $nv_active);
         }

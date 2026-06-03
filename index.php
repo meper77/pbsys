@@ -123,7 +123,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     <div class="actions">
       <a class="btn btn-ghost" href="/search/car_admin.php"><i data-lucide="search"></i> <?= htmlspecialchars($t['search_title']) ?></a>
       <?php if ($nv_admin): ?>
-      <a class="btn btn-primary" href="/admin/dashboard.php"><i data-lucide="shield-check"></i> <?= htmlspecialchars($t['admin_title']) ?></a>
+      <a class="btn btn-primary" href="/admin/admins.php"><i data-lucide="shield-check"></i> <?= htmlspecialchars($t['admin_title']) ?></a>
       <?php endif; ?>
     </div>
   </div>

@@ -157,7 +157,7 @@ $displayImg = !empty($profile['profile_image'])
       <h1><?= htmlspecialchars($L['title']) ?></h1>
     </div>
     <div class="actions">
-      <a class="btn btn-ghost" href="<?= $role === 'admin' ? '/admin/dashboard.php' : '/search/car_user.php' ?>"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($L['back']) ?></a>
+      <a class="btn btn-ghost" href="<?= $role === 'admin' ? '/admin/admins.php' : '/search/car_user.php' ?>"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($L['back']) ?></a>
     </div>
   </div>
   <div class="card">
