@@ -103,10 +103,15 @@ function nv_item($slug, $href, $lucide, $label, $active) {
         nv_item('student',    '/vehicles/student/list.php',       'graduation-cap',   $nv_t['student'],    $nv_active);
         nv_item('visitor',    '/vehicles/visitor/list.php',       'user-round',       $nv_t['visitor'],    $nv_active);
         nv_item('contractor', '/vehicles/contractor/list.php',    'hard-hat',         $nv_t['contractor'], $nv_active);
-        nv_item('users',      '/admin/users.php',                 'users',            $nv_t['users'],      $nv_active);
-        nv_item('admin',      '/admin/dashboard.php',             'shield-check',     $nv_t['admin'],      $nv_active);
-        nv_item('reports',    '/admin/reports.php',               'file-text',        $nv_t['reports'],    $nv_active);
-        nv_item('bulk',       '/admin/bulk_import.php',           'upload-cloud',     $nv_t['bulk'],       $nv_active);
+
+        // Admin-only sections (view permission): users / admins / reports / import.
+        $nv_is_admin = isset($_SESSION['email_Admin']) && !empty($_SESSION['email_Admin']);
+        if ($nv_is_admin) {
+            nv_item('users',      '/admin/users.php',                 'users',            $nv_t['users'],      $nv_active);
+            nv_item('admin',      '/admin/dashboard.php',             'shield-check',     $nv_t['admin'],      $nv_active);
+            nv_item('reports',    '/admin/reports.php',               'file-text',        $nv_t['reports'],    $nv_active);
+            nv_item('bulk',       '/admin/bulk_import.php',           'upload-cloud',     $nv_t['bulk'],       $nv_active);
+        }
         ?>
         <span class="nv-nav-pin"><span class="nv-dot"></span> UiTM Segamat</span>
     </div>

@@ -39,7 +39,6 @@ $category = 'Kontraktor';
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>
-<link rel="stylesheet" href="/assets/vehicle-autocomplete.css">
 <body>
 <div class="nv-shell">
 <?php $nv_active = 'contractor'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>

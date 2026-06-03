@@ -198,11 +198,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['xlsx_file'])) {
 if (isset($_GET['download_template'])) {
     try {
         require $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
-        
-        use PhpOffice\PhpSpreadsheet\Spreadsheet;
-        use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-        
-        $spreadsheet = new Spreadsheet();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         
         // Set header row
@@ -252,10 +249,10 @@ if (isset($_GET['download_template'])) {
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="template_vehicles_' . date('Y-m-d') . '.xlsx"');
         
-        $writer = new Xlsx($spreadsheet);
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
         exit();
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         $message = 'Error generating template: ' . $e->getMessage();
         $message_type = 'error';
     }
