@@ -32,16 +32,33 @@ Local admin login: `admin@mail.com` / `111111` (plaintext in DB).
 - permission_check.php uses `$conn` (connect.php defines `$con`) and logs to missing `admin_action_logs`.
 
 ## PLAN / STATUS
-- [x] Local stack up (web :8080, emulator Pixel_API_36 booting), worktree created.
-- [ ] DB migration 2026_06_03_minor_upgrade.sql (brand default, drop sticker/stickerno,
-      add reactivated_at, normalize category case) + apply.
-- [ ] Fix delete: rewrite bulk_delete_api.php (owner-based); remove single delete links
-      (reports per-row + any vehicle per-row). delete_report.php bulk.
-- [ ] Vehicles add/update (4 cats): provide brand default, set reactivated_at on re-upload of
-      same plate+phone, drop IC field for visitor/contractor (identity=phone).
-- [ ] Status: list pages show Active + Inactive tables (split by effective date).
-- [ ] Dashboard subtle redesign (no photo). Responsive CSS audit. Search click-to-fill.
-- [ ] Import: xlsx-only, template, unique-when-active.
-- [ ] Auth: SMTP-only password reset (user+admin). Permissions: user hides users/admin/reports/import.
-- [ ] Rename divergent files (admin/dashboard.php → admin/admins-list, etc.) + fix .htaccess/nav/app.
-- [ ] Playwright diagnose loop. THEN STOP for user approval (gate before Hestia push + app rebuild).
+- [x] Local stack up (web :8080, emulator Pixel_API_36 booted), worktree created.
+- [x] DB migration 2026_06_03_minor_upgrade.sql applied (brand default, drop sticker/stickerno,
+      add reactivated_at, normalize category case, strip IC from legacy tables).
+- [x] Fix delete: bulk_delete_api.php owner-based; bulk-delete.js binds click; reports per-row
+      single delete removed; delete_report.php already bulk-capable.
+- [x] reports.php query fixed (was selecting non-existent `status` col -> empty).
+- [x] Vehicles add (4 cats): shared nv_vehicle_register() with reactivation on same plate+phone,
+      brand default applies; IC field removed from visitor+contractor add.
+- [x] Vehicles update: IC field removed from visitor+contractor update.
+- [x] Status: list pages show Active + Inactive tables via shared includes/vehicle_list_view.php.
+- [x] Role-aware nav: hides users/admins/reports/import for non-admins.
+- [x] Playwright pass 1: all 14 key pages HTTP 200, no PHP errors, no JS console errors.
+      (fixed bulk_import.php parse error + 404 autocomplete.css link found in this pass.)
+
+### STILL TODO (not yet done)
+- [ ] Import xlsx: BLOCKED — PhpSpreadsheet not installed (only PHPMailer in vendor/, no root
+      vendor/autoload.php). Needs either composer install or a pure-PHP ZipArchive xlsx reader/writer.
+      Parse error fixed so page loads, but template download / .xlsx upload will fatal at runtime.
+- [ ] SMTP-only password reset (Phase 5): verify auth/forgot_password_smtp.php + reset_password_token.php;
+      remove non-SMTP reset paths.
+- [ ] Full view-permission GATES: currently ALL pages require email_Admin (regular users locked out
+      entirely). Spec wants users to browse vehicle/search/dashboard but not users/admin/report/import.
+      Requires changing per-page auth gate + a shared guard. Behavioral change — confirm with user.
+- [ ] Search "click to fill" autocomplete (basic text-filter works; click-to-fill not wired).
+- [ ] Rename divergent files (admin/dashboard.php is the ADMINS LIST; index.php is the dashboard).
+      Affects .htaccess rewrites + nav links + Flutter api_service. Do carefully near deploy.
+- [ ] Dashboard: already card-based/branded (not white-plain) — arguably satisfied; could enhance.
+
+### GATED (after user approves website)
+- [ ] Push to Hestia (SFTP, user neovtrack, ssh keys). [ ] Rebuild Flutter app from scratch -> Hestia.
