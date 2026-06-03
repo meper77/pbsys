@@ -41,8 +41,10 @@ $t = ($lang === 'bm') ? [
     'select_type'=> 'Sila pilih',
     'save'    => 'Simpan',
     'cancel'  => 'Batal',
-    'plate_exists' => 'Nombor plat sudah wujud.',
+    'plate_exists' => 'Nombor plat sudah wujud untuk pemilik lain.',
     'success' => 'Kenderaan kontraktor berjaya didaftar.',
+    'reactivated' => 'Kenderaan sedia ada diaktifkan semula.',
+    'required' => 'Sila isi nombor plat dan telefon.',
 ] : [
     'eyebrow' => 'CONTRACTOR',
     'title'   => 'Register vehicle',
@@ -60,33 +62,26 @@ $t = ($lang === 'bm') ? [
     'select_type'=> 'Please select',
     'save'    => 'Save',
     'cancel'  => 'Cancel',
-    'plate_exists' => 'Plate number already exists.',
+    'plate_exists' => 'Plate number already belongs to another owner.',
     'success' => 'Contractor vehicle registered successfully.',
+    'reactivated' => 'Existing vehicle reactivated.',
+    'required' => 'Plate number and phone are required.',
 ];
 
 $error = '';
 
-if (isset($_POST['submit'])) {
-    $name      = mysqli_real_escape_string($con, $_POST['name']);
-    $phone     = mysqli_real_escape_string($con, $_POST['phone']);
-    $pass      = mysqli_real_escape_string($con, $_POST['idnumber']);
-    $type      = mysqli_real_escape_string($con, $_POST['type']);
-    $status    = mysqli_real_escape_string($con, $_POST['status']);
-    $platenum  = mysqli_real_escape_string($con, $_POST['platenum']);
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
-    $check = mysqli_query($con, "SELECT id FROM owner WHERE platenum = '$platenum'");
-    if ($check && mysqli_num_rows($check) > 0) {
+if (isset($_POST['submit'])) {
+    $result = nv_vehicle_register($con, 'Kontraktor', $error);
+    if ($result === 'created' || $result === 'reactivated') {
+        $_SESSION['success_message'] = $result === 'reactivated' ? $t['reactivated'] : $t['success'];
+        header('location:/vehicles/contractor/list.php');
+        exit();
+    } elseif ($error === 'plate_exists') {
         $error = $t['plate_exists'];
-    } else {
-        $sql = "INSERT INTO `owner` (`name`, `phone`, `idnumber`, `type`, `status`, `platenum`)
-                VALUES('$name','$phone','$pass','$type','$status','$platenum')";
-        if (mysqli_query($con, $sql)) {
-            $_SESSION['success_message'] = $t['success'];
-            header('location:/vehicles/contractor/list.php');
-            exit();
-        } else {
-            $error = mysqli_error($con);
-        }
+    } elseif ($error === 'required') {
+        $error = $t['required'];
     }
 }
 
@@ -134,10 +129,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <div class="field">
                 <label class="field-label" for="name"><?php echo $t['name']; ?></label>
                 <input class="input" id="name" name="name" type="text" required placeholder="<?php echo htmlspecialchars($t['name_ph']); ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="idnumber"><?php echo $t['idnum']; ?></label>
-                <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?php echo htmlspecialchars($t['idnum_ph']); ?>">
             </div>
             <div class="field">
                 <label class="field-label" for="phone"><?php echo $t['phone']; ?></label>
