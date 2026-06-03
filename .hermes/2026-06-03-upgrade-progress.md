@@ -46,19 +46,23 @@ Local admin login: `admin@mail.com` / `111111` (plaintext in DB).
 - [x] Playwright pass 1: all 14 key pages HTTP 200, no PHP errors, no JS console errors.
       (fixed bulk_import.php parse error + 404 autocomplete.css link found in this pass.)
 
-### STILL TODO (not yet done)
-- [ ] Import xlsx: BLOCKED — PhpSpreadsheet not installed (only PHPMailer in vendor/, no root
-      vendor/autoload.php). Needs either composer install or a pure-PHP ZipArchive xlsx reader/writer.
-      Parse error fixed so page loads, but template download / .xlsx upload will fatal at runtime.
-- [ ] SMTP-only password reset (Phase 5): verify auth/forgot_password_smtp.php + reset_password_token.php;
-      remove non-SMTP reset paths.
-- [ ] Full view-permission GATES: currently ALL pages require email_Admin (regular users locked out
-      entirely). Spec wants users to browse vehicle/search/dashboard but not users/admin/report/import.
-      Requires changing per-page auth gate + a shared guard. Behavioral change — confirm with user.
-- [ ] Search "click to fill" autocomplete (basic text-filter works; click-to-fill not wired).
-- [ ] Rename divergent files (admin/dashboard.php is the ADMINS LIST; index.php is the dashboard).
-      Affects .htaccess rewrites + nav links + Flutter api_service. Do carefully near deploy.
-- [ ] Dashboard: already card-based/branded (not white-plain) — arguably satisfied; could enhance.
+- [x] Import xlsx: installed PhpSpreadsheet 5.7 via composer (committed vendor/). Rewrote importer
+      against owner; Brand+Type columns; uniqueness among ACTIVE records; reactivation on plate+phone.
+      Tested round-trip OK. DEPLOY PREREQ: Hestia PHP needs ext-zip + ext-gd enabled.
+- [x] SMTP-only password reset: fixed forgot_password_smtp.php existence query (userid not id) and
+      SQL-side token expiry (timezone skew bug); reset updates user+admin in plaintext (matches login);
+      insecure direct-reset pages redirect to SMTP. Full token flow tested incl. login after reset.
+- [x] View-only user access: includes/auth_guard.php; users can view dashboard/search/lists,
+      add/edit/delete + admin sections hidden + 403. Tested with a user session.
+- [x] Search click-to-fill autocomplete wired into list search (owner-backed API).
+- [x] Renamed admin/dashboard.php -> admin/admins.php (+ all refs + .htaccess/router aliases).
+- [x] Responsive: no mobile h-scroll (390px); KPI grid wraps; tables scroll in card.
+- [x] Dashboard: clean branded KPI cards (no photo) — satisfied.
+
+### REMAINING / NOTES
+- Other minor filename divergences left as-is (low risk): admin/index_user.php is the user landing page;
+  these are unlinked-from-nav and harmless. Can rename later if desired.
+- Email actually SENDING needs SMTP_* config + ext on Hestia (mechanism is done/tested locally).
 
 ### GATED (after user approves website)
 - [ ] Push to Hestia (SFTP, user neovtrack, ssh keys). [ ] Rebuild Flutter app from scratch -> Hestia.
