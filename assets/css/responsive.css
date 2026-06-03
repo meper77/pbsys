@@ -576,3 +576,11 @@ td {
 .py-2 { padding-top: clamp(0.5rem, 1vw, 1rem); padding-bottom: clamp(0.5rem, 1vw, 1rem); }
 .py-3 { padding-top: clamp(0.75rem, 1.5vw, 1.5rem); padding-bottom: clamp(0.75rem, 1.5vw, 1.5rem); }
 .py-4 { padding-top: clamp(1rem, 2vw, 2rem); padding-bottom: clamp(1rem, 2vw, 2rem); }
+
+/* --- Mobile overflow safeguards (2026-06-03 upgrade) --- */
+@media (max-width: 768px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  /* Wide data tables scroll within their card, not the whole page */
+  .card .table, main .table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important; }
+}

@@ -128,7 +128,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
   </div>
 
-  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
     <div class="kpi signal">
       <div class="lbl"><?= htmlspecialchars($t['total_vehicles']) ?></div>
       <div class="val"><?= number_format($counts['total']) ?></div>
