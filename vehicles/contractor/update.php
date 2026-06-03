@@ -42,11 +42,11 @@ if (isset($_POST['submit'])) {
     $id = (int)($_GET['id'] ?? 0);
     $name = mysqli_real_escape_string($con, $_POST['name']);
     $phone = mysqli_real_escape_string($con, $_POST['phone']);
-    $idn = mysqli_real_escape_string($con, $_POST['idnumber']);
     $type = mysqli_real_escape_string($con, $_POST['type']);
     $status = mysqli_real_escape_string($con, $_POST['status']);
     $plate = mysqli_real_escape_string($con, $_POST['platenum']);
-    $sql = "UPDATE `owner` SET name='$name', phone='$phone', idnumber='$idn', type='$type', status='$status', platenum='$plate' WHERE id=$id";
+    // Contractors have no IC; identity is the phone number.
+    $sql = "UPDATE `owner` SET name='$name', phone='$phone', type='$type', status='$status', platenum='$plate' WHERE id=$id";
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/contractor/list.php';</script>";
         exit();
@@ -93,8 +93,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                 <input class="input" id="name" name="name" type="text" required placeholder="<?= htmlspecialchars($t['name_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['name'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="phone"><?= htmlspecialchars($t['phone']) ?></label>
                 <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?= htmlspecialchars($t['phone_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['phone'] ?? '') ?>"></div>
-            <div class="field"><label class="field-label" for="idnumber"><?= htmlspecialchars($t['ic_number']) ?></label>
-                <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?= htmlspecialchars($t['ic_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['idnumber'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
                 <input class="input mono plate-input" id="platenum" name="platenum" type="text" required placeholder="<?= htmlspecialchars($t['plate_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['platenum'] ?? '') ?>"></div>
         <div class="nv-row end gap-2">

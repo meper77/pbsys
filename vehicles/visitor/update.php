@@ -67,12 +67,12 @@ if (isset($_POST['submit'])) {
     $id           = (int)($_GET['id'] ?? 0);
     $visitorname  = mysqli_real_escape_string($con, $_POST['name']);
     $phone        = mysqli_real_escape_string($con, $_POST['phone']);
-    $pass         = mysqli_real_escape_string($con, $_POST['idnumber']);
     $type         = mysqli_real_escape_string($con, $_POST['type']);
     $status       = mysqli_real_escape_string($con, $_POST['status']);
     $visitorplate = mysqli_real_escape_string($con, $_POST['platenum']);
 
-    $sql = "UPDATE `owner` SET name='$visitorname', phone='$phone', idnumber='$pass', type='$type', status='$status', platenum='$visitorplate' WHERE id=$id";
+    // Visitors have no IC; identity is the phone number.
+    $sql = "UPDATE `owner` SET name='$visitorname', phone='$phone', type='$type', status='$status', platenum='$visitorplate' WHERE id=$id";
 
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/visitor/list.php';</script>";
@@ -139,10 +139,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             <div class="field">
                 <label class="field-label" for="phone"><?= htmlspecialchars($t['phone']) ?></label>
                 <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?= htmlspecialchars($t['phone_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['phone'] ?? '') ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="idnumber"><?= htmlspecialchars($t['ic_number']) ?></label>
-                <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?= htmlspecialchars($t['ic_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['idnumber'] ?? '') ?>">
             </div>
             <div class="field">
                 <label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
