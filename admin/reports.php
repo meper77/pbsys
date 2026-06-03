@@ -84,19 +84,13 @@ $flash = $_SESSION['reports_flash'] ?? null;
 unset($_SESSION['reports_flash']);
 
 // Get filters
-$status_filter = $_GET['status'] ?? 'all';
 $date_from = $_GET['date_from'] ?? '';
 $date_to = $_GET['date_to'] ?? '';
 
-// Build query with filters
+// Build query with filters. Columns match the actual vehicle_reports schema.
 $query = "SELECT id, reporter_name, reporter_role, plate_number, owner_name,
-        vehicle_type, offense_details, latitude, longitude, photo_paths, 
-        status, created_at FROM vehicle_reports WHERE 1=1";
-
-if ($status_filter && $status_filter !== 'all') {
-    $status_filter = mysqli_real_escape_string($con, $status_filter);
-    $query .= " AND status = '$status_filter'";
-}
+        vehicle_type, offense_details, latitude, longitude, photo_paths,
+        created_at FROM vehicle_reports WHERE 1=1";
 
 if ($date_from) {
     $date_from = mysqli_real_escape_string($con, $date_from);
@@ -138,18 +132,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   <?php endif; ?>
 
   <form class="card nv-stack gap-4" method="GET" onsubmit="return true;">
-    <div class="nv-grid cols-4 gap-4">
+    <div class="nv-grid cols-3 gap-4">
       <div class="field">
         <label class="field-label" for="reportsSearch"><?= htmlspecialchars($t['search_label']) ?></label>
         <input class="input mono" id="reportsSearch" type="text" placeholder="<?= htmlspecialchars($t['search_placeholder']) ?>" autofocus>
-      </div>
-      <div class="field">
-        <label class="field-label" for="statusFilter"><?= htmlspecialchars($t['status']) ?></label>
-        <select id="statusFilter" name="status" class="input">
-          <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>— <?= htmlspecialchars($t['all_status']) ?> —</option>
-          <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>><?= htmlspecialchars($t['pending']) ?></option>
-          <option value="resolved" <?= $status_filter === 'resolved' ? 'selected' : '' ?>><?= htmlspecialchars($t['resolved']) ?></option>
-        </select>
       </div>
       <div class="field">
         <label class="field-label" for="dateFrom"><?= htmlspecialchars($t['date_from']) ?></label>
@@ -211,7 +197,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td class="meta"><?= count($photos) ?> <i data-lucide="camera" style="width:14px;height:14px;vertical-align:-2px;"></i></td>
             <td>
               <a href="/admin/report_view.php?id=<?= (int)$row['id'] ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['view']) ?>"><i data-lucide="eye"></i></a>
-              <a href="/admin/delete_report.php?id=<?= (int)$row['id'] ?>" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>" onclick="return confirm('<?= htmlspecialchars($t['delete']) ?> report #<?= (int)$row['id'] ?>?');"><i data-lucide="trash-2"></i></a>
             </td>
           </tr>
         <?php endwhile; ?>

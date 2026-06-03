@@ -23,11 +23,11 @@ class BulkDelete {
       cb.addEventListener('change', () => this.updateButtonState());
     });
     
-    // Handle bulk delete
+    // Handle bulk delete. The component renders a type="button" trigger, so a
+    // wrapping <form>'s submit event never fires from it — always bind the click.
+    this.button.addEventListener('click', (e) => this.handleClick(e));
     if (this.form) {
       this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-    } else if (this.button) {
-      this.button.addEventListener('click', (e) => this.handleClick(e));
     }
   }
   
