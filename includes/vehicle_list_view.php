@@ -137,17 +137,23 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
         </form>
     <?php endif; ?>
 </main>
+<script src="/assets/vehicle-autocomplete.js"></script>
 <script>
 (function(){
   var input = document.getElementById('plateInput');
   if (!input) return;
   var rows = document.querySelectorAll('#vehicleTable tbody tr, #vehicleTableInactive tbody tr');
-  input.addEventListener('input', function () {
-    var q = this.value.trim().toLowerCase();
+  function applyFilter(){
+    var q = input.value.trim().toLowerCase();
     rows.forEach(function (tr) {
       tr.style.display = q === '' || tr.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
     });
-  });
+  }
+  input.addEventListener('input', applyFilter);
+  // Click-to-fill autocomplete (suggestions from owner via API); keep-typing still filters.
+  if (window.vehicleAutocomplete) {
+    window.vehicleAutocomplete('plateInput', '/api/vehicle_search_api.php', function(){ applyFilter(); });
+  }
 })();
 </script>
 <?php echo bulk_delete_select_all_script(); ?>
