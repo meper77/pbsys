@@ -11,6 +11,7 @@ if (isset($_GET['logout'])) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
 // Admin only
 requireAdmin();
@@ -203,7 +204,7 @@ if (isset($_GET['download_template'])) {
         $sheet = $spreadsheet->getActiveSheet();
         
         // Set header row
-        $headers = ['Plate Number', 'Owner Name', 'Owner Phone', 'Brand', 'Category'];
+        $headers = ['Plate Number', 'Owner Name', 'Owner Phone', 'Brand', 'Type', 'Category'];
         $sheet->fromArray([$headers], null, 'A1');
         
         // Format header row
@@ -222,28 +223,29 @@ if (isset($_GET['download_template'])) {
             ],
         ];
         
-        $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
-        
+        $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
+
         // Add example rows
         $examples = [
-            ['ABC1234', 'Ali Ahmad', '0123456789', 'Honda', 'staff'],
-            ['DEF5678', 'Siti Sarah', '0134567890', 'Toyota', 'student'],
-            ['GHI9012', 'John Doe', '0145678901', 'Ford', 'visitor'],
-            ['JKL3456', 'Ahmad Kontraktor', '0156789012', 'Nissan', 'contractor'],
+            ['ABC1234', 'Ali Ahmad', '0123456789', 'Honda', 'KERETA', 'staff'],
+            ['DEF5678', 'Siti Sarah', '0134567890', 'Toyota', 'MOTOSIKAL', 'student'],
+            ['GHI9012', 'John Doe', '0145678901', 'Ford', 'KERETA', 'visitor'],
+            ['JKL3456', 'Ahmad Kontraktor', '0156789012', 'Nissan', 'LORI', 'contractor'],
         ];
-        
+
         $row = 2;
         foreach ($examples as $example) {
             $sheet->fromArray([$example], null, 'A' . $row);
             $row++;
         }
-        
+
         // Set column widths
         $sheet->getColumnDimension('A')->setWidth(15);
         $sheet->getColumnDimension('B')->setWidth(20);
         $sheet->getColumnDimension('C')->setWidth(18);
         $sheet->getColumnDimension('D')->setWidth(15);
-        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('E')->setWidth(14);
+        $sheet->getColumnDimension('F')->setWidth(14);
         
         // Output XLSX file
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -258,101 +260,98 @@ if (isset($_GET['download_template'])) {
     }
 }
 
-// Function to import vehicles from XLSX
+// Import vehicles from an XLSX worksheet into the unified `owner` table.
+// Template columns: Plate Number, Owner Name, Owner Phone, Brand, Type, Category.
+// Rule: plate must be UNIQUE among ACTIVE records. An inactive record with the same
+// plate+phone is reactivated (lifecycle clock reset) instead of failing.
 function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
   $inserted = 0;
   $skipped = 0;
   $errors = [];
   $seen_plates = [];
-  
-  // Row 1 is header, start from row 2
+
+  $cat_map = [
+    'staff' => 'Staf', 'student' => 'Pelajar',
+    'visitor' => 'Pelawat', 'contractor' => 'Kontraktor',
+  ];
+
   foreach ($worksheet->getRowIterator(2) as $row) {
     $cells = $row->getCellIterator();
     $cells->setIterateOnlyExistingCells(false);
-    
+
     $data = [];
     $col_index = 0;
     foreach ($cells as $cell) {
       $data[$col_index++] = $cell->getValue();
-      if ($col_index >= 5) break;
+      if ($col_index >= 6) break;
     }
-    
+
     if (empty($data[0])) continue;
-    
+
     try {
-      $plate_number = trim($data[0] ?? '');
-      $owner_name = trim($data[1] ?? '');
-      $owner_phone = trim($data[2] ?? '');
-      $brand = trim($data[3] ?? '');
-      $category = strtolower(trim($data[4] ?? ''));
-      
-      if (empty($plate_number) || empty($owner_name) || empty($owner_phone) || empty($category)) {
+      $plate_number = strtoupper(trim((string)($data[0] ?? '')));
+      $owner_name   = trim((string)($data[1] ?? ''));
+      $owner_phone  = trim((string)($data[2] ?? ''));
+      $brand        = trim((string)($data[3] ?? ''));
+      $type         = strtoupper(trim((string)($data[4] ?? '')));
+      $category     = strtolower(trim((string)($data[5] ?? '')));
+
+      if ($plate_number === '' || $owner_name === '' || $owner_phone === '' || $category === '') {
         throw new Exception('Missing required fields');
       }
-      
-      if (!in_array($category, ['visitor', 'staff', 'student', 'contractor'])) {
+      if (!isset($cat_map[$category])) {
         throw new Exception('Invalid category');
       }
-      
       if (!preg_match('/^\d{10,15}$/', preg_replace('/[\s\-\+\(\)]/', '', $owner_phone))) {
         throw new Exception('Invalid phone number');
       }
-      
-      if (in_array($plate_number, $seen_plates)) {
+      if (in_array($plate_number, $seen_plates, true)) {
         throw new Exception('Duplicate plate in file');
       }
       $seen_plates[] = $plate_number;
-      
-      // Check all tables
-      $tables = ['visitorcar', 'staffcar', 'studentcar', 'contractorcar'];
-      foreach ($tables as $tbl) {
-        $check = $con->query("SELECT 1 FROM `$tbl` WHERE platenum = '{$con->real_escape_string($plate_number)}' LIMIT 1");
-        if ($check && $check->num_rows > 0) {
-          throw new Exception('Plate exists');
-        }
+
+      $status     = $cat_map[$category];
+      $plate_esc  = $con->real_escape_string($plate_number);
+      $phone_esc  = $con->real_escape_string($owner_phone);
+      $name_esc   = $con->real_escape_string($owner_name);
+      $brand_esc  = $con->real_escape_string($brand !== '' ? $brand : 'N/A');
+      $type_esc   = $con->real_escape_string($type);
+      $status_esc = $con->real_escape_string($status);
+
+      // Uniqueness is enforced only among ACTIVE records.
+      $active = $con->query("SELECT id FROM `owner` WHERE platenum='$plate_esc' AND " . NV_ACTIVE_WHERE . " LIMIT 1");
+      if ($active && $active->num_rows > 0) {
+        throw new Exception('Active plate already exists');
       }
-      
-      // Insert vehicle
-      $table_name = $category . 'car';
-      $insert_sql = "INSERT INTO `$table_name` (name, phone, model, platenum, created_at) 
-                     VALUES ('{$con->real_escape_string($owner_name)}', 
-                             '{$con->real_escape_string($owner_phone)}', 
-                             '{$con->real_escape_string($brand)}', 
-                             '{$con->real_escape_string($plate_number)}',
-                             NOW())";
-      
+
+      // Inactive record with same plate+phone => reactivate.
+      $inactive = $con->query("SELECT id FROM `owner` WHERE platenum='$plate_esc' AND phone='$phone_esc' LIMIT 1");
+      if ($inactive && $inactive->num_rows > 0) {
+        $rid = (int)$inactive->fetch_assoc()['id'];
+        $con->query("UPDATE `owner` SET name='$name_esc', brand='$brand_esc', type='$type_esc',
+                     status='$status_esc', reactivated_at=NOW() WHERE id=$rid");
+        $inserted++;
+        continue;
+      }
+
+      $insert_sql = "INSERT INTO `owner` (name, phone, idnumber, type, status, brand, platenum)
+                     VALUES ('$name_esc', '$phone_esc', '', '$type_esc', '$status_esc', '$brand_esc', '$plate_esc')";
       if (!$con->query($insert_sql)) {
         throw new Exception($con->error);
       }
-      
-      $vehicle_id = $con->insert_id;
-      
-      // Create status
-      $status_sql = "INSERT INTO vehicle_status (vehicle_id, vehicle_type, status, created_at) 
-                     VALUES ($vehicle_id, '$category', 'active', NOW())";
-      $con->query($status_sql);
-      
-      // Log
-      $log_sql = "INSERT INTO admin_action_logs (admin_email, action, description, created_at) 
-                  VALUES ('{$con->real_escape_string($admin_email)}', 
-                          'import_vehicle', 
-                          'Imported vehicle: $plate_number ($category)', 
-                          NOW())";
-      @$con->query($log_sql);
-      
       $inserted++;
-      
+
     } catch (Exception $e) {
       $skipped++;
       $errors[] = "Row " . ($row->getRowIndex()) . ": " . $e->getMessage();
     }
   }
-  
+
   return [
-    'success' => true,
+    'success'  => true,
     'imported' => $inserted,
-    'skipped' => $skipped,
-    'errors' => $errors
+    'skipped'  => $skipped,
+    'errors'   => $errors,
   ];
 }
 ?>
