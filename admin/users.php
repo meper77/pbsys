@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $users = [];
-$result = mysqli_query($con, "SELECT userid, email, phone, name, status, created_at FROM `user` ORDER BY created_at DESC");
+$result = mysqli_query($con, "SELECT userid, email, phone, name, updated_at FROM `user` ORDER BY userid DESC");
 if ($result) {
     while ($row = mysqli_fetch_assoc($result)) { 
         $users[] = $row; 
@@ -111,6 +111,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
+      <a class="btn btn-primary" href="/admin/add_user.php"><i data-lucide="plus"></i> <?= $lang === 'bm' ? 'Tambah pengguna' : 'Add user' ?></a>
     </div>
   </div>
 
@@ -127,10 +128,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     <div class="nv-row between mb-4">
       <span class="text-muted" id="bulkCount" style="font-size:13px;">No users selected.</span>
       <div class="nv-row gap-2">
-        <select name="action" id="bulkAction" class="input" style="flex:0;width:140px;">
+        <select name="action" id="bulkAction" class="input" style="flex:0;width:160px;">
           <option value="">— <?= htmlspecialchars($t['select_action']) ?> —</option>
-          <option value="activate"><?= htmlspecialchars($t['activate']) ?></option>
-          <option value="deactivate"><?= htmlspecialchars($t['deactivate']) ?></option>
           <option value="delete"><?= htmlspecialchars($t['bulk_delete']) ?></option>
         </select>
         <button type="submit" class="btn btn-ghost" id="bulkActionBtn" disabled>
@@ -149,7 +148,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <th><?= htmlspecialchars($t['email']) ?></th>
             <th><?= htmlspecialchars($t['phone']) ?></th>
             <th><?= htmlspecialchars($t['user_name']) ?></th>
-            <th style="width:100px;"><?= htmlspecialchars($t['status']) ?></th>
             <th><?= htmlspecialchars($t['created']) ?></th>
             <th style="width:120px;"><?= htmlspecialchars($t['action']) ?></th>
           </tr>
@@ -162,12 +160,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td><strong><?= htmlspecialchars($row['email']) ?></strong></td>
             <td class="meta"><?= htmlspecialchars($row['phone'] ?? '—') ?></td>
             <td><?= htmlspecialchars($row['name'] ?? '—') ?></td>
-            <td class="meta">
-              <span class="badge <?= ($row['status'] ?? 'inactive') === 'active' ? 'ok' : 'muted' ?>">
-                <?= ($row['status'] ?? 'inactive') === 'active' ? 'Active' : 'Inactive' ?>
-              </span>
-            </td>
-            <td class="meta"><?= htmlspecialchars(date('d M Y', strtotime($row['created_at'] ?? 'now'))) ?></td>
+            <td class="meta"><?= htmlspecialchars(date('d M Y', strtotime($row['updated_at'] ?? 'now'))) ?></td>
             <td>
               <a href="/admin/update_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['edit']) ?>"><i data-lucide="pencil"></i></a>
               <a href="/admin/delete_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>" onclick="return confirm('<?= addslashes($t['delete_confirm']) ?>')"><i data-lucide="trash-2"></i></a>
