@@ -87,10 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $users = [];
-$result = mysqli_query($con, "SELECT userid, email, phone, name, updated_at FROM `user` ORDER BY userid DESC");
+// SELECT * (not specific date columns) so schema drift between deployments
+// (e.g. missing updated_at/created_at) can't make the query fail -> empty list.
+$result = mysqli_query($con, "SELECT * FROM `user` ORDER BY userid DESC");
 if ($result) {
-    while ($row = mysqli_fetch_assoc($result)) { 
-        $users[] = $row; 
+    while ($row = mysqli_fetch_assoc($result)) {
+        $users[] = $row;
     }
 }
 
@@ -160,7 +162,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td><strong><?= htmlspecialchars($row['email']) ?></strong></td>
             <td class="meta"><?= htmlspecialchars($row['phone'] ?? '—') ?></td>
             <td><?= htmlspecialchars($row['name'] ?? '—') ?></td>
-            <td class="meta"><?= htmlspecialchars(date('d M Y', strtotime($row['updated_at'] ?? 'now'))) ?></td>
+            <?php $u_date = $row['updated_at'] ?? $row['created_at'] ?? $row['last_login'] ?? null; ?>
+            <td class="meta"><?= $u_date ? htmlspecialchars(date('d M Y', strtotime($u_date))) : '—' ?></td>
             <td>
               <a href="/admin/update_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['edit']) ?>"><i data-lucide="pencil"></i></a>
               <a href="/admin/delete_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>" onclick="return confirm('<?= addslashes($t['delete_confirm']) ?>')"><i data-lucide="trash-2"></i></a>
