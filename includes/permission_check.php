@@ -82,12 +82,14 @@ function requireLogin() {
  * @return bool
  */
 function userOwnsVehicle($user_id, $vehicle_id, $vehicle_type) {
-    global $conn;
-    
-    $stmt = $conn->prepare("
-        SELECT id FROM user_vehicle 
+    global $con;
+    if (!$con) return false;
+
+    $stmt = $con->prepare("
+        SELECT id FROM user_vehicle
         WHERE user_id = ? AND vehicle_id = ? AND vehicle_type = ?
     ");
+    if (!$stmt) return false;
     $stmt->bind_param("iis", $user_id, $vehicle_id, $vehicle_type);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -102,21 +104,24 @@ function userOwnsVehicle($user_id, $vehicle_id, $vehicle_type) {
  * @param string $reason
  */
 function logUnauthorizedAccess($reason = '') {
-    global $conn;
-    
+    global $con;
+    if (!$con) return;
+
     $user_email = getUserEmail() ?? 'anonymous';
     $page = $_SERVER['REQUEST_URI'] ?? '';
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    
-    $stmt = $conn->prepare("
-        INSERT INTO admin_action_logs 
-        (admin_email, action, details, page, ip_address) 
+
+    // admin_action_logs may not exist on every deployment; fail quietly.
+    $stmt = $con->prepare("
+        INSERT INTO admin_action_logs
+        (admin_email, action, details, page, ip_address)
         VALUES (?, ?, ?, ?, ?)
     ");
-    
+    if (!$stmt) return;
+
     $action = 'unauthorized_access';
     $details = $reason;
-    
+
     $stmt->bind_param("sssss", $user_email, $action, $details, $page, $ip);
     $stmt->execute();
     $stmt->close();
@@ -144,20 +149,22 @@ function guardUserPage() {
  * @param int|string $entity_id ID of the entity affected
  */
 function logAdminAction($action, $details = '', $entity_type = '', $entity_id = '') {
-    global $conn;
-    
+    global $con;
+    if (!$con) return;
+
     if (!isAdmin()) return; // Only log admin actions
-    
+
     $user_email = getUserEmail() ?? 'system';
     $page = $_SERVER['REQUEST_URI'] ?? '';
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    
-    $stmt = $conn->prepare("
-        INSERT INTO admin_action_logs 
-        (admin_email, action, details, page, ip_address) 
+
+    $stmt = $con->prepare("
+        INSERT INTO admin_action_logs
+        (admin_email, action, details, page, ip_address)
         VALUES (?, ?, ?, ?, ?)
     ");
-    
+    if (!$stmt) return;
+
     $action_detail = $action;
     if (!empty($entity_type)) {
         $action_detail .= " [{$entity_type}:" . (string)$entity_id . "]";
@@ -177,20 +184,22 @@ function logAdminAction($action, $details = '', $entity_type = '', $entity_id = 
  * @param string $details Additional details
  */
 function logUserAction($action, $details = '') {
-    global $conn;
-    
+    global $con;
+    if (!$con) return;
+
     if (!isUser()) return; // Only log user actions
-    
+
     $user_email = getUserEmail() ?? 'unknown';
     $page = $_SERVER['REQUEST_URI'] ?? '';
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    
-    $stmt = $conn->prepare("
-        INSERT INTO admin_action_logs 
-        (admin_email, action, details, page, ip_address) 
+
+    $stmt = $con->prepare("
+        INSERT INTO admin_action_logs
+        (admin_email, action, details, page, ip_address)
         VALUES (?, ?, ?, ?, ?)
     ");
-    
+    if (!$stmt) return;
+
     $stmt->bind_param("sssss", $user_email, $action, $details, $page, $ip);
     $stmt->execute();
     $stmt->close();

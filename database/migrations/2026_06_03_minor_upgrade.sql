@@ -11,7 +11,10 @@ ALTER TABLE `owner` DROP COLUMN IF EXISTS `stickerno`;
 
 -- 3) Lifecycle clock for active/inactive split.
 --    Effective date = COALESCE(reactivated_at, created_at); inactive when < NOW() - 1 year.
-ALTER TABLE `owner` ADD COLUMN IF NOT EXISTS `reactivated_at` datetime NULL DEFAULT NULL AFTER `updated_at`;
+--    NOTE: older deployments (e.g. production) lack the timestamp columns entirely, so add
+--    created_at when missing (existing rows default to now). No AFTER clause for portability.
+ALTER TABLE `owner` ADD COLUMN IF NOT EXISTS `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `owner` ADD COLUMN IF NOT EXISTS `reactivated_at` datetime NULL DEFAULT NULL;
 
 -- 4) Normalize stray category casing.
 UPDATE `owner` SET `status` = 'Pelawat'   WHERE `status` = 'PELAWAT';
