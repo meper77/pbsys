@@ -60,7 +60,11 @@ jobs:
             --exclude 'test_*.php' `
             --exclude 'test.php' `
             --exclude 'deploy_package/**' `
-            --exclude 'runner-setup/**'
+            --exclude 'runner-setup/**' `
+            --exclude 'uploads/**' `
+            --exclude 'js/**' `
+            --exclude 'node_modules/**' `
+            --exclude '.hermes/**'
           if ($LASTEXITCODE -ne 0) { throw "rclone sync failed ($LASTEXITCODE)" }
 
       - name: Summary
