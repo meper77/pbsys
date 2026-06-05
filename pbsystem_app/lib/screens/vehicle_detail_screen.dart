@@ -1,178 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../models.dart';
+import '../theme.dart';
+import 'report_screen.dart';
 
-import '../services/api_service.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
-import '../widgets/nv_plate_chip.dart';
-import '../widgets/sticker_badge.dart';
-import '../widgets/web_app_bar.dart';
-import '../widgets/web_gradient_button.dart';
-import '../widgets/web_section_title.dart';
-
-class VehicleDetailScreen extends StatelessWidget {
-  const VehicleDetailScreen({super.key, required this.vehicle});
-
-  final Map<String, dynamic> vehicle;
-
-  String _digits(String s) => s.replaceAll(RegExp(r'\D'), '');
-
-  Future<void> _call(String phone) async {
-    final p = _digits(phone);
-    if (p.isEmpty) return;
-    final uri = Uri.parse('tel:+$p');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
-  }
-
-  Future<void> _whatsapp(String phone) async {
-    final p = _digits(phone);
-    if (p.isEmpty) return;
-    final wa = p.startsWith('0') ? '60${p.substring(1)}' : p;
-    final uri = Uri.parse('https://wa.me/$wa');
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
+/// Reusable list tile for a vehicle.
+class VehicleTile extends StatelessWidget {
+  final Vehicle vehicle;
+  final VoidCallback onTap;
+  const VehicleTile({super.key, required this.vehicle, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final plate    = (vehicle['platenum']  ?? '-').toString().toUpperCase();
-    final owner    = (vehicle['name']      ?? '-').toString();
-    final idnumber = (vehicle['idnumber']  ?? '-').toString();
-    final phone    = (vehicle['phone']     ?? '').toString();
-    final type     = (vehicle['type']      ?? '-').toString();
-    final status   = (vehicle['status']    ?? '-').toString();
-    final sticker  = (vehicle['sticker']   ?? '').toString();
-    final stickerNo = (vehicle['stickerno'] ?? '').toString();
+    final color = NV.categoryColor(vehicle.status);
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
+          child: Icon(Icons.directions_car, color: color),
+        ),
+        title: Text(vehicle.plate, style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+        subtitle: Text('${vehicle.name} · ${vehicle.categoryLabel}', maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: const Icon(Icons.chevron_right, color: NV.muted),
+      ),
+    );
+  }
+}
 
+class VehicleDetailScreen extends StatelessWidget {
+  final Vehicle vehicle;
+  final AppUser reporter;
+  const VehicleDetailScreen({super.key, required this.vehicle, required this.reporter});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = NV.categoryColor(vehicle.status);
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
-      appBar: WebAppBar(title: 'Vehicle Detail', subtitle: plate),
+      appBar: AppBar(title: const Text('Vehicle details')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Plate hero
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: AppColors.heroGradient,
-                begin: Alignment.topLeft, end: Alignment.bottomRight,
-              ),
+              gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
-              children: [
-                Text(
-                  'PLATE',
-                  style: AppTypography.eyebrow(color: AppColors.brandYellow),
-                ),
-                const SizedBox(height: 12),
-                NvPlateChip(plate, size: NvPlateSize.large),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(status.toUpperCase(),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.2)),
-                ),
-              ],
-            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(vehicle.categoryLabel.toUpperCase(),
+                  style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: 1)),
+              const SizedBox(height: 6),
+              Text(vehicle.plate,
+                  style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: 1)),
+            ]),
           ),
           const SizedBox(height: 16),
-
-          // Info card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: const Border.fromBorderSide(BorderSide(color: AppColors.cardBorder)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const WebSectionTitle(title: 'Vehicle Information', icon: FontAwesomeIcons.circleInfo),
-                _kv(FontAwesomeIcons.user,        'Owner',     owner),
-                _kv(FontAwesomeIcons.idCard,      'ID Number', idnumber),
-                _kv(FontAwesomeIcons.car,         'Type',      type),
-                _kv(FontAwesomeIcons.userTag,     'Status',    status),
-                _kvWidget(FontAwesomeIcons.idBadge, 'Sticker', StickerBadge(status: sticker, stickerNo: stickerNo)),
-              ],
-            ),
-          ),
-
-          if (phone.trim().isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: const Border.fromBorderSide(BorderSide(color: AppColors.cardBorder)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const WebSectionTitle(title: 'Contact Owner', icon: FontAwesomeIcons.phone),
-                  Row(children: [
-                    Expanded(child: Text(phone, style: const TextStyle(color: AppColors.bodyText, fontSize: 15))),
-                    OutlinedButton.icon(
-                      onPressed: () => _call(phone),
-                      icon: const FaIcon(FontAwesomeIcons.phone, size: 12),
-                      label: const Text('Call'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: () => _whatsapp(phone),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF25D366)),
-                      icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 12, color: Colors.white),
-                      label: const Text('WhatsApp', style: TextStyle(color: Colors.white)),
-                    ),
-                  ]),
-                ],
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 16),
-          WebGradientButton(
-            label: 'REPORT OFFENSE',
-            icon: FontAwesomeIcons.flag,
-            gradient: const [AppColors.danger, AppColors.brandYellowDeep],
-            onPressed: () => Navigator.pushNamed(context, '/report_vehicle', arguments: {
-              'vehicle': vehicle,
-              'reporterId': ApiService.currentUserId,
-              'reporterName': ApiService.currentUserName,
-              'reporterEmail': ApiService.currentUserEmail,
-              'reporterRole': ApiService.currentUserRole,
-            }),
+          _row(Icons.person_outline, 'Owner', vehicle.name),
+          _row(Icons.badge_outlined, 'ID number', vehicle.idnumber.isEmpty ? '—' : vehicle.idnumber),
+          _row(Icons.phone_outlined, 'Phone', vehicle.phone.isEmpty ? '—' : vehicle.phone),
+          _row(Icons.directions_car_outlined, 'Vehicle type', vehicle.type.isEmpty ? '—' : vehicle.type),
+          _row(Icons.local_offer_outlined, 'Brand', vehicle.brand.isEmpty ? '—' : vehicle.brand),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: NV.danger),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => ReportScreen(reporter: reporter, vehicle: vehicle))),
+            icon: const Icon(Icons.report_gmailerrorred_outlined),
+            label: const Text('Report this vehicle'),
           ),
         ],
       ),
     );
   }
 
-  Widget _kv(IconData icon, String label, String value) => _kvWidget(
-        icon, label, Text(value.isEmpty ? '-' : value,
-            style: const TextStyle(color: AppColors.bodyText, fontWeight: FontWeight.w600)),
-      );
-
-  Widget _kvWidget(IconData icon, String label, Widget value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            FaIcon(icon, size: 13, color: AppColors.primary),
-            const SizedBox(width: 10),
-            SizedBox(width: 100,
-              child: Text(label, style: const TextStyle(color: AppColors.mutedText, fontSize: 13)),
-            ),
-            Expanded(child: value),
-          ],
+  Widget _row(IconData icon, String label, String value) => Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(children: [
+            Icon(icon, color: NV.muted, size: 20),
+            const SizedBox(width: 14),
+            Text(label, style: const TextStyle(color: NV.muted, fontSize: 13)),
+            const Spacer(),
+            Flexible(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700, color: NV.ink))),
+          ]),
         ),
       );
 }

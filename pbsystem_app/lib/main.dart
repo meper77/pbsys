@@ -1,128 +1,75 @@
 import 'package:flutter/material.dart';
-
-import 'services/api_service.dart';
-import 'theme/app_theme.dart';
-import 'screens/splash_screen.dart'; // <-- new splash screen
-import 'screens/welcome_screen.dart';
+import 'config.dart';
+import 'theme.dart';
+import 'services/session.dart';
 import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/forgot_password_screen.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/search_car_screen.dart';
-import 'screens/vehicle_category_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/about_system_screen.dart'; // <-- new screen
-import 'screens/report_vehicle_screen.dart';
+import 'screens/home_screen.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await ApiService.configure();
-  runApp(const PBSystemApp());
-}
+void main() => runApp(const NeoVTrackApp());
 
-class PBSystemApp extends StatelessWidget {
-  const PBSystemApp({super.key});
+class NeoVTrackApp extends StatelessWidget {
+  const NeoVTrackApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NEO V-TRACK',
+      title: Config.appName,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/splash', // <-- splash as first screen
+      theme: NV.theme(),
+      home: const _Boot(),
+    );
+  }
+}
 
-      theme: appTheme(),
+/// Splash that restores the session then routes to Home or Login.
+class _Boot extends StatefulWidget {
+  const _Boot();
+  @override
+  State<_Boot> createState() => _BootState();
+}
 
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/splash': // <-- splash screen
-            return MaterialPageRoute(
-              builder: (_) => const SplashScreen(),
-            );
+class _BootState extends State<_Boot> {
+  @override
+  void initState() {
+    super.initState();
+    _go();
+  }
 
-          case '/welcome':
-            return MaterialPageRoute(
-              builder: (_) => const WelcomeScreen(),
-            );
+  Future<void> _go() async {
+    final user = await Session.load();
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+      builder: (_) => user == null ? const LoginScreen() : HomeScreen(user: user),
+    ));
+  }
 
-          case '/login_user':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => LoginScreen(
-                role: args?['role'] ?? 'user',
-              ),
-            );
-
-          case '/register':
-            return MaterialPageRoute(
-              builder: (_) => const RegisterScreen(),
-            );
-
-          case '/forgot':
-            return MaterialPageRoute(
-              builder: (_) => const ForgotPasswordScreen(),
-            );
-
-          case '/dashboard':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => DashboardScreen(
-                userId: args!['userId'],
-                name: args['name'],
-                email: args['email'],
-                role: args['role'] ?? 'user',
-              ),
-            );
-
-          case '/search_car':
-            return MaterialPageRoute(
-              builder: (_) => const SearchCarScreen(),
-            );
-
-          case '/vehicle_category':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => VehicleCategoryScreen(
-                title: (args?['title'] ?? 'Vehicles') as String,
-                status: (args?['status'] ?? '') as String,
-                showAll: (args?['showAll'] ?? false) as bool,
-              ),
-            );
-
-          case '/profile':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => ProfileScreen(
-                userId: args!['userId'],
-                name: args['name'],
-                email: args['email'],
-              ),
-            );
-
-          case '/about_system': // <-- added route
-            return MaterialPageRoute(
-              builder: (_) => const AboutSystemScreen(),
-            );
-
-          case '/report_vehicle':
-            final args = settings.arguments as Map<String, dynamic>?;
-            return MaterialPageRoute(
-              builder: (_) => ReportVehicleScreen(
-                vehicle: args?['vehicle'] as Map<String, dynamic>?,
-                reporterName: (args?['reporterName'] ?? '') as String,
-                reporterEmail: (args?['reporterEmail'] ?? '') as String,
-                reporterRole: (args?['reporterRole'] ?? 'user') as String,
-                reporterId: (args?['reporterId'] ?? 0) as int,
-              ),
-            );
-
-          default:
-            return MaterialPageRoute(
-              builder: (_) => const Scaffold(
-                body: Center(child: Text('404 - Page not found')),
-              ),
-            );
-        }
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: NV.navy,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
+              child: const Icon(Icons.directions_car_filled, color: NV.yellow, size: 56),
+            ),
+            const SizedBox(height: 20),
+            const Text('NEO V-TRACK',
+                style: TextStyle(
+                    color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+            const SizedBox(height: 6),
+            Text(Config.tagline, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12)),
+            const SizedBox(height: 28),
+            const SizedBox(
+                width: 26, height: 26, child: CircularProgressIndicator(color: NV.yellow, strokeWidth: 2.5)),
+          ],
+        ),
+      ),
     );
   }
 }
