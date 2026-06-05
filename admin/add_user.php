@@ -1,6 +1,7 @@
 <?php
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 
 if (isset($_POST['submit'])) {
     $email    = mysqli_real_escape_string($con, $_POST['email']);

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 
 if (!isset($_SESSION['email_Admin'])) {
     header('Location: /auth/login_admin.php');

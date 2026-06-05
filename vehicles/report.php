@@ -1,6 +1,7 @@
 <?php
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 
 $reporterName  = '';
 $reporterEmail = '';
