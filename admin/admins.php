@@ -157,7 +157,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <td><?= htmlspecialchars($name) ?></td>
           <td>
             <a href="/admin/update_admin.php?id=<?= htmlspecialchars($id_value) ?>" class="btn btn-quiet"><i data-lucide="pencil"></i> <?= htmlspecialchars($t['edit']) ?></a>
-            <a href="/admin/delete_admin.php?id=<?= htmlspecialchars($id_value) ?>" class="btn btn-quiet text-danger" onclick="return confirm('<?= addslashes($t['delete_confirm']) ?>')"><i data-lucide="trash-2"></i> <?= htmlspecialchars($t['delete']) ?></a>
+            <form method="POST" action="/admin/delete_admin.php" style="display:inline" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>')">
+              <input type="hidden" name="id" value="<?= htmlspecialchars($id_value) ?>">
+              <button type="submit" class="btn btn-quiet text-danger"><i data-lucide="trash-2"></i> <?= htmlspecialchars($t['delete']) ?></button>
+            </form>
           </td>
         </tr>
         <?php endforeach; ?>

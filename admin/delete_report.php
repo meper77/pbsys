@@ -1,23 +1,8 @@
 <?php
-session_start();
-include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+// POST + admin only (was also GET-deletable via ?id=).
+require $_SERVER['DOCUMENT_ROOT'].'/includes/require_post_admin.php';
 
-if (!isset($_SESSION['email_Admin'])) {
-    header('Location: /auth/login_admin.php');
-    exit;
-}
-
-$ids = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['ids']) && is_array($_POST['ids'])) {
-    foreach ($_POST['ids'] as $v) {
-        $n = (int)$v;
-        if ($n > 0) { $ids[] = $n; }
-    }
-} elseif (isset($_GET['id'])) {
-    $n = (int)$_GET['id'];
-    if ($n > 0) { $ids[] = $n; }
-}
-
+$ids = nv_post_ids();
 $deleted = 0;
 $error   = '';
 

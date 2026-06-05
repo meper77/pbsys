@@ -166,7 +166,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td class="meta"><?= $u_date ? htmlspecialchars(date('d M Y', strtotime($u_date))) : '—' ?></td>
             <td>
               <a href="/admin/update_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['edit']) ?>"><i data-lucide="pencil"></i></a>
-              <a href="/admin/delete_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>" onclick="return confirm('<?= addslashes($t['delete_confirm']) ?>')"><i data-lucide="trash-2"></i></a>
+              <form method="POST" action="/admin/delete_user.php" style="display:inline" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>')">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($row['userid']) ?>">
+                <button type="submit" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>"><i data-lucide="trash-2"></i></button>
+              </form>
             </td>
           </tr>
           <?php endforeach; ?>

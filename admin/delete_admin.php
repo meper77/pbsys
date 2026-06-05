@@ -1,12 +1,6 @@
 <?php
-session_start();
-include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-
-// Check if admin is logged in
-if (!isset($_SESSION['email_Admin'])) {
-    header('location:/auth/login_admin.php');
-    exit();
-}
+// POST + admin only (was GET — deletable by any link/crawler/CSRF).
+require $_SERVER['DOCUMENT_ROOT'].'/includes/require_post_admin.php';
 
 // Debug: Check table structure (uncomment if needed)
 /*
@@ -19,8 +13,8 @@ echo "</pre>";
 exit();
 */
 
-if (isset($_GET['id'])) {
-    $id = intval($_GET['id']);
+if (isset($_POST['id'])) {
+    $id = intval($_POST['id']);
     $current_admin_email = $_SESSION['email_Admin'];
     
     // First, let's find out what columns exist

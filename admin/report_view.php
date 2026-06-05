@@ -56,7 +56,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <a class="btn btn-ghost" href="/admin/reports.php"><i data-lucide="arrow-left"></i> Back to list</a>
-      <a class="btn btn-ghost text-danger" href="/admin/delete_report.php?id=<?= (int)$report['id'] ?>" onclick="return confirm('Padam laporan #<?= (int)$report['id'] ?>?')"><i data-lucide="trash-2"></i> Delete</a>
+      <form method="POST" action="/admin/delete_report.php" style="display:inline" onsubmit="return confirm('Padam laporan #<?= (int)$report['id'] ?>?')">
+        <input type="hidden" name="ids[]" value="<?= (int)$report['id'] ?>">
+        <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Delete</button>
+      </form>
     </div>
   </div>
 

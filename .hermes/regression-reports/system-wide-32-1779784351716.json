@@ -1,0 +1,668 @@
+{
+  "loopNumber": 32,
+  "timestamp": "2026-05-26T08:32:03.104Z",
+  "totalPages": 21,
+  "modules": {
+    "auth": [
+      {
+        "name": "login",
+        "url": "/auth/login.php",
+        "module": "auth",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1413
+        }
+      },
+      {
+        "name": "register",
+        "url": "/auth/register.php",
+        "module": "auth",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 4,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1399
+        }
+      },
+      {
+        "name": "forgot_password",
+        "url": "/auth/forgot_password_smtp.php",
+        "module": "auth",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "Forgot Password - NEO V-TRACK",
+          "formCount": 1,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1293
+        }
+      },
+      {
+        "name": "reset_password",
+        "url": "/auth/reset_password_token.php?token=test",
+        "module": "auth",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "Reset Password - NEO V-TRACK",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1300
+        }
+      }
+    ],
+    "admin": [
+      {
+        "name": "admin_dashboard",
+        "url": "/admin/dashboard.php",
+        "module": "admin",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1622
+        }
+      },
+      {
+        "name": "admin_users_list",
+        "url": "/admin/users/list.php",
+        "module": "admin",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 817
+        }
+      },
+      {
+        "name": "admin_users_add",
+        "url": "/admin/users/add.php",
+        "module": "admin",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 824
+        }
+      },
+      {
+        "name": "admin_admins_list",
+        "url": "/admin/admins/list.php",
+        "module": "admin",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 822
+        }
+      },
+      {
+        "name": "admin_admins_add",
+        "url": "/admin/admins/add.php",
+        "module": "admin",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 824
+        }
+      },
+      {
+        "name": "admin_bulk_import",
+        "url": "/admin/bulk_import.php",
+        "module": "admin",
+        "status": "warning",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [
+            "Missing h1 heading"
+          ],
+          "colorContrast": [],
+          "pageTitle": "",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 823
+        }
+      },
+      {
+        "name": "admin_reports",
+        "url": "/admin/reports.php",
+        "module": "admin",
+        "status": "warning",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [
+            "Missing h1 heading"
+          ],
+          "colorContrast": [],
+          "pageTitle": "",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 821
+        }
+      }
+    ],
+    "vehicles": [
+      {
+        "name": "visitor_list",
+        "url": "/vehicles/visitor/list.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1608
+        }
+      },
+      {
+        "name": "visitor_add",
+        "url": "/vehicles/visitor/add.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1601
+        }
+      },
+      {
+        "name": "staff_list",
+        "url": "/vehicles/staff/list.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1601
+        }
+      },
+      {
+        "name": "staff_add",
+        "url": "/vehicles/staff/add.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1599
+        }
+      },
+      {
+        "name": "student_list",
+        "url": "/vehicles/student/list.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1616
+        }
+      },
+      {
+        "name": "student_add",
+        "url": "/vehicles/student/add.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1616
+        }
+      },
+      {
+        "name": "contractor_list",
+        "url": "/vehicles/contractor/list.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1599
+        }
+      },
+      {
+        "name": "contractor_add",
+        "url": "/vehicles/contractor/add.php",
+        "module": "vehicles",
+        "status": "fail",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [
+            {
+              "tag": "button",
+              "style": "justify-content:center;width:100%;"
+            },
+            {
+              "tag": "span",
+              "style": "font-size:11px;"
+            },
+            {
+              "tag": "a",
+              "style": "font-weight:700;"
+            }
+          ],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "NEO V-TRACK",
+          "formCount": 2,
+          "buttonCount": 1
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 1616
+        }
+      }
+    ],
+    "search": [
+      {
+        "name": "search_admin",
+        "url": "/search/admin_search.php",
+        "module": "search",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 817
+        }
+      },
+      {
+        "name": "search_user",
+        "url": "/search/user_search.php",
+        "module": "search",
+        "status": "pass",
+        "issues": {
+          "bootstrapClasses": [],
+          "problematicInlineStyles": [],
+          "missingLabels": [],
+          "noButtonClass": [],
+          "missingAria": [],
+          "colorContrast": [],
+          "pageTitle": "404 Not Found",
+          "formCount": 0,
+          "buttonCount": 0
+        },
+        "responsive": {
+          "mobile": {
+            "noHorizontalScroll": true
+          }
+        },
+        "performance": {
+          "loadTime": 825
+        }
+      }
+    ]
+  },
+  "summary": {
+    "totalIssues": 29,
+    "pagesPassed": 10,
+    "pagesFailed": 9,
+    "pagesWarning": 2,
+    "pagesError": 0
+  }
+}

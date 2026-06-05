@@ -1,14 +1,9 @@
 <?php
-include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $sql = "delete from `owner` where id=$id";
-    $result = mysqli_query($con, $sql);
-    if ($result) {
-        echo "Kenderaan pelajar berjaya dibuang!";
-        header('location:/vehicles/student/list.php');
-    } else {
-        die(mysqli_error($con));
-    }
+// Delete student vehicle(s) from the unified owner table. POST + admin only.
+require $_SERVER['DOCUMENT_ROOT'].'/includes/require_post_admin.php';
+$ids = nv_post_ids();
+if (!empty($ids)) {
+    mysqli_query($con, "DELETE FROM `owner` WHERE id IN (" . implode(',', $ids) . ")");
 }
-?>
+header('Location: /vehicles/student/list.php');
+exit;
