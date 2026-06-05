@@ -80,9 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             if (strlen($newPw) < 6) {
                 $errors[] = 'New password must be at least 6 characters.';
             } else {
+                // System authenticates against plaintext passwords (login compares directly),
+                // so store plaintext here too — a bcrypt hash would lock the account out.
                 $fields[] = 'password = ?';
                 $types  .= 's';
-                $vals[]  = password_hash($newPw, PASSWORD_DEFAULT);
+                $vals[]  = $newPw;
             }
         }
 
@@ -102,10 +104,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 }
 
 // ---- Fetch current profile ----
-$stmt = $con->prepare("SELECT userid, name, email, phone, profile_image, last_login, updated_at FROM `$table` WHERE email = ? LIMIT 1");
-$stmt->bind_param('s', $email);
-$stmt->execute();
-$profile = $stmt->get_result()->fetch_assoc() ?: [];
+// SELECT * (not specific columns) so schema drift between deployments — e.g. the prod
+// admin/user tables missing last_login / profile_image / updated_at — can't make prepare()
+// fail and 500 the page. The view below null-coalesces every optional field.
+$stmt = $con->prepare("SELECT * FROM `$table` WHERE email = ? LIMIT 1");
+if ($stmt === false) {
+    $profile = [];
+} else {
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $profile = $stmt->get_result()->fetch_assoc() ?: [];
+}
 
 $lang = $_SESSION['language'] ?? 'bm';
 $L = $lang === 'bm' ? [

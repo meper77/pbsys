@@ -12,7 +12,7 @@ if (isset($_GET['logout'])) {
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
 
-require_admin();
+requireAdmin();
 
 // Check if user is admin
 if (!isset($_SESSION['email_Admin'])) {
@@ -89,28 +89,25 @@ $t = $lang === 'bm' ? [
     'error_message' => 'An error occurred.',
 ];
 
-// Vehicle statistics
-$staff_query = mysqli_query($con, "SELECT COUNT(*) as count FROM staffcar");
-$staff_count = $staff_query ? (int)mysqli_fetch_assoc($staff_query)['count'] : 0;
+// Vehicle statistics — unified `owner` table (same source as the rest of the system).
+$nv_cats = ['staff' => 'Staf', 'student' => 'Pelajar', 'visitor' => 'Pelawat', 'contractor' => 'Kontraktor'];
+$nv_counts = ['staff' => 0, 'student' => 0, 'visitor' => 0, 'contractor' => 0];
+foreach ($nv_cats as $k => $v) {
+    $r = mysqli_query($con, "SELECT COUNT(*) AS c FROM `owner` WHERE status = '" . mysqli_real_escape_string($con, $v) . "'");
+    if ($r) { $nv_counts[$k] = (int)mysqli_fetch_assoc($r)['c']; }
+}
+$staff_count      = $nv_counts['staff'];
+$student_count    = $nv_counts['student'];
+$visitor_count    = $nv_counts['visitor'];
+$contractor_count = $nv_counts['contractor'];
+$total_count      = array_sum($nv_counts);
 
-$student_query = mysqli_query($con, "SELECT COUNT(*) as count FROM studentcar");
-$student_count = $student_query ? (int)mysqli_fetch_assoc($student_query)['count'] : 0;
-
-$visitor_count = 0;
-$visitor_query = @mysqli_query($con, "SELECT COUNT(*) as count FROM visitorcar");
-if ($visitor_query) { $visitor_count = (int)mysqli_fetch_assoc($visitor_query)['count']; }
-
-$contractor_count = 0;
-$contractor_query = @mysqli_query($con, "SELECT COUNT(*) as count FROM contractorcar");
-if ($contractor_query) { $contractor_count = (int)mysqli_fetch_assoc($contractor_query)['count']; }
-
-$total_count = $staff_count + $student_count + $visitor_count + $contractor_count;
-
-$admins_query = mysqli_query($con, "SELECT userid, email, name, last_login FROM admin ORDER BY userid DESC LIMIT 10");
+// SELECT * so a missing last_login column (schema drift) can't fail the query.
+$admins_query = mysqli_query($con, "SELECT * FROM admin ORDER BY userid DESC LIMIT 10");
 $admins = [];
 while ($admins_query && $row = mysqli_fetch_assoc($admins_query)) { $admins[] = $row; }
 
-$users_query = mysqli_query($con, "SELECT userid, email, name, last_login FROM user ORDER BY userid DESC LIMIT 10");
+$users_query = mysqli_query($con, "SELECT * FROM user ORDER BY userid DESC LIMIT 10");
 $users = [];
 while ($users_query && $row = mysqli_fetch_assoc($users_query)) { $users[] = $row; }
 
