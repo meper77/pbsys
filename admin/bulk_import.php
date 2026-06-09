@@ -3,8 +3,7 @@ session_start();
 
 // ========== LOGOUT HANDLER ==========
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
+    header('Location: /auth/logout.php');
     exit();
 }
 // ========== END LOGOUT HANDLER ==========
@@ -56,9 +55,9 @@ $text['bm'] = [
     'step3' => 'Langkah 3: Simpan sebagai fail XLSX',
     'step4' => 'Langkah 4: Muat naik fail di bawah',
     'xlsx_format' => 'Format XLSX:',
-    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Brand, Category',
+    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Type, Category',
     'example' => 'Contoh:',
-    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, Honda, staff',
+    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, KERETA, staff',
     'category_options' => 'Kategori: visitor, staff, student, contractor',
     'file_required' => 'Sila pilih fail XLSX',
     'upload_success' => 'Data berjaya diimport!',
@@ -98,9 +97,9 @@ $text['en'] = [
     'step3' => 'Step 3: Save as XLSX file',
     'step4' => 'Step 4: Upload file below',
     'xlsx_format' => 'XLSX Format:',
-    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Brand, Category',
+    'xlsx_columns' => 'Plate Number, Owner Name, Owner Phone, Type, Category',
     'example' => 'Example:',
-    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, Honda, staff',
+    'example_row' => 'ABC1234, Ali Ahmad, 0123456789, KERETA, staff',
     'category_options' => 'Categories: visitor, staff, student, contractor',
     'file_required' => 'Please select XLSX file',
     'upload_success' => 'Data imported successfully!',
@@ -203,49 +202,67 @@ if (isset($_GET['download_template'])) {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         
-        // Set header row
-        $headers = ['Plate Number', 'Owner Name', 'Owner Phone', 'Brand', 'Type', 'Category'];
+        // Header row (Brand removed; Type + Category are dropdowns).
+        $headers = ['Plate Number', 'Owner Name', 'Owner Phone', 'Type', 'Category'];
         $sheet->fromArray([$headers], null, 'A1');
-        
-        // Format header row
+
         $headerStyle = [
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '4472C4'],
             ],
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ],
         ];
-        
-        $sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
 
-        // Add example rows
+        // Example rows (no Brand).
         $examples = [
-            ['ABC1234', 'Ali Ahmad', '0123456789', 'Honda', 'KERETA', 'staff'],
-            ['DEF5678', 'Siti Sarah', '0134567890', 'Toyota', 'MOTOSIKAL', 'student'],
-            ['GHI9012', 'John Doe', '0145678901', 'Ford', 'KERETA', 'visitor'],
-            ['JKL3456', 'Ahmad Kontraktor', '0156789012', 'Nissan', 'LORI', 'contractor'],
+            ['ABC1234', 'Ali Ahmad', '0123456789', 'KERETA', 'staff'],
+            ['DEF5678', 'Siti Sarah', '0134567890', 'MOTOSIKAL', 'student'],
+            ['GHI9012', 'John Doe', '0145678901', 'VAN', 'visitor'],
+            ['JKL3456', 'Ahmad Kontraktor', '0156789012', 'LORI', 'contractor'],
         ];
-
         $row = 2;
         foreach ($examples as $example) {
             $sheet->fromArray([$example], null, 'A' . $row);
             $row++;
         }
 
-        // Set column widths
+        // Dropdown (data validation) for Type (col D) and Category (col E).
+        $typeOpts = ['KERETA', 'MOTOSIKAL', 'LORI', '4WD', 'VAN', 'MPV', 'LAIN-LAIN'];
+        $catOpts  = ['staff', 'student', 'visitor', 'contractor'];
+        for ($r = 2; $r <= 200; $r++) {
+            $dvT = $sheet->getCell('D' . $r)->getDataValidation();
+            $dvT->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+            $dvT->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+            $dvT->setAllowBlank(false);
+            $dvT->setShowDropDown(true);
+            $dvT->setShowErrorMessage(true);
+            $dvT->setErrorTitle('Invalid type');
+            $dvT->setError('Choose a vehicle type from the list.');
+            $dvT->setFormula1('"' . implode(',', $typeOpts) . '"');
+
+            $dvC = $sheet->getCell('E' . $r)->getDataValidation();
+            $dvC->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+            $dvC->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+            $dvC->setAllowBlank(false);
+            $dvC->setShowDropDown(true);
+            $dvC->setShowErrorMessage(true);
+            $dvC->setErrorTitle('Invalid category');
+            $dvC->setError('Choose a category from the list.');
+            $dvC->setFormula1('"' . implode(',', $catOpts) . '"');
+        }
+
+        // Column widths (A-E).
         $sheet->getColumnDimension('A')->setWidth(15);
-        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(22);
         $sheet->getColumnDimension('C')->setWidth(18);
-        $sheet->getColumnDimension('D')->setWidth(15);
+        $sheet->getColumnDimension('D')->setWidth(14);
         $sheet->getColumnDimension('E')->setWidth(14);
-        $sheet->getColumnDimension('F')->setWidth(14);
         
         // Output XLSX file
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -283,18 +300,19 @@ function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
     $col_index = 0;
     foreach ($cells as $cell) {
       $data[$col_index++] = $cell->getValue();
-      if ($col_index >= 6) break;
+      if ($col_index >= 5) break;
     }
 
     if (empty($data[0])) continue;
 
     try {
+      // Template columns: Plate Number, Owner Name, Owner Phone, Type, Category (Brand removed).
       $plate_number = strtoupper(trim((string)($data[0] ?? '')));
       $owner_name   = trim((string)($data[1] ?? ''));
       $owner_phone  = trim((string)($data[2] ?? ''));
-      $brand        = trim((string)($data[3] ?? ''));
-      $type         = strtoupper(trim((string)($data[4] ?? '')));
-      $category     = strtolower(trim((string)($data[5] ?? '')));
+      $type         = strtoupper(trim((string)($data[3] ?? '')));
+      $category     = strtolower(trim((string)($data[4] ?? '')));
+      $brand        = 'N/A';
 
       if ($plate_number === '' || $owner_name === '' || $owner_phone === '' || $category === '') {
         throw new Exception('Missing required fields');
@@ -393,8 +411,8 @@ function import_vehicles_from_xlsx($con, $worksheet, $admin_email) {
                 <div class="text-mono mt-2" style="font-size:12px;line-height:1.7;color:var(--brand-purple-deep);">
                     <?= htmlspecialchars($t['xlsx_columns']) ?><br>
                     <?= htmlspecialchars($t['example_row']) ?><br>
-                    DEF5678, Siti Sarah, 0134567890, Toyota, student<br>
-                    GHI9012, John Doe, 0145678901, Ford, visitor
+                    DEF5678, Siti Sarah, 0134567890, MOTOSIKAL, student<br>
+                    GHI9012, John Doe, 0145678901, VAN, visitor
                 </div>
                 <div class="text-muted mt-4" style="font-size:12px;">
                     <strong><?= htmlspecialchars($t['category_options']) ?></strong>
