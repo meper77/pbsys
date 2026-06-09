@@ -24,7 +24,6 @@ $errors   = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_profile') {
     $name  = trim($_POST['name']  ?? '');
     $phone = trim($_POST['phone'] ?? '');
-    $newPw = (string)($_POST['new_password'] ?? '');
 
     if ($name === '') {
         $errors[] = 'Name cannot be empty.';
@@ -77,18 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             $types  .= 's';
             $vals[]  = $imagePath;
         }
-        if ($newPw !== '') {
-            if (strlen($newPw) < 6) {
-                $errors[] = 'New password must be at least 6 characters.';
-            } else {
-                // System authenticates against plaintext passwords (login compares directly),
-                // so store plaintext here too — a bcrypt hash would lock the account out.
-                $fields[] = 'password = ?';
-                $types  .= 's';
-                $vals[]  = $newPw;
-            }
-        }
-
         if (empty($errors)) {
             $types .= 's';
             $vals[]  = $email;
@@ -102,6 +89,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
             }
         }
     }
+}
+
+// ---- POST: request account deletion ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'request_deletion') {
+    $hasCol = false;
+    $tEsc = $con->real_escape_string($table);
+    if ($r = @$con->query("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='$tEsc' AND COLUMN_NAME='deletion_requested' LIMIT 1")) {
+        $hasCol = $r->num_rows > 0;
+    }
+    if ($hasCol && ($u = $con->prepare("UPDATE `$table` SET deletion_requested = 1, deletion_requested_at = NOW() WHERE email = ?"))) {
+        $u->bind_param('s', $email);
+        $u->execute();
+        $u->close();
+    }
+    $messages[] = ($lang === 'bm')
+        ? 'Permohonan pemadaman akaun direkodkan. Pentadbir akan memprosesnya.'
+        : 'Account deletion requested. An administrator will process it.';
 }
 
 // ---- Fetch current profile ----
@@ -134,6 +138,12 @@ $L = $lang === 'bm' ? [
     'save' => 'Simpan',
     'back' => 'Kembali',
     'account' => 'Akaun',
+    'no_password_note' => 'NEO V-TRACK tanpa kata laluan — log masuk menggunakan kod sekali guna melalui e-mel.',
+    'danger_zone' => 'Pemadaman Akaun',
+    'delete_help' => 'Mohon pentadbir memadamkan akaun anda secara kekal.',
+    'request_delete' => 'Mohon pemadaman akaun',
+    'delete_requested' => 'Pemadaman akaun telah dimohon',
+    'delete_confirm' => 'Mohon pemadaman akaun anda? Pentadbir akan menyemak dan memadamkannya.',
 ] : [
     'title' => 'My Profile',
     'role_admin' => 'Administrator',
@@ -150,6 +160,12 @@ $L = $lang === 'bm' ? [
     'save' => 'Save',
     'back' => 'Back',
     'account' => 'Account',
+    'no_password_note' => 'NEO V-TRACK is passwordless — sign in with a one-time code sent to your email.',
+    'danger_zone' => 'Account Deletion',
+    'delete_help' => 'Ask an administrator to permanently remove your account.',
+    'request_delete' => 'Request account deletion',
+    'delete_requested' => 'Account deletion requested',
+    'delete_confirm' => 'Request deletion of your account? An administrator will review and remove it.',
 ];
 
 $displayImg = !empty($profile['profile_image'])
@@ -213,13 +229,26 @@ $displayImg = !empty($profile['profile_image'])
             <small class="text-muted">JPG / PNG / WEBP, max 5 MB.</small>
         </div>
 
-        <div class="field"><label class="field-label"><?php echo htmlspecialchars($L['change_password']); ?></label>
-            <input type="password" class="input" name="new_password" placeholder="<?php echo htmlspecialchars($L['new_password_ph']); ?>" autocomplete="new-password">
+        <div class="flash" style="background:var(--surface-tint,#f5f3ff);color:var(--fg-2);">
+            <i data-lucide="shield-check"></i><span><?php echo htmlspecialchars($L['no_password_note']); ?></span>
         </div>
 
         <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
             <i data-lucide="save"></i><?php echo htmlspecialchars($L['save']); ?>
         </button>
+  </form>
+
+  <form method="POST" class="card nv-stack gap-4" onsubmit="return confirm('<?php echo addslashes($L['delete_confirm']); ?>');">
+    <input type="hidden" name="action" value="request_deletion">
+    <div>
+      <h3 style="margin:0 0 6px;"><?php echo htmlspecialchars($L['danger_zone']); ?></h3>
+      <?php if (!empty($profile['deletion_requested'])): ?>
+        <span class="pill warn"><span class="dot"></span> <?php echo htmlspecialchars($L['delete_requested']); ?></span>
+      <?php else: ?>
+        <p class="text-muted" style="margin:0 0 10px;"><?php echo htmlspecialchars($L['delete_help']); ?></p>
+        <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> <?php echo htmlspecialchars($L['request_delete']); ?></button>
+      <?php endif; ?>
+    </div>
   </form>
 </main>
 </div>

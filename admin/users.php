@@ -2,8 +2,7 @@
 session_start();
 
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
+    header('Location: /auth/logout.php');
     exit();
 }
 
@@ -86,6 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     exit();
 }
 
+// Auto-delete users inactive for over a year (no login; fall back to created_at).
+// Opportunistic on admin view — this stack has no cron runner. Tolerant of missing
+// created_at (the query simply errors-and-skips pre-migration).
+@mysqli_query($con, "DELETE FROM `user`
+    WHERE COALESCE(`last_login`, `created_at`) < (NOW() - INTERVAL 1 YEAR)");
+
 $users = [];
 // SELECT * (not specific date columns) so schema drift between deployments
 // (e.g. missing updated_at/created_at) can't make the query fail -> empty list.
@@ -113,7 +118,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
-      <a class="btn btn-primary" href="/admin/add_user.php"><i data-lucide="plus"></i> <?= $lang === 'bm' ? 'Tambah pengguna' : 'Add user' ?></a>
     </div>
   </div>
 
@@ -161,11 +165,15 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td class="meta"><?= $counter++ ?></td>
             <td><strong><?= htmlspecialchars($row['email']) ?></strong></td>
             <td class="meta"><?= htmlspecialchars($row['phone'] ?? '—') ?></td>
-            <td><?= htmlspecialchars($row['name'] ?? '—') ?></td>
-            <?php $u_date = $row['updated_at'] ?? $row['created_at'] ?? $row['last_login'] ?? null; ?>
+            <td>
+              <?= htmlspecialchars($row['name'] ?? '—') ?>
+              <?php if (!empty($row['deletion_requested'])): ?>
+                <span class="pill warn" style="margin-left:6px;"><span class="dot"></span> <?= $lang === 'bm' ? 'Mohon padam' : 'Deletion requested' ?></span>
+              <?php endif; ?>
+            </td>
+            <?php $u_date = $row['created_at'] ?? $row['updated_at'] ?? $row['last_login'] ?? null; ?>
             <td class="meta"><?= $u_date ? htmlspecialchars(date('d M Y', strtotime($u_date))) : '—' ?></td>
             <td>
-              <a href="/admin/update_user.php?id=<?= htmlspecialchars($row['userid']) ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['edit']) ?>"><i data-lucide="pencil"></i></a>
               <form method="POST" action="/admin/delete_user.php" style="display:inline" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>')">
                 <input type="hidden" name="id" value="<?= htmlspecialchars($row['userid']) ?>">
                 <button type="submit" class="btn btn-quiet text-danger" title="<?= htmlspecialchars($t['delete']) ?>"><i data-lucide="trash-2"></i></button>
