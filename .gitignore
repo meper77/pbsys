@@ -7,6 +7,9 @@
 hestia_deploy_key*
 id_rsa*
 
+# Runtime secrets (public repo — never commit). Lives on live host via rclone copy.
+includes/secrets.php
+
 # Deploy artefacts
 *.zip
 deploy_package/

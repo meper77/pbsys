@@ -48,6 +48,8 @@ jobs:
             --exclude '.github/**' `
             --exclude '.claude/**' `
             --exclude '.gitignore' `
+            --exclude 'includes/secrets.php' `
+            --exclude 'foundation/**' `
             --exclude 'pbsystem_app/**' `
             --exclude '*.md' `
             --exclude '*.txt' `
