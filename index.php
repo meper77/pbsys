@@ -109,14 +109,15 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>
-<body>
+<body class="nv-home-night">
+<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_night_bg.php'; ?>
 <div class="nv-shell">
 <?php $nv_active = 'dashboard'; $nv_admin_display = $admin_display; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
 <main class="page">
   <div class="page-head">
     <div>
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
-      <h1><?= htmlspecialchars($t['heading']) ?></h1>
+      <h1><?= htmlspecialchars($t['heading']) ?><?= $admin_display !== '' ? ', ' . htmlspecialchars($admin_display) : '' ?></h1>
       <p class="sub"><?= htmlspecialchars($t['subhead']) ?></p>
     </div>
     <div class="actions">

@@ -103,6 +103,7 @@ $reporterRole = strtolower(report_vehicle_clean_string($_POST['reporter_role'] ?
 $reporterId = isset($_POST['reporter_id']) ? (int)$_POST['reporter_id'] : 0;
 $latitude = isset($_POST['latitude']) ? (float)$_POST['latitude'] : null;
 $longitude = isset($_POST['longitude']) ? (float)$_POST['longitude'] : null;
+$locationText = report_vehicle_clean_string($_POST['location_text'] ?? '');
 
 if ($plateNumber === '' || $offenseDetails === '' || $latitude === null || $longitude === null) {
     http_response_code(400);
@@ -120,6 +121,11 @@ if (empty($_FILES['photos'])) {
         'message' => 'At least one photo is required',
     ]);
     exit;
+}
+
+// Manual location description (used when GPS auto-detect is unavailable over http).
+if ($locationText !== '') {
+    $offenseDetails = '[Location: ' . $locationText . '] ' . $offenseDetails;
 }
 
 try {

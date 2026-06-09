@@ -241,14 +241,24 @@ function nv_establish_session($con, string $email, string $role): void
     // Clear any opposite-role key so role can't bleed across logins.
     unset($_SESSION['email'], $_SESSION['email_Admin']);
 
+    $table = $role === 'admin' ? 'admin' : 'user';
+    $esc   = $con->real_escape_string($email);
     if ($role === 'admin') {
         $_SESSION['email_Admin'] = $email;
         $_SESSION['user_type']   = 'admin';
-        @$con->query("UPDATE `admin` SET last_login = NOW() WHERE email = '" . $con->real_escape_string($email) . "'");
     } else {
         $_SESSION['email']     = $email;
         $_SESSION['user_type'] = 'user';
-        @$con->query("UPDATE `user` SET last_login = NOW() WHERE email = '" . $con->real_escape_string($email) . "'");
+    }
+    @$con->query("UPDATE `$table` SET last_login = NOW() WHERE email = '$esc'");
+
+    // Display name for the chrome / welcome heading.
+    $_SESSION['nama'] = strstr($email, '@', true) ?: $email;
+    if ($r = @$con->query("SELECT name FROM `$table` WHERE email = '$esc' LIMIT 1")) {
+        $row = $r->fetch_assoc();
+        if ($row && !empty($row['name'])) {
+            $_SESSION['nama'] = $row['name'];
+        }
     }
 }
 

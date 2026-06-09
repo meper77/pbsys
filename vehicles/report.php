@@ -152,12 +152,35 @@ if (!empty($_SESSION['email_Admin'])) {
         </div>
 
         <div class="field">
-            <label class="field-label">Location (auto-detected)</label>
+            <label class="field-label">Location <span style="color:var(--status-bad);">*</span></label>
             <div class="nv-row gap-2">
                 <input type="text" class="input" id="coordsDisplay" readonly placeholder="Detecting…">
-                <button type="button" class="btn btn-ghost" id="retryGeo" title="Retry"><i data-lucide="refresh-cw"></i></button>
+                <button type="button" class="btn btn-ghost" id="retryGeo" title="Retry auto-detect"><i data-lucide="refresh-cw"></i></button>
             </div>
             <div class="geo-status" id="geoStatus">Requesting browser location permission…</div>
+
+            <!-- Manual fallback: auto-revealed when auto-detect is blocked (e.g. over http). -->
+            <div id="manualGeo" style="display:none;margin-top:10px;padding:12px;border:1px dashed var(--border);border-radius:8px;">
+                <div style="font-size:13px;margin-bottom:8px;color:var(--fg-2);">
+                    Auto-detect needs a secure (HTTPS) connection. Set the location manually:
+                </div>
+                <div class="nv-grid cols-2">
+                    <div class="field"><label class="field-label">Latitude</label>
+                        <input type="text" class="input mono" id="latManual" inputmode="decimal" placeholder="2.51480"></div>
+                    <div class="field"><label class="field-label">Longitude</label>
+                        <input type="text" class="input mono" id="lngManual" inputmode="decimal" placeholder="102.81560"></div>
+                </div>
+                <div class="nv-row gap-2" style="flex-wrap:wrap;margin-top:6px;">
+                    <button type="button" class="btn btn-ghost" id="useCampus"><i data-lucide="map-pin"></i> Use UiTM Segamat campus</button>
+                    <button type="button" class="btn btn-ghost" id="applyManual"><i data-lucide="check"></i> Apply coordinates</button>
+                </div>
+            </div>
+
+            <div class="field" style="margin-top:8px;">
+                <label class="field-label">Location description / landmark</label>
+                <input type="text" class="input" name="location_text" id="locationText" placeholder="e.g. Parking C, near Library">
+            </div>
+
             <input type="hidden" name="latitude" id="latitude" required>
             <input type="hidden" name="longitude" id="longitude" required>
         </div>
@@ -181,31 +204,60 @@ if (!empty($_SESSION['email_Admin'])) {
     const preview  = document.getElementById('photoPreview');
     const photoInp = document.getElementById('photos');
 
-    // ===== Geolocation =====
+    // ===== Geolocation (with manual fallback for insecure/http origins) =====
+    const manualGeo = document.getElementById('manualGeo');
+    const latManual = document.getElementById('latManual');
+    const lngManual = document.getElementById('lngManual');
+    const CAMPUS = { lat: 2.51480, lng: 102.81560 }; // UiTM Cawangan Johor, Kampus Segamat (approx.)
+
+    function setCoords(lat, lng, note) {
+        latEl.value = Number(lat).toFixed(8);
+        lngEl.value = Number(lng).toFixed(8);
+        coordsEl.value = latEl.value + ', ' + lngEl.value;
+        statusEl.textContent = note || ('Location set: ' + coordsEl.value);
+        statusEl.className = 'geo-status ok';
+    }
+    function revealManual(msg) {
+        manualGeo.style.display = 'block';
+        statusEl.textContent = msg;
+        statusEl.className = 'geo-status err';
+    }
     function requestLocation() {
-        if (!navigator.geolocation) {
-            statusEl.textContent = 'Geolocation not supported by this browser.';
-            statusEl.classList.add('err');
+        if (!navigator.geolocation || !window.isSecureContext) {
+            revealManual(!navigator.geolocation
+                ? 'Geolocation is not supported. Enter the location manually below.'
+                : 'Auto-detect needs a secure (HTTPS) connection. Enter the location manually below.');
             return;
         }
         statusEl.textContent = 'Detecting location…';
         statusEl.className = 'geo-status';
         navigator.geolocation.getCurrentPosition(
             (pos) => {
-                latEl.value = pos.coords.latitude.toFixed(8);
-                lngEl.value = pos.coords.longitude.toFixed(8);
-                coordsEl.value = latEl.value + ', ' + lngEl.value;
-                statusEl.textContent = 'Location captured (accuracy ' + Math.round(pos.coords.accuracy) + ' m).';
-                statusEl.className = 'geo-status ok';
+                manualGeo.style.display = 'none';
+                setCoords(pos.coords.latitude, pos.coords.longitude,
+                    'Location captured (accuracy ' + Math.round(pos.coords.accuracy) + ' m).');
             },
             (err) => {
-                statusEl.textContent = 'Could not get location: ' + err.message + '. Please allow location access and retry.';
-                statusEl.className = 'geo-status err';
+                revealManual('Could not auto-detect (' + err.message + '). Enter the location manually below.');
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
     }
     document.getElementById('retryGeo').addEventListener('click', requestLocation);
+    document.getElementById('useCampus').addEventListener('click', () => {
+        latManual.value = CAMPUS.lat.toFixed(5);
+        lngManual.value = CAMPUS.lng.toFixed(5);
+        setCoords(CAMPUS.lat, CAMPUS.lng, 'Using UiTM Segamat campus location.');
+    });
+    document.getElementById('applyManual').addEventListener('click', () => {
+        const la = parseFloat(latManual.value), lo = parseFloat(lngManual.value);
+        if (isNaN(la) || isNaN(lo) || la < -90 || la > 90 || lo < -180 || lo > 180) {
+            statusEl.textContent = 'Enter a valid latitude (-90..90) and longitude (-180..180).';
+            statusEl.className = 'geo-status err';
+            return;
+        }
+        setCoords(la, lo, 'Manual location applied: ' + la.toFixed(5) + ', ' + lo.toFixed(5));
+    });
     requestLocation();
 
     // ===== Photo preview =====

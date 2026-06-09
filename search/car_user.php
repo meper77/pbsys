@@ -2,8 +2,7 @@
 session_start();
 
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
+    header('Location: /auth/logout.php');
     exit();
 }
 
@@ -88,7 +87,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
   <form class="card nv-stack" method="POST">
     <div class="field">
       <label class="field-label" for="search"><?= htmlspecialchars($t['col_plate']) ?> / <?= htmlspecialchars($t['col_name']) ?> / <?= htmlspecialchars($t['col_id']) ?></label>
-      <input class="input mono" id="search" name="search" type="text" placeholder="<?= htmlspecialchars($t['placeholder']) ?>" value="<?= htmlspecialchars($search) ?>" required autofocus>
+      <input class="input mono" id="search" name="search" type="text" placeholder="<?= htmlspecialchars($t['placeholder']) ?>" value="<?= htmlspecialchars($search) ?>" required autofocus data-nv-suggest="any" data-nv-submit data-nv-field="plate">
     </div>
     <div class="nv-row end gap-2">
       <a class="btn btn-ghost" href="/search/car_user.php<?= $lang === 'en' ? '?lang=en' : '' ?>"><?= htmlspecialchars($t['clear']) ?></a>
@@ -111,7 +110,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
       <h2 class="text-display"><?= count($results) ?> <?= htmlspecialchars($t['records']) ?></h2>
     </div>
     <div class="actions">
-      <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
       <a class="btn btn-ghost" href="/search/car_user.php<?= $lang === 'en' ? '?lang=en' : '' ?>"><i data-lucide="rotate-ccw"></i> <?= htmlspecialchars($t['again']) ?></a>
     </div>
   </div>
@@ -169,20 +167,34 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
 </main>
 </div>
 
+<style>
+/* Consistent pagination hover (previous/next match the numbered buttons). */
+.dataTables_paginate .paginate_button { cursor: pointer; border-radius: 6px; }
+.dataTables_paginate .paginate_button:hover {
+  background: var(--brand-yellow, #f5c518) !important;
+  color: #1a1a1a !important;
+  border-color: var(--brand-yellow, #f5c518) !important;
+}
+.dataTables_paginate .paginate_button.current,
+.dataTables_paginate .paginate_button.current:hover {
+  background: var(--accent, #6b21a8) !important;
+  color: #fff !important;
+  border-color: var(--accent, #6b21a8) !important;
+}
+.dataTables_paginate .paginate_button.disabled,
+.dataTables_paginate .paginate_button.disabled:hover {
+  background: transparent !important; color: var(--fg-3, #999) !important;
+  border-color: transparent !important; cursor: default;
+}
+</style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.1/xlsx.full.min.js"></script>
 <script>
 $(function(){
   var table = $('#vehicleTable');
   if (table.length) {
     table.DataTable({ pageLength: 10, order: [[0, 'asc']], autoWidth: false, dom: 'rtip' });
   }
-  $('#export-btn').on('click', function(){
-    var t = $('#vehicleTable'); if (!t.length) return;
-    var wb = XLSX.utils.table_to_book(t[0], { sheet: 'Vehicle Search' });
-    XLSX.writeFile(wb, 'vehicle-search-<?= date('Y-m-d') ?>.xlsx');
-  });
 });
 </script>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

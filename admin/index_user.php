@@ -2,8 +2,7 @@
 session_start();
 
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
+    header('Location: /auth/logout.php');
     exit();
 }
 
@@ -72,7 +71,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <link rel="stylesheet" href="/assets/css/neo-vtrack-tokens.css">
 <link rel="stylesheet" href="/assets/css/neo-vtrack-components.css">
 <link rel="stylesheet" href="/assets/css/neo-vtrack-app.css">
-<body>
+<body class="nv-home-night">
+<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_night_bg.php'; ?>
 <div class="nv-shell">
 <?php
 $nv_active = 'dashboard';
