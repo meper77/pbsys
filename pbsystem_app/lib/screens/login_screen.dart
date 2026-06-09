@@ -5,6 +5,8 @@ import '../services/api.dart';
 import '../services/session.dart';
 import 'home_screen.dart';
 
+/// Passwordless sign-in: UiTM email -> one-time code. No role picker (the server
+/// decides admin vs user from the allowlist).
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override
@@ -13,28 +15,43 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
-  final _password = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  String _role = 'admin';
+  final _code = TextEditingController();
+  final _emailKey = GlobalKey<FormState>();
   bool _busy = false;
-  bool _obscure = true;
+  bool _codeSent = false;
   String? _error;
+  String? _info;
 
   @override
   void dispose() {
     _email.dispose();
-    _password.dispose();
+    _code.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
+  bool _validUitm(String e) {
+    final r = RegExp(r'@(student\.)?uitm\.edu\.my$', caseSensitive: false);
+    return e.contains('@') && r.hasMatch(e.trim());
+  }
+
+  Future<void> _sendCode() async {
+    if (!(_emailKey.currentState?.validate() ?? false)) return;
+    setState(() { _busy = true; _error = null; _info = null; });
     try {
-      final user = await Api.login(_email.text.trim(), _password.text, _role);
+      await Api.requestOtp(_email.text.trim());
+      setState(() { _codeSent = true; _info = 'We emailed a 6-digit code to ${_email.text.trim()}.'; });
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _verify() async {
+    if (_code.text.trim().length < 4) { setState(() => _error = 'Enter the 6-digit code.'); return; }
+    setState(() { _busy = true; _error = null; });
+    try {
+      final user = await Api.verifyOtp(_email.text.trim(), _code.text.trim());
       await Session.save(user);
       if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen(user: user)));
@@ -67,63 +84,68 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: NV.ink)),
               Text(Config.tagline, style: const TextStyle(color: NV.muted, fontSize: 13)),
               const SizedBox(height: 28),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'admin', label: Text('Admin'), icon: Icon(Icons.shield_outlined)),
-                  ButtonSegment(value: 'user', label: Text('User'), icon: Icon(Icons.person_outline)),
-                ],
-                selected: {_role},
-                onSelectionChanged: (s) => setState(() => _role = s.first),
-              ),
-              const SizedBox(height: 20),
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline)),
-                      validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+
+              if (!_codeSent) ...[
+                Form(
+                  key: _emailKey,
+                  child: TextFormField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'UiTM email',
+                      hintText: 'name@uitm.edu.my',
+                      prefixIcon: Icon(Icons.mail_outline),
                     ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _password,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
-                    ),
-                  ],
+                    validator: (v) => (v == null || !_validUitm(v))
+                        ? 'Use your UiTM email (@uitm.edu.my)'
+                        : null,
+                  ),
                 ),
-              ),
-              if (_error != null) ...[
+              ] else ...[
+                TextFormField(
+                  controller: _email,
+                  enabled: false,
+                  decoration: const InputDecoration(labelText: 'UiTM email', prefixIcon: Icon(Icons.mail_outline)),
+                ),
                 const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: NV.danger.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-                  child: Row(children: [
-                    const Icon(Icons.error_outline, color: NV.danger, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(_error!, style: const TextStyle(color: NV.danger, fontSize: 13))),
-                  ]),
+                TextFormField(
+                  controller: _code,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 22, letterSpacing: 8),
+                  decoration: const InputDecoration(labelText: 'One-time code', counterText: ''),
                 ),
               ],
-              const SizedBox(height: 22),
+
+              if (_info != null) ...[
+                const SizedBox(height: 12),
+                _banner(_info!, NV.navy, Icons.info_outline),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                _banner(_error!, NV.danger, Icons.error_outline),
+              ],
+
+              const SizedBox(height: 20),
               FilledButton(
-                onPressed: _busy ? null : _login,
+                onPressed: _busy ? null : (_codeSent ? _verify : _sendCode),
                 child: _busy
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Sign in'),
+                    : Text(_codeSent ? 'Verify & sign in' : 'Email me a code'),
               ),
-              const SizedBox(height: 12),
+              if (_codeSent) ...[
+                const SizedBox(height: 6),
+                TextButton(
+                  onPressed: _busy ? null : _sendCode,
+                  child: const Text('Resend code'),
+                ),
+                TextButton(
+                  onPressed: _busy ? null : () => setState(() { _codeSent = false; _code.clear(); _error = null; _info = null; }),
+                  child: const Text('Use a different email'),
+                ),
+              ],
+              const SizedBox(height: 8),
               Text('Connecting to ${Config.apiBaseUrl}',
                   textAlign: TextAlign.center, style: const TextStyle(color: NV.muted, fontSize: 11)),
             ],
@@ -132,4 +154,14 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
+  Widget _banner(String text, Color color, IconData icon) => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
+        child: Row(children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(text, style: TextStyle(color: color, fontSize: 13))),
+        ]),
+      );
 }

@@ -26,27 +26,41 @@ class Api {
     }
   }
 
-  /// Login as admin or user. Returns the authenticated [AppUser].
-  static Future<AppUser> login(String email, String password, String role) async {
-    final endpoint = role == 'admin' ? 'login_admin_api.php' : 'login_user_api.php';
+  /// Passwordless: request a one-time sign-in code for a UiTM email.
+  static Future<void> requestOtp(String email) async {
     final http.Response r;
     try {
       r = await http
-          .post(Config.api(endpoint),
+          .post(Config.api('otp_request_api.php'),
               headers: {'Content-Type': 'application/json'},
-              body: json.encode({'email': email, 'password': password}))
+              body: json.encode({'email': email}))
           .timeout(_timeout);
     } on SocketException {
       throw ApiException('Cannot reach server. Check your network.');
     }
     final j = await _decode(r);
-    final success = j['success'] == 1 || j['success'] == true;
-    if (!success) throw ApiException((j['message'] ?? 'Invalid email or password').toString());
-    final userJson = (j['user'] ?? j['admin'] ?? {}) as Map<String, dynamic>;
-    if (userJson.isEmpty) {
-      return AppUser(id: 0, name: email.split('@').first, email: email, role: role);
+    final ok = j['success'] == 1 || j['success'] == true;
+    if (!ok) throw ApiException((j['message'] ?? 'Could not send code').toString());
+  }
+
+  /// Verify a one-time code and return the authenticated [AppUser].
+  /// Role (admin/user) is decided server-side by the admin allowlist.
+  static Future<AppUser> verifyOtp(String email, String code) async {
+    final http.Response r;
+    try {
+      r = await http
+          .post(Config.api('otp_verify_api.php'),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({'email': email, 'code': code}))
+          .timeout(_timeout);
+    } on SocketException {
+      throw ApiException('Cannot reach server. Check your network.');
     }
-    return AppUser.fromJson(userJson, role);
+    final j = await _decode(r);
+    final ok = j['success'] == 1 || j['success'] == true;
+    if (!ok) throw ApiException((j['message'] ?? 'Invalid code').toString());
+    final userJson = (j['user'] ?? {}) as Map<String, dynamic>;
+    return AppUser.fromJson(userJson, (userJson['role'] ?? 'user').toString());
   }
 
   /// Dashboard counts.
