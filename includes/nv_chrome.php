@@ -87,7 +87,7 @@ function nv_item($slug, $href, $lucide, $label, $active) {
                     <div class="nv-who-role"><?php echo htmlspecialchars($nv_admin_role); ?></div>
                 </div>
             </a>
-            <a href="?logout=1" class="nv-btn nv-btn-ghost" style="padding:7px 12px;margin-left:8px;" onclick="return confirm('<?php echo addslashes($nv_t['logout_confirm']); ?>')" title="<?php echo $nv_t['logout']; ?>">
+            <a href="/auth/logout.php" class="nv-btn nv-btn-ghost" style="padding:7px 12px;margin-left:8px;" onclick="return confirm('<?php echo addslashes($nv_t['logout_confirm']); ?>')" title="<?php echo $nv_t['logout']; ?>">
                 <i data-lucide="log-out"></i>
             </a>
         </div>

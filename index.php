@@ -3,8 +3,7 @@ session_start();
 
 // ========== LOGOUT HANDLER ==========
 if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
+    header('Location: /auth/logout.php');
     exit();
 }
 // ========== END LOGOUT HANDLER ==========

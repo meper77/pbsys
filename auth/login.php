@@ -1,137 +1,170 @@
 <?php
-session_start();
+/**
+ * NEO V-TRACK — passwordless sign in / sign up (UiTM email + one-time code).
+ * Replaces the old email/password login. Role (admin/user) is derived from the
+ * admin allowlist. "Remember this device" skips OTP on trusted devices.
+ */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/i18n.php';      // session + ?lang
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/otp_auth.php';
 
-// LANGUAGE SYSTEM
-if (!isset($_SESSION['language'])) {
-    $_SESSION['language'] = 'bm';
+function nv_home_for(string $role): string
+{
+    return $role === 'admin' ? '/index.php' : '/admin/index_user.php';
 }
 
-if (isset($_GET['lang'])) {
-    $_SESSION['language'] = ($_GET['lang'] == 'en') ? 'en' : 'bm';
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    exit();
+// Already signed in? Go home.
+if (nv_is_logged_in()) {
+    header('Location: ' . nv_home_for(nv_is_admin() ? 'admin' : 'user'));
+    exit;
 }
 
-$lang = $_SESSION['language'];
+$step  = 'email';
+$error = '';
+$info  = '';
+$method = $_SERVER['REQUEST_METHOD'];
+$action = $_POST['action'] ?? '';
 
-// Language texts
-$text = [];
-
-$text['bm'] = [
-    'page_title' => 'Log masuk pengguna',
-    'eyebrow' => 'Polis Bantuan · UiTM',
-    'heading' => 'Log masuk ke NEO V-TRACK',
-    'subhead' => 'Gunakan emel berdaftar anda untuk mengakses rekod kenderaan.',
-    'email_label' => 'Emel',
-    'email_placeholder' => 'nama@uitm.edu.my',
-    'password_label' => 'Kata laluan',
-    'login_button' => 'Log masuk',
-    'forgot_password' => 'Lupa kata laluan?',
-    'switch_to_admin' => 'Log masuk sebagai admin',
-    'new_user_question' => 'Tiada akaun?',
-    'register_here' => 'Daftar',
-    'invalid_credentials' => 'Emel atau kata laluan tidak sah.',
-    'brand_sub' => 'Log masuk'
-];
-
-$text['en'] = [
-    'page_title' => 'User sign in',
-    'eyebrow' => 'Auxiliary Police · UiTM',
-    'heading' => 'Sign in to NEO V-TRACK',
-    'subhead' => 'Use your registered email to access vehicle records.',
-    'email_label' => 'Email',
-    'email_placeholder' => 'name@uitm.edu.my',
-    'password_label' => 'Password',
-    'login_button' => 'Sign in',
-    'forgot_password' => 'Forgot your password?',
-    'switch_to_admin' => 'Sign in as admin',
-    'new_user_question' => 'Need an account?',
-    'register_here' => 'Register',
-    'invalid_credentials' => 'Invalid email or password.',
-    'brand_sub' => 'Sign in'
-];
-
-$t = $text[$lang];
-
-$invalid = "";
-
-// Handle Login
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-
-    $email = mysqli_real_escape_string($con, $_POST['email']);
-    $password = mysqli_real_escape_string($con, $_POST['password']);
-
-    $sql = "SELECT * FROM user WHERE email='$email' AND password='$password'";
-    $result = mysqli_query($con, $sql);
-
-    if ($result && mysqli_num_rows($result) > 0) {
-        $user_data = mysqli_fetch_assoc($result);
-
-        $_SESSION['email'] = $email;
-        $_SESSION['nama'] = $user_data['name'] ?? $email;
-        $_SESSION['user_type'] = 'user';
-        $_SESSION['userid'] = $user_data['userid'] ?? null;
-
-        mysqli_query($con, "UPDATE user SET last_login = NOW() WHERE email = '$email'");
-
-        header("Location: /admin/index_user.php");
-        exit();
-    } else {
-        $invalid = $t['invalid_credentials'];
+// Trusted-device auto-login (only a plain GET, no pending OTP).
+if ($method === 'GET' && empty($_SESSION['otp_email']) && !empty($_COOKIE[NV_DEVICE_COOKIE])) {
+    $dev = nv_check_trusted_device($con);
+    if ($dev && nv_valid_uitm_email($dev)) {
+        $role = nv_role_for_email($con, $dev);
+        nv_ensure_account($con, $dev, $role);
+        nv_establish_session($con, $dev, $role);
+        header('Location: ' . nv_home_for($role));
+        exit;
     }
 }
 
-// Build links with language parameter
-$lang_param = isset($_SESSION['language']) ? "?lang=" . $_SESSION['language'] : "";
-$forgot_link = "/auth/forgot_password_smtp.php" . $lang_param;
-$admin_login_link = "/auth/login_admin.php" . $lang_param;
-$register_link = "/auth/register.php" . $lang_param;
+if ($method === 'POST') {
+    if ($action === 'change_email') {
+        unset($_SESSION['otp_email']);
+    } elseif ($action === 'send_code' || $action === 'resend') {
+        $email = nv_norm_email($_POST['email'] ?? ($_SESSION['otp_email'] ?? ''));
+        if (!nv_valid_uitm_email($email)) {
+            $error = t('auth.bad_domain');
+        } else {
+            $err = null;
+            if (nv_create_and_send_otp($con, $email, $err)) {
+                $_SESSION['otp_email'] = $email;
+                $step = 'code';
+                $info = t('auth.code_sent', ['email' => $email]);
+            } elseif ($err === 'rate') {
+                // A recent code is still valid — let them enter it.
+                $_SESSION['otp_email'] = $email;
+                $step = 'code';
+                $info = t('auth.rate_limited');
+            } else {
+                $error = t('auth.send_failed');
+            }
+        }
+    } elseif ($action === 'verify') {
+        $email = nv_norm_email($_SESSION['otp_email'] ?? '');
+        $code  = $_POST['code'] ?? '';
+        if ($email === '') {
+            $step = 'email';
+        } else {
+            $reason = null;
+            if (nv_verify_otp($con, $email, $code, $reason)) {
+                $role = nv_role_for_email($con, $email);
+                nv_ensure_account($con, $email, $role);
+                nv_establish_session($con, $email, $role);
+                if (!empty($_POST['remember'])) {
+                    nv_remember_device($con, $email);
+                }
+                unset($_SESSION['otp_email']);
+                header('Location: ' . nv_home_for($role));
+                exit;
+            }
+            $step  = 'code';
+            $error = $reason === 'too_many' ? t('auth.too_many') : t('auth.bad_code');
+        }
+    }
+}
 
-include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
+// Default to the code step if an OTP is pending and we weren't told to change email.
+if ($step === 'email' && !empty($_SESSION['otp_email']) && $action !== 'change_email') {
+    $step = 'code';
+}
+$pendingEmail = $_SESSION['otp_email'] ?? '';
+$lang = nv_lang();
+
+include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
 <body>
 <div class="auth-hero">
-  <form class="auth-card" method="post" action="">
+  <form class="auth-card" method="post" action="/auth/login.php">
     <div class="auth-brand">
       <img class="uitm" src="/assets/images/uitm.png" alt="UiTM">
       <div class="divider"></div>
       <img class="neo" src="/assets/images/neo-vtrack-logo.png" alt="NEO V-TRACK">
-      <div class="word"><span class="name">NEO <span class="y">V-TRACK</span></span><span class="sub"><?= htmlspecialchars($t['brand_sub']) ?></span></div>
+      <div class="word"><span class="name">NEO <span class="y">V-TRACK</span></span><span class="sub"><?= htmlspecialchars(t('brand.sub')) ?></span></div>
     </div>
     <div class="auth-head">
-      <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
-      <h1><?= htmlspecialchars($t['heading']) ?></h1>
-      <p><?= htmlspecialchars($t['subhead']) ?></p>
+      <span class="eyebrow"><?= htmlspecialchars(t('brand.sub')) ?></span>
+      <h1><?= htmlspecialchars(t('auth.signin')) ?></h1>
+      <p><?= htmlspecialchars(t('auth.subhead')) ?></p>
     </div>
 
-    <?php if (!empty($invalid)): ?>
-      <div class="flash bad"><i data-lucide="alert-circle"></i><span><?= htmlspecialchars($invalid) ?></span></div>
+    <?php if ($error): ?>
+      <div class="flash bad"><i data-lucide="alert-circle"></i><span><?= htmlspecialchars($error) ?></span></div>
+    <?php endif; ?>
+    <?php if ($info): ?>
+      <div class="flash ok"><i data-lucide="mail-check"></i><span><?= htmlspecialchars($info) ?></span></div>
     <?php endif; ?>
 
-    <div class="field">
-      <label class="field-label" for="email"><?= htmlspecialchars($t['email_label']) ?></label>
-      <input class="input" id="email" name="email" type="email" required placeholder="<?= htmlspecialchars($t['email_placeholder']) ?>">
-    </div>
-    <div class="field">
-      <label class="field-label" for="password"><?= htmlspecialchars($t['password_label']) ?></label>
-      <input class="input" id="password" name="password" type="password" required>
-    </div>
-
-    <button class="btn btn-primary btn-full-width" type="submit">
-      <?= htmlspecialchars($t['login_button']) ?> <i data-lucide="arrow-right"></i>
-    </button>
+    <?php if ($step === 'code'): ?>
+      <!-- STEP 2: enter code -->
+      <input type="hidden" name="action" value="verify">
+      <div class="field">
+        <label class="field-label"><?= htmlspecialchars(t('auth.email_label')) ?></label>
+        <input class="input" type="email" value="<?= htmlspecialchars($pendingEmail) ?>" readonly>
+      </div>
+      <div class="field">
+        <label class="field-label" for="code"><?= htmlspecialchars(t('auth.code_label')) ?></label>
+        <input class="input mono" id="code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               autocomplete="one-time-code" required placeholder="<?= htmlspecialchars(t('auth.code_ph')) ?>" autofocus
+               style="letter-spacing:8px;font-size:20px;text-align:center;">
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:4px 0 10px;cursor:pointer;">
+        <input type="checkbox" name="remember" value="1"> <?= htmlspecialchars(t('auth.remember')) ?>
+      </label>
+      <button class="btn btn-primary btn-full-width" type="submit">
+        <?= htmlspecialchars(t('auth.verify')) ?> <i data-lucide="arrow-right"></i>
+      </button>
+      <div class="auth-foot">
+        <button class="linklike" type="submit" name="action" value="resend" formnovalidate><?= htmlspecialchars(t('auth.resend')) ?></button>
+        <button class="linklike" type="submit" name="action" value="change_email" formnovalidate><?= htmlspecialchars(t('auth.change_email')) ?></button>
+      </div>
+    <?php else: ?>
+      <!-- STEP 1: enter UiTM email -->
+      <input type="hidden" name="action" value="send_code">
+      <div class="field">
+        <label class="field-label" for="email"><?= htmlspecialchars(t('auth.email_label')) ?></label>
+        <input class="input" id="email" name="email" type="email" required
+               placeholder="<?= htmlspecialchars(t('auth.email_ph')) ?>" autofocus
+               value="<?= htmlspecialchars($pendingEmail) ?>">
+      </div>
+      <button class="btn btn-primary btn-full-width" type="submit">
+        <?= htmlspecialchars(t('auth.send_code')) ?> <i data-lucide="mail"></i>
+      </button>
+      <div class="auth-foot">
+        <span style="font-size:12px;color:var(--fg-3);"><?= htmlspecialchars(t('auth.no_password')) ?></span>
+      </div>
+    <?php endif; ?>
 
     <div class="auth-foot">
-      <a href="<?= htmlspecialchars($forgot_link) ?>"><?= htmlspecialchars($t['forgot_password']) ?></a>
-      <span><?= htmlspecialchars($t['new_user_question']) ?> <a href="<?= htmlspecialchars($register_link) ?>"><?= htmlspecialchars($t['register_here']) ?></a></span>
-      <span><a href="<?= htmlspecialchars($admin_login_link) ?>"><?= htmlspecialchars($t['switch_to_admin']) ?></a></span>
       <span class="text-mono lang-selector">
-        <a href="?lang=bm" class="<?= $lang == 'bm' ? 'lang-active' : 'lang-inactive' ?>">BM</a>
+        <a href="?lang=bm" class="<?= $lang === 'bm' ? 'lang-active' : 'lang-inactive' ?>">BM</a>
         ·
-        <a href="?lang=en" class="<?= $lang == 'en' ? 'lang-active' : 'lang-inactive' ?>">EN</a>
+        <a href="?lang=en" class="<?= $lang === 'en' ? 'lang-active' : 'lang-inactive' ?>">EN</a>
       </span>
     </div>
   </form>
 </div>
-<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>
+<style>
+  .linklike{background:none;border:0;color:var(--accent,#6b21a8);cursor:pointer;font:inherit;padding:0;text-decoration:underline;}
+</style>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
