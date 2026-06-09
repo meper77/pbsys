@@ -14,7 +14,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/secrets_loader.php';
 
 $key = $_GET['key'] ?? '';
 $expected = (string) nv_secret('migrate_key', '');
-if ($expected === '' || !hash_equals($expected, (string) $key)) {
+// Refuse to run with the public placeholder key (i.e. when the real secrets.php is absent),
+// so the endpoint is inert until a private migrate_key is deployed.
+if ($expected === '' || $expected === 'CHANGE_ME_migrate_key' || !hash_equals($expected, (string) $key)) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'forbidden']);
     exit;
