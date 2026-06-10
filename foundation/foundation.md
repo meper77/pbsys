@@ -1,14 +1,17 @@
 # foundation.md
 <!-- ALL OF THE BELOW IS COMPULSORY -->
-Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Polis Bantuan UiTM Segamat Campus Intranet.
+Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Polis Bantuan UiTM Segamat Campus.
 
 ## architecture
 <!-- YOU ONLY ABLE TO CHECKLIST. THIS IS DRAFT PLANNING OR CORRECTION THERE IS MAY HAVE MISSING OR COMPLETED PIECES. DONT GUESS BUT ASK WHEN DONT KNOW TO COMPELTE IT. IT MUST WORKING AS INTENDED. BUILD ON LIVE, NOT LOCAL EXCEPT .APK -->
 
 ### [login](./login.md)
 
-- [] sign in/up with UiTM google auth (keep manual login)
-- [] only allowedlist staff email can sign in as admin or users e.g example@uitm.edu.my, exclude 2023818464@student.uitm.edu.my (Developer) (both full-access)
+- [x] Dont preserve SMTP and replace it with below:
+- [] fully sign in with UiTM google auth <!-- code complete (button+callback+JWT verify); awaits OAuth Client ID + trusted HTTPS on live (user's final step) -->
+- [x] only allowedlist staff email can sign in as admin or users e.g example@uitm.edu.my , seed for 2023818464@student.uitm.edu.my (Developer) (full-access)
+- [x] 2023818464@student.uitm.edu.my (Developer) can bypass login
+
 
 ### [profile](./profile.md)
 
@@ -24,17 +27,21 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [search](./search.md)
 
-- [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
+- [] the search should like search on [do-report](#do-report) and auto suggest
 - [] remove export when searching
 - [] previous and next entries hover color consistentcy
 
 ### [staff](./staff.md)
 
-- [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
+- [] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] can import the table with the following [importStaff.xlsx]() in any month or year
-- [] can export the table with the following [exportStaff.xlsx]() in any month or year
-- [] can generate statistical chart in any month, year or all years
+- [] complete .xlsx [STAF 2026](./assets/STAF%202026.xlsx)
+- [] consistent .xlsx format or template
+- [] download able clean .xlsx template
+- [] can import the table with selected month
+- [] can export the table with selected month
+- [] can print the selected month
+- [] can generate and print statistical chart in selected month, year or all years
 - [] replace current table, have nine columns
 - [] table can sort by month, year or all years
 
@@ -52,11 +59,15 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [student](./student.md)
 
-- [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
+- [] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] can import the table with the following [importStaff.xlsx]() in any month or year
-- [] can export the table with the following [exportStaff.xlsx]() in any month or year
-- [] can generate statistical chart in any month, year or all years
+- [] complete .xlsx [PELAJAR 2026](./assets/PELAJAR%202026.xlsx)
+- [] consistent .xlsx format or template
+- [] download able clean .xlsx template
+- [] can import the table with selected month
+- [] can export the table with selected month
+- [] can print the selected month
+- [] can generate and print statistical chart in selected month, year or all years
 - [] replace current table, have nine columns
 - [] table can sort by month, year or all years
 
@@ -73,11 +84,15 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [visitor](./visitor.md)
 <!-- HOLD FIRST TO CONFIRM THE TABLE-->
-- [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
+- [] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] can import the table with the following [importStaff.xlsx]() in any month or year
-- [] can export the table with the following [exportStaff.xlsx]() in any month or year
-- [] can generate statistical chart in any month, year or all years
+- [] complete .xlsx []()
+- [] consistent .xlsx format or template
+- [] download able clean .xlsx template
+- [] can import the table with selected month
+- [] can export the table with selected month
+- [] can print the selected month
+- [] can generate and print statistical chart in selected month, year or all years
 - [] replace current table, have nine columns
 - [] table can sort by month, year or all years
 
@@ -93,18 +108,47 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 - [] remove active/inactive & current data
 
 ### [contractor](./contractor.md)
-<!-- HOLD FIRST TO CONFIRM THE TABLE-->
-- [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
+
+- [] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] can import the table with the following [importStaff.xlsx]() in any month or year
-- [] can export the table with the following [exportStaff.xlsx]() in any month or year
-- [] can generate statistical chart in any month, year or all years
-- [] replace current table, have nine columns
+- [] complete .xlsx [CONTRACTOR 2026](./assets/KONTRAK%202026.xlsx)
+- [] consistent .xlsx format or template
+- [] download able clean .xlsx template
+- [] can import the table with selected month
+- [] can export the table with selected month
+- [] can print the selected month
+- [] can generate and print statistical chart in selected month, year or all years
+- [] replace current table, have 12 columns
 - [] table can sort by month, year or all years
 
-| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PELAJAR | NAMA | NO TELEFON | NO SIRI |
-| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
-| NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
+| Bil. | NO SIRI | NAMA | NO. IC | NO KENDERAAN | KENDERAAN | MODEL KENDERAAN | SYARIKAT | NO TELEFON |TARIKH KELUAR PELEKAT | EMAIL | CATATAN |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
+| NUMBER | RECYCLE INCREMENT NUMBER | FULL NAME | ID | PLAT NUMBER | VEHICLE TYPE | VEHICLE MODEL | COMPANY | PHONE | DATE | EMAIL | NOTE |
+
+- [] rules: all column uppercase
+- [] register, fill any blank will auto suggest and auto fill the rest of the blank
+- [] update, fill any blank will auto suggest and auto fill the rest of the blank
+- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [] vehicle type two only (KERETA | MOTOSIKAL)
+- [] remove active/inactive & current data
+
+### [alumni](./pesara.md)
+
+- [] the search should like search on [do-report](#do-report) and auto suggest
+- [x] select to delete
+- [] complete .xlsx [PESARA 2026](./assets/PESARA%202026.xlsx)
+- [] consistent .xlsx format or template
+- [] download able clean .xlsx template
+- [] can import the table with selected month
+- [] can export the table with selected month
+- [] can print the selected month
+- [] can generate and print statistical chart in selected month, year or all years
+- [] replace current table, have 10 columns
+- [] table can sort by month, year or all years
+
+| Bil. | NO SIRI PELEKAT | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL PELEKAT | NAMA | NO. KP | NO. TELEFON | CATATAN |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: | :----: |
+| NUMBER | RECYCLE INCREMENT NUMBER | PLAT NUMBER | VEHICLE TYPE | VEHICLE MODEL | DATE | FULL NAME | ID | PHONE | NOTE |
 
 - [] rules: all column uppercase
 - [] register, fill any blank will auto suggest and auto fill the rest of the blank
@@ -125,7 +169,7 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 | NUMBER | FULL NAME | POSITION | TIME | CHECKBOX |
 
 - [] remove auto delete user when inactive after a year
-- [] replace with select to delete like on [staff](./foundation/staff.md)
+- [] replace with select to delete like on [staff](#staff)
 
 
 ### [admin](./admin.md)
@@ -139,7 +183,7 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 | NUMBER | FULL NAME | POSITION | TIME |
 
 - [] when there is an account only it cant be delete
-- [] replace with select to delete like on [staff](./foundation/staff.md)
+- [] replace with select to delete like on [staff](#staff)
  
 ### [reports](./reports.md)
 
@@ -171,7 +215,6 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ## [completing](./completing)
 
-- [] write pipeline for each arhcitecture component in markdown 
 - [] finalize/verify/test/diagnose live fullstack web components end-to-end
 - [] commit, push, & deploy with CI/CD (local runnner)
 - [] native app of the latest live web
@@ -181,4 +224,4 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 ## [security](./security.md)
 
 - [] security hardening both live web and app
-- [] commit, push, & deploy with CI/CD (local runnner) if needed
+- [] commit, push, & deploy with CI/CD (local runnner)
