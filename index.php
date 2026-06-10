@@ -87,17 +87,19 @@ if ($admin_query && mysqli_num_rows($admin_query) > 0) {
     }
 }
 
-// Vehicle totals per category
-$category_map = ['staff' => 'Staf', 'student' => 'Pelajar', 'visitor' => 'Pelawat', 'contractor' => 'Kontraktor'];
-$counts = ['staff' => 0, 'student' => 0, 'visitor' => 0, 'contractor' => 0, 'total' => 0];
-foreach ($category_map as $slug => $category) {
-    $result = @mysqli_query($con, "SELECT COUNT(*) as count FROM owner WHERE status = '$category'");
-    if ($result && mysqli_num_rows($result) > 0) {
-        $data = mysqli_fetch_assoc($result);
-        $counts[$slug] = (int)($data['count'] ?? 0);
-        $counts['total'] += $counts[$slug];
-    }
-}
+// Year scope for the metrics + chart (one selector drives both).
+$cy      = (isset($_GET['cy']) && ctype_digit($_GET['cy'])) ? (int) $_GET['cy'] : (int) date('Y');
+$cyYears = nv_owner_years($con, $cy);
+
+// Vehicle metrics per category + sum, scoped to the selected year.
+$yc = nv_owner_year_counts($con, $cy);
+$counts = [
+    'staff'      => $yc['Staf'],
+    'student'    => $yc['Pelajar'],
+    'visitor'    => $yc['Pelawat'],
+    'contractor' => $yc['Kontraktor'],
+    'total'      => $yc['total'],
+];
 $total_vehicles = $counts['total']; // back-compat
 
 // Total users
@@ -122,6 +124,12 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <p class="sub"><?= htmlspecialchars($t['subhead']) ?></p>
     </div>
     <div class="actions">
+      <form method="GET" class="actions" style="margin:0;gap:6px;">
+        <label class="text-mono" style="font-size:12px;color:var(--fg-3);align-self:center;"><?= $lang === 'bm' ? 'Tahun' : 'Year' ?></label>
+        <select name="cy" class="select" onchange="this.form.submit()" style="min-width:110px;">
+          <?php foreach ($cyYears as $yy): ?><option value="<?= $yy ?>" <?= $yy === $cy ? 'selected' : '' ?>><?= $yy ?></option><?php endforeach; ?>
+        </select>
+      </form>
       <a class="btn btn-ghost" href="/search/car_admin.php"><i data-lucide="search"></i> <?= htmlspecialchars($t['search_title']) ?></a>
       <?php if ($nv_admin): ?>
       <a class="btn btn-primary" href="/admin/admins.php"><i data-lucide="shield-check"></i> <?= htmlspecialchars($t['admin_title']) ?></a>
@@ -129,6 +137,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
   </div>
 
+  <div class="eyebrow" style="margin:2px 0 8px;"><?= ($lang === 'bm' ? 'Metrik · ' : 'Metrics · ') . $cy ?></div>
   <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
     <div class="kpi signal">
       <div class="lbl"><?= htmlspecialchars($t['total_vehicles']) ?></div>
@@ -153,13 +162,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   </div>
 
   <?php
-  // Monthly registrations stacked by category, for a selectable year.
-  $cy = (isset($_GET['cy']) && ctype_digit($_GET['cy'])) ? (int) $_GET['cy'] : (int) date('Y');
-  $effHome = "COALESCE(`date_taken`, `created_at`)";
-  $cyYears = [];
-  $ry = @mysqli_query($con, "SELECT DISTINCT YEAR($effHome) y FROM `owner` WHERE $effHome IS NOT NULL ORDER BY y DESC");
-  if ($ry) { while ($r = mysqli_fetch_assoc($ry)) { if ($r['y']) { $cyYears[] = (int) $r['y']; } } }
-  if (!in_array($cy, $cyYears, true)) { $cyYears[] = $cy; rsort($cyYears); }
+  // Monthly registrations stacked by category, for the year chosen above.
   $cMonths = ($lang === 'bm')
     ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
     : [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
@@ -169,13 +172,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <span class="eyebrow"><?= $lang === 'bm' ? 'Statistik' : 'Statistics' ?></span>
       <h2 class="text-display" style="margin-top:4px;"><?= ($lang === 'bm' ? 'Pendaftaran bulanan — ' : 'Monthly registrations — ') . $cy ?></h2>
     </div>
-    <form method="GET" class="actions">
-      <select name="cy" class="select" onchange="this.form.submit()" style="min-width:120px;">
-        <?php foreach ($cyYears as $yy): ?>
-          <option value="<?= $yy ?>" <?= $yy === $cy ? 'selected' : '' ?>><?= $yy ?></option>
-        <?php endforeach; ?>
-      </select>
-    </form>
   </div>
   <?php
   echo nv_owner_chart_card($con, [

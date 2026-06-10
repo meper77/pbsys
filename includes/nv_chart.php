@@ -59,6 +59,41 @@ function nv_chart_aggregate($con, string $status, int $year, string $seriesBy, a
 function nv_chart_esc($s): string { return htmlspecialchars((string) $s, ENT_QUOTES); }
 
 /**
+ * Per-category owner counts + grand total for a year (0 => all-time), using the
+ * same effective date as the charts. Returns Staf/Pelajar/Pelawat/Kontraktor/Pesara
+ * keys plus 'total' (sum of every status, so new categories still count).
+ */
+function nv_owner_year_counts($con, int $year): array
+{
+    $out = ['Staf' => 0, 'Pelajar' => 0, 'Pelawat' => 0, 'Kontraktor' => 0, 'Pesara' => 0, 'total' => 0];
+    $eff   = "COALESCE(`date_taken`, `created_at`)";
+    $where = "$eff IS NOT NULL";
+    if ($year > 0) { $where .= " AND YEAR($eff) = " . (int) $year; }
+    if ($res = @mysqli_query($con, "SELECT `status` s, COUNT(*) c FROM `owner` WHERE $where GROUP BY `status`")) {
+        while ($r = mysqli_fetch_assoc($res)) {
+            $s = (string) $r['s']; $c = (int) $r['c'];
+            if (array_key_exists($s, $out)) { $out[$s] = $c; }
+            $out['total'] += $c;
+        }
+    }
+    return $out;
+}
+
+/** Distinct years present in owner (desc), guaranteeing $include is in the list. */
+function nv_owner_years($con, int $include = 0): array
+{
+    $eff = "COALESCE(`date_taken`, `created_at`)";
+    $years = [];
+    if ($ry = @mysqli_query($con, "SELECT DISTINCT YEAR($eff) y FROM `owner` WHERE $eff IS NOT NULL ORDER BY y DESC")) {
+        while ($r = mysqli_fetch_assoc($ry)) { if ($r['y']) { $years[] = (int) $r['y']; } }
+    }
+    if ($include > 0 && !in_array($include, $years, true)) { $years[] = $include; }
+    if (!$years) { $years[] = (int) date('Y'); }
+    rsort($years);
+    return $years;
+}
+
+/**
  * Render a stacked bar chart as inline SVG.
  *
  * @param array $xLabels  Bottom-axis labels (one per bar).
