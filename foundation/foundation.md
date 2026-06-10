@@ -159,31 +159,31 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [users](./users.md)
 
-- [] allowedlist staff email can sign in as admin or users
-- [] admin add allowed staff email to sign in as users
-- [] admin control users access via permission control
-- [] replace current table
+- [x] allowedlist staff email can sign in as admin or users
+- [x] admin add allowed staff email to sign in as users
+- [x] admin control users access via permission control
+- [x] replace current table
 
 | NO. | FULL NAME | POSITION | LAST ONLINE | PERMISSION CONTROL |
 | :----: | :----: | :----: | :----: |:----: |
 | NUMBER | FULL NAME | POSITION | TIME | CHECKBOX |
 
-- [] remove auto delete user when inactive after a year
-- [] replace with select to delete like on [staff](#staff)
+- [x] remove auto delete user when inactive after a year
+- [x] replace with select to delete like on [staff](#staff)
 
 
 ### [admin](./admin.md)
 
-- [] allowedlist staff email can sign in as admin or users
-- [] admin add allowed staff email to sign in as admin
-- [] replace current table
+- [x] allowedlist staff email can sign in as admin or users
+- [x] admin add allowed staff email to sign in as admin
+- [x] replace current table
 
 | NO. | FULL NAME | POSITION | LAST ONLINE |
 | :----: | :----: | :----: | :----: |
 | NUMBER | FULL NAME | POSITION | TIME |
 
-- [] when there is an account only it cant be delete
-- [] replace with select to delete like on [staff](#staff)
+- [x] when there is an account only it cant be delete
+- [x] replace with select to delete like on [staff](#staff)
  
 ### [reports](./reports.md)
 
