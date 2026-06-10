@@ -22,8 +22,9 @@ $errors   = [];
 
 // ---- POST: save changes ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_profile') {
-    $name  = trim($_POST['name']  ?? '');
-    $phone = trim($_POST['phone'] ?? '');
+    $name     = trim($_POST['name']     ?? '');
+    $position = trim($_POST['position'] ?? '');
+    $phone    = trim($_POST['phone']    ?? '');
 
     if ($name === '') {
         $errors[] = 'Name cannot be empty.';
@@ -67,9 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
 
     if (empty($errors)) {
         // Build the UPDATE dynamically (bound params, no string concat).
-        $fields = ['name = ?', 'phone = ?'];
-        $types  = 'ss';
-        $vals   = [$name, $phone];
+        $fields = ['name = ?', 'position = ?', 'phone = ?'];
+        $types  = 'sss';
+        $vals   = [$name, $position, $phone];
 
         if ($imagePath !== null) {
             $fields[] = 'profile_image = ?';
@@ -126,8 +127,10 @@ $L = $lang === 'bm' ? [
     'title' => 'Profil Saya',
     'role_admin' => 'Administrator',
     'role_user'  => 'Pengguna',
-    'name' => 'Nama',
-    'email' => 'E-mel',
+    'name' => 'Nama Penuh',
+    'position' => 'Jawatan',
+    'position_ph' => 'cth. Pegawai Polis Bantuan',
+    'email' => 'E-mel UiTM',
     'phone' => 'No. Telefon',
     'photo' => 'Foto Profil',
     'change_photo' => 'Tukar Foto',
@@ -138,7 +141,7 @@ $L = $lang === 'bm' ? [
     'save' => 'Simpan',
     'back' => 'Kembali',
     'account' => 'Akaun',
-    'no_password_note' => 'NEO V-TRACK tanpa kata laluan — log masuk menggunakan kod sekali guna melalui e-mel.',
+    'no_password_note' => 'Log masuk NEO V-TRACK menggunakan akaun Google UiTM anda.',
     'danger_zone' => 'Pemadaman Akaun',
     'delete_help' => 'Mohon pentadbir memadamkan akaun anda secara kekal.',
     'request_delete' => 'Mohon pemadaman akaun',
@@ -148,8 +151,10 @@ $L = $lang === 'bm' ? [
     'title' => 'My Profile',
     'role_admin' => 'Administrator',
     'role_user'  => 'User',
-    'name' => 'Name',
-    'email' => 'Email',
+    'name' => 'Full Name',
+    'position' => 'Position',
+    'position_ph' => 'e.g. Auxiliary Police Officer',
+    'email' => 'UiTM Email',
     'phone' => 'Phone',
     'photo' => 'Profile Photo',
     'change_photo' => 'Change Photo',
@@ -160,7 +165,7 @@ $L = $lang === 'bm' ? [
     'save' => 'Save',
     'back' => 'Back',
     'account' => 'Account',
-    'no_password_note' => 'NEO V-TRACK is passwordless — sign in with a one-time code sent to your email.',
+    'no_password_note' => 'Sign in to NEO V-TRACK with your UiTM Google account.',
     'danger_zone' => 'Account Deletion',
     'delete_help' => 'Ask an administrator to permanently remove your account.',
     'request_delete' => 'Request account deletion',
@@ -197,6 +202,9 @@ $displayImg = !empty($profile['profile_image'])
     <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;" class="mb-4">
         <img src="<?php echo $displayImg; ?>" alt="Profile" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:var(--shadow-2);">
         <h3 class="text-display" style="margin:0;"><?php echo htmlspecialchars($profile['name'] ?? ''); ?></h3>
+        <?php if (!empty($profile['position'])): ?>
+            <div class="text-muted" style="margin-top:-4px;"><?php echo htmlspecialchars($profile['position']); ?></div>
+        <?php endif; ?>
         <span class="pill info"><span class="dot"></span><?php echo htmlspecialchars($role === 'admin' ? $L['role_admin'] : $L['role_user']); ?></span>
         <div class="text-mono text-muted" style="font-size:12px;">
             <?php if (!empty($profile['last_login'])): ?>
@@ -214,6 +222,10 @@ $displayImg = !empty($profile['profile_image'])
 
         <div class="field"><label class="field-label"><?php echo htmlspecialchars($L['name']); ?></label>
             <input type="text" class="input" name="name" value="<?php echo htmlspecialchars($profile['name'] ?? ''); ?>" required>
+        </div>
+
+        <div class="field"><label class="field-label"><?php echo htmlspecialchars($L['position']); ?></label>
+            <input type="text" class="input" name="position" value="<?php echo htmlspecialchars($profile['position'] ?? ''); ?>" placeholder="<?php echo htmlspecialchars($L['position_ph']); ?>">
         </div>
 
         <div class="field"><label class="field-label"><?php echo htmlspecialchars($L['email']); ?></label>

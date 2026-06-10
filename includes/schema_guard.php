@@ -48,6 +48,7 @@ if (!function_exists('nv_schema_run')) {
 
         // Account profile + lifecycle columns.
         foreach (['user', 'admin'] as $tbl) {
+            nv_schema_add_col($con, $results, $tbl, 'position',              "`position` VARCHAR(120) DEFAULT NULL");
             nv_schema_add_col($con, $results, $tbl, 'phone',                 "`phone` VARCHAR(30) DEFAULT NULL");
             nv_schema_add_col($con, $results, $tbl, 'profile_image',         "`profile_image` VARCHAR(255) DEFAULT NULL");
             nv_schema_add_col($con, $results, $tbl, 'created_at',            "`created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
