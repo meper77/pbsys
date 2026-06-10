@@ -15,13 +15,13 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [profile](./profile.md)
 
-- [] profile, full name, position, uitm email, phone number, logout
+- [x] profile, full name, position, uitm email, phone number, logout
 
 ### [home](./home.md)
 
-- [] Welcome to NEO V-TRACK, [logged name]
-- [] total number of each type and sum of all type metrics monthly for a year
-- [] total number of each type by vehicles in stacked bar charts monthly for a year
+- [x] Welcome to NEO V-TRACK, [logged name]
+- [x] total number of each type and sum of all type metrics monthly for a year
+- [x] total number of each type by vehicles in stacked bar charts monthly for a year
 - [x] each metrics redirect to its own pages
 - [] replace white bg to []() (HOLD FIRST - keep white bg for now)
 
