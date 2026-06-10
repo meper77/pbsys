@@ -54,18 +54,23 @@ $H = ($lang === 'bm') ? [
     'search' => 'Cari kenderaan', 'search_ph' => 'Taip plat, nama, no. ID atau telefon…',
     'year' => 'Tahun', 'month' => 'Bulan', 'all' => 'Semua', 'apply' => 'Tapis', 'showing' => 'Memaparkan',
     'records' => 'rekod', 'del' => 'Padam dipilih',
-    'import' => 'Import', 'export' => 'Eksport', 'template' => 'Templat',
+    'import' => 'Import', 'export' => 'Eksport', 'template' => 'Templat', 'print' => 'Cetak',
+    'all_years' => 'Semua tahun',
 ] : [
     'bil' => 'No.', 'plate' => 'PLATE NO.', 'type' => 'VEHICLE TYPE', 'model' => 'MODEL',
     'date' => 'DATE TAKEN', 'name' => 'NAME', 'phone' => 'PHONE', 'serial' => 'SERIAL NO.',
     'search' => 'Search vehicles', 'search_ph' => 'Type plate, name, ID or phone…',
     'year' => 'Year', 'month' => 'Month', 'all' => 'All', 'apply' => 'Filter', 'showing' => 'Showing',
     'records' => 'records', 'del' => 'Delete selected',
-    'import' => 'Import', 'export' => 'Export', 'template' => 'Template',
+    'import' => 'Import', 'export' => 'Export', 'template' => 'Template', 'print' => 'Print',
+    'all_years' => 'All years',
 ];
 $months = ($lang === 'bm')
     ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
     : [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
+
+// Human label for the active filter scope (used in the print header).
+$scopeLabel = trim(($fm > 0 ? ($months[$fm] . ' ') : '') . ($fy > 0 ? $fy : $H['all_years']));
 ?>
 <style>
   #vehicleTable td, #vehicleTable th { text-transform: uppercase; }
@@ -79,8 +84,27 @@ $months = ($lang === 'bm')
   .nv-sg-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f3; font-size:14px; }
   .nv-sg-item:hover, .nv-sg-item.active { background:var(--surface-tint,#f5f3ff); }
   .nv-sg-item .muted { color:#777; font-size:12px; }
+  /* Print: just the title + chart + data table for the selected scope. */
+  .nv-print-only { display:none; }
+  @media print {
+    .nv-header, .nv-nav, .nv-footer, .nv-no-print, #filterForm, .page-head .actions,
+    #bulkDeleteBtn, .nv-sg-box,
+    #vehicleTable th:has(#selectAllCheckbox), #vehicleTable td:has(input[name="selected_ids[]"]) { display:none !important; }
+    .nv-print-only { display:block !important; margin-bottom:14px; }
+    body, .page { background:#fff !important; }
+    .card { box-shadow:none !important; border:1px solid #ddd !important; }
+    #vehicleTable td, #vehicleTable th { font-size:11px; padding:4px 6px; }
+    @page { margin:12mm; }
+  }
 </style>
 <main class="page">
+    <div class="nv-print-only" style="text-align:center;">
+        <div style="font-weight:700;">POLIS BANTUAN · UiTM CAWANGAN JOHOR (SEGAMAT)</div>
+        <div style="font-size:15px;margin-top:2px;">
+            <?php echo htmlspecialchars(strtoupper($t['title'])); ?> — <?php echo htmlspecialchars(strtoupper($scopeLabel)); ?>
+            (<?php echo count($rows); ?> <?php echo htmlspecialchars($H['records']); ?>)
+        </div>
+    </div>
     <div class="page-head">
         <div>
             <span class="eyebrow"><?php echo htmlspecialchars($t['eyebrow']); ?></span>
@@ -88,6 +112,7 @@ $months = ($lang === 'bm')
             <p class="sub"><?php echo htmlspecialchars($t['sub']); ?></p>
         </div>
         <div class="actions">
+            <button type="button" class="btn btn-ghost" onclick="window.print()" title="<?php echo htmlspecialchars($H['print']); ?>"><i data-lucide="printer"></i> <?php echo htmlspecialchars($H['print']); ?></button>
             <?php if ($nv_admin): ?>
             <?php $qf = ($fy > 0 ? '&y=' . $fy : '') . ($fm > 0 ? '&m=' . $fm : ''); ?>
             <a class="btn btn-ghost" href="/api/vehicle_export_xlsx.php?category=<?php echo urlencode($category); ?><?php echo $qf; ?>" title="<?php echo htmlspecialchars($H['export']); ?>"><i data-lucide="download"></i> <?php echo htmlspecialchars($H['export']); ?></a>
@@ -141,9 +166,11 @@ $months = ($lang === 'bm')
     </form>
 
     <?php
-    // Statistical chart: monthly stacked bars by vehicle type for the selected year
-    // (defaults to the latest year with data, else the current year).
-    $chartYear = $fy > 0 ? $fy : (count($years) ? $years[0] : (int) date('Y'));
+    // Statistical chart by vehicle type, scoped to the filter:
+    //   a year selected  -> 12 monthly bars for that year
+    //   "All years"       -> one bar per year (year=0)
+    $allYears  = ($fy === 0 && $fm === 0);
+    $chartYear = $allYears ? 0 : ($fy > 0 ? $fy : (count($years) ? $years[0] : (int) date('Y')));
     echo nv_owner_chart_card($con, [
         'status'   => $category,
         'year'     => $chartYear,
@@ -153,9 +180,11 @@ $months = ($lang === 'bm')
             'MOTOSIKAL' => ['label' => 'MOTOSIKAL', 'color' => '#f5c518'],
         ],
         'months'   => $months,
-        'title'    => ($lang === 'bm' ? 'Statistik bulanan — ' : 'Monthly statistics — ') . $chartYear,
+        'title'    => $allYears
+            ? ($lang === 'bm' ? 'Statistik tahunan — Semua tahun' : 'Yearly statistics — All years')
+            : (($lang === 'bm' ? 'Statistik bulanan — ' : 'Monthly statistics — ') . $chartYear),
         'sub'      => ($lang === 'bm' ? 'Mengikut jenis kenderaan' : 'By vehicle type'),
-        'empty'    => ($lang === 'bm' ? 'Tiada data untuk tahun ini.' : 'No data for this year.'),
+        'empty'    => ($lang === 'bm' ? 'Tiada data.' : 'No data.'),
     ]);
     ?>
 
@@ -191,7 +220,7 @@ $months = ($lang === 'bm')
                         <th><?php echo htmlspecialchars($H['name']); ?></th>
                         <th><?php echo htmlspecialchars($H['phone']); ?></th>
                         <th><?php echo htmlspecialchars($H['serial']); ?></th>
-                        <?php if ($nv_admin) { echo '<th class="text-right"></th>'; } ?>
+                        <?php if ($nv_admin) { echo '<th class="text-right nv-no-print"></th>'; } ?>
                     </tr></thead>
                     <tbody>
                     <?php
@@ -220,7 +249,7 @@ $months = ($lang === 'bm')
                             <td><?php echo $name; ?></td>
                             <td class="lower"><?php echo $phone !== '' ? '<span class="text-mono">'.$phone.'</span> '.format_contact_links($r['phone']) : '<span class="text-muted">—</span>'; ?></td>
                             <td class="mono"><?php echo $serial; ?></td>
-                            <?php if ($nv_admin) { echo '<td class="text-right"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>'; } ?>
+                            <?php if ($nv_admin) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>'; } ?>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
