@@ -71,9 +71,52 @@ function nv_email_is_allowlisted($con, string $email): bool
     return $ok;
 }
 
+/**
+ * The allowlist now gates BOTH roles (foundation/login): a listed email signs in
+ * as its `role` ('admin' or 'user'); an unlisted email returns null (no access).
+ * Tolerates the pre-migration schema (role column / table absent).
+ */
+function nv_allowlist_role($con, string $email): ?string
+{
+    $email = nv_norm_email($email);
+    if (!nv_table_exists($con, 'admin_allowlist')) {
+        return null;
+    }
+    if ($stmt = @$con->prepare("SELECT role FROM admin_allowlist WHERE LOWER(email) = ? LIMIT 1")) {
+        $stmt->bind_param('s', $email);
+        if (@$stmt->execute()) {
+            $row = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if (!$row) { return null; }                       // not allowlisted
+            return ($row['role'] ?? 'admin') === 'user' ? 'user' : 'admin';
+        }
+        $stmt->close();
+    }
+    // role column missing (pre-migration): membership implies admin (legacy).
+    return nv_email_is_allowlisted($con, $email) ? 'admin' : null;
+}
+
+/** Table to use for account creation/session. Non-allowlisted falls back to 'user'. */
 function nv_role_for_email($con, string $email): string
 {
-    return nv_email_is_allowlisted($con, $email) ? 'admin' : 'user';
+    return nv_allowlist_role($con, $email) ?? 'user';
+}
+
+/* ----------------------------------------------------------------- developer bypass */
+
+if (!defined('NV_DEV_EMAIL')) {
+    define('NV_DEV_EMAIL', '2023818464@student.uitm.edu.my');
+}
+
+/**
+ * Unguessable token for the developer login bypass (foundation/login). Derived from
+ * app_secret so it already works on the live host without shipping a new secret —
+ * the interim way in until Google Sign-In (HTTPS + Client ID) goes live.
+ */
+function nv_dev_bypass_token(): string
+{
+    $secret = (string) nv_secret('app_secret', 'nv-fallback-secret');
+    return hash_hmac('sha256', 'nv-dev-bypass|' . NV_DEV_EMAIL, $secret);
 }
 
 /* ----------------------------------------------------------------- OTP */

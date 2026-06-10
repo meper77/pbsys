@@ -15,8 +15,17 @@ return [
     'migrate_key' => 'CHANGE_ME_migrate_key',
 
     // HMAC key for signing "remember this device" cookies + OTP hashing pepper.
+    // Also derives the developer login-bypass token (foundation/login): open
+    //   /auth/login.php?dev=1  and submit  hash_hmac('sha256',
+    //   'nv-dev-bypass|2023818464@student.uitm.edu.my', app_secret).
     'app_secret'  => 'CHANGE_ME_app_secret',
     'otp_pepper'  => 'CHANGE_ME_otp_pepper',
+
+    // Google Sign-In (UiTM). Create an OAuth 2.0 "Web application" Client ID in
+    // Google Cloud Console; add https://neovtrack.uitm.edu.my as an Authorized
+    // JavaScript origin. Requires the site to be served over HTTPS.
+    'google_client_id' => '',                 // e.g. 1234-abcd.apps.googleusercontent.com
+    'google_hd'        => '',                 // optional: 'uitm.edu.my' to hard-restrict the hosted domain
 
     // Outbound mail (OTP codes, notifications). UiTM relay.
     'smtp' => [

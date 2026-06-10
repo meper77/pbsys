@@ -36,6 +36,7 @@ if (!function_exists('nv_schema_run')) {
     /** True once the foundation tables + columns exist (cheap gate to avoid re-running DDL). */
     function nv_schema_ready($con) {
         return nv_schema_table_exists($con, 'admin_allowlist')
+            && nv_schema_col_exists($con, 'admin_allowlist', 'role')
             && nv_schema_table_exists($con, 'login_otp')
             && nv_schema_table_exists($con, 'trusted_devices')
             && nv_schema_col_exists($con, 'owner', 'serial_no');
@@ -76,14 +77,24 @@ if (!function_exists('nv_schema_run')) {
         nv_schema_add_col($con, $results, 'owner', 'serial_no',  "`serial_no` INT NULL DEFAULT NULL");
 
         // New tables.
+        // admin_allowlist gates ALL sign-in now (foundation/login): only listed staff
+        // may sign in, as admin OR user (per-row `role`). `permissions` holds the
+        // per-user access checkboxes for role='user' (admins are implicitly full).
         nv_schema_run($con, $results, 'admin_allowlist', "CREATE TABLE IF NOT EXISTS `admin_allowlist` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `email` VARCHAR(200) NOT NULL,
+            `role` ENUM('admin','user') NOT NULL DEFAULT 'admin',
+            `permissions` TEXT DEFAULT NULL,
             `is_locked` TINYINT(1) NOT NULL DEFAULT 0,
             `added_by` VARCHAR(200) DEFAULT NULL,
             `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE KEY `uniq_email` (`email`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+        // Backfill columns on a pre-existing allowlist (legacy rows = admins).
+        nv_schema_add_col($con, $results, 'admin_allowlist', 'role',
+            "`role` ENUM('admin','user') NOT NULL DEFAULT 'admin'");
+        nv_schema_add_col($con, $results, 'admin_allowlist', 'permissions',
+            "`permissions` TEXT DEFAULT NULL");
 
         nv_schema_run($con, $results, 'login_otp', "CREATE TABLE IF NOT EXISTS `login_otp` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
