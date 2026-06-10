@@ -111,7 +111,8 @@ function nv_item($slug, $href, $lucide, $label, $active) {
             nv_item('users',      '/admin/users.php',                 'users',            $nv_t['users'],      $nv_active);
             nv_item('admin',      '/admin/admins.php',             'shield-check',     $nv_t['admin'],      $nv_active);
             nv_item('reports',    '/admin/reports.php',               'file-text',        $nv_t['reports'],    $nv_active);
-            nv_item('bulk',       '/admin/bulk_import.php',           'upload-cloud',     $nv_t['bulk'],       $nv_active);
+            // 'Import' standalone page retired: dedicated per-category import/export now lives
+            // on the staff/student list pages (foundation.md import.md).
         }
         ?>
         <span class="nv-nav-pin"><span class="nv-dot"></span> UiTM Segamat</span>

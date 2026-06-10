@@ -53,12 +53,14 @@ $H = ($lang === 'bm') ? [
     'search' => 'Cari kenderaan', 'search_ph' => 'Taip plat, nama, no. ID atau telefon…',
     'year' => 'Tahun', 'month' => 'Bulan', 'all' => 'Semua', 'apply' => 'Tapis', 'showing' => 'Memaparkan',
     'records' => 'rekod', 'del' => 'Padam dipilih',
+    'import' => 'Import', 'export' => 'Eksport', 'template' => 'Templat',
 ] : [
     'bil' => 'No.', 'plate' => 'PLATE NO.', 'type' => 'VEHICLE TYPE', 'model' => 'MODEL',
     'date' => 'DATE TAKEN', 'name' => 'NAME', 'phone' => 'PHONE', 'serial' => 'SERIAL NO.',
     'search' => 'Search vehicles', 'search_ph' => 'Type plate, name, ID or phone…',
     'year' => 'Year', 'month' => 'Month', 'all' => 'All', 'apply' => 'Filter', 'showing' => 'Showing',
     'records' => 'records', 'del' => 'Delete selected',
+    'import' => 'Import', 'export' => 'Export', 'template' => 'Template',
 ];
 $months = ($lang === 'bm')
     ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
@@ -86,6 +88,14 @@ $months = ($lang === 'bm')
         </div>
         <div class="actions">
             <?php if ($nv_admin): ?>
+            <?php $qf = ($fy > 0 ? '&y=' . $fy : '') . ($fm > 0 ? '&m=' . $fm : ''); ?>
+            <a class="btn btn-ghost" href="/api/vehicle_export_xlsx.php?category=<?php echo urlencode($category); ?><?php echo $qf; ?>" title="<?php echo htmlspecialchars($H['export']); ?>"><i data-lucide="download"></i> <?php echo htmlspecialchars($H['export']); ?></a>
+            <a class="btn btn-ghost" href="/api/vehicle_export_xlsx.php?category=<?php echo urlencode($category); ?>&template=1" title="<?php echo htmlspecialchars($H['template']); ?>"><i data-lucide="file-spreadsheet"></i> <?php echo htmlspecialchars($H['template']); ?></a>
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('nvImportFile').click()"><i data-lucide="upload"></i> <?php echo htmlspecialchars($H['import']); ?></button>
+            <form id="nvImportForm" method="POST" action="/api/vehicle_import_xlsx.php" enctype="multipart/form-data" style="display:none;">
+                <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
+                <input type="file" id="nvImportFile" name="xlsx_file" accept=".xlsx" onchange="if(this.files.length){this.form.submit();}">
+            </form>
             <a class="btn btn-primary" href="/vehicles/<?php echo $nv_slug; ?>/add.php"><i data-lucide="plus"></i> <?php echo htmlspecialchars($t['add']); ?></a>
             <?php endif; ?>
         </div>
