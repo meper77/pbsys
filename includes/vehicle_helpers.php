@@ -46,16 +46,16 @@ function nv_owner_year_of($dateStr): int
 }
 
 /**
- * Next NO SIRI for a category + year: the smallest free positive integer
- * (recycles numbers freed by deletes; resets each year).
+ * Next NO SIRI for a given year: the smallest free positive integer across ALL
+ * categories (one shared counter per year; recycles numbers freed by deletes;
+ * resets each year).
  */
-function nv_next_serial($con, $category, $year): int
+function nv_next_serial($con, $year): int
 {
-    $cat  = mysqli_real_escape_string($con, $category);
     $year = (int) $year;
     $used = [];
     $sql  = "SELECT `serial_no` FROM `owner`
-             WHERE `status`='$cat' AND `serial_no` IS NOT NULL
+             WHERE `serial_no` IS NOT NULL
                AND YEAR(COALESCE(`date_taken`, `created_at`)) = $year";
     if ($res = mysqli_query($con, $sql)) {
         while ($r = mysqli_fetch_assoc($res)) { $used[(int) $r['serial_no']] = true; }
@@ -109,7 +109,7 @@ function nv_vehicle_register($con, $category, &$error)
     $serialRaw = trim($_POST['serial_no'] ?? '');
     $serial    = ($serialRaw !== '' && ctype_digit($serialRaw)) ? (int) $serialRaw : null;
     if (isset($cols['serial_no']) && $serial === null) {
-        $serial = nv_next_serial($con, $category, nv_owner_year_of($dateVal));
+        $serial = nv_next_serial($con, nv_owner_year_of($dateVal));
     }
 
     // Reactivation: same plate AND phone => reset the lifecycle clock.
