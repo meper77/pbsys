@@ -27,9 +27,9 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [search](./search.md)
 
-- [] the search should like search on [do-report](#do-report) and auto suggest
-- [] remove export when searching
-- [] previous and next entries hover color consistentcy
+- [x] the search should like search on [do-report](#do-report) and auto suggest
+- [x] remove export when searching
+- [x] previous and next entries hover color consistentcy
 
 ### [staff](./staff.md)
 
