@@ -37,6 +37,7 @@ if (!function_exists('nv_schema_run')) {
     function nv_schema_ready($con) {
         return nv_schema_table_exists($con, 'admin_allowlist')
             && nv_schema_col_exists($con, 'admin_allowlist', 'role')
+            && nv_schema_col_exists($con, 'admin_allowlist', 'is_active')
             && nv_schema_table_exists($con, 'login_otp')
             && nv_schema_table_exists($con, 'trusted_devices')
             && nv_schema_col_exists($con, 'owner', 'serial_no');
@@ -85,6 +86,7 @@ if (!function_exists('nv_schema_run')) {
             `id` INT AUTO_INCREMENT PRIMARY KEY,
             `email` VARCHAR(200) NOT NULL,
             `role` ENUM('admin','user') NOT NULL DEFAULT 'admin',
+            `is_active` TINYINT(1) NOT NULL DEFAULT 1,
             `permissions` TEXT DEFAULT NULL,
             `is_locked` TINYINT(1) NOT NULL DEFAULT 0,
             `added_by` VARCHAR(200) DEFAULT NULL,
@@ -94,6 +96,8 @@ if (!function_exists('nv_schema_run')) {
         // Backfill columns on a pre-existing allowlist (legacy rows = admins).
         nv_schema_add_col($con, $results, 'admin_allowlist', 'role',
             "`role` ENUM('admin','user') NOT NULL DEFAULT 'admin'");
+        nv_schema_add_col($con, $results, 'admin_allowlist', 'is_active',
+            "`is_active` TINYINT(1) NOT NULL DEFAULT 1");
         nv_schema_add_col($con, $results, 'admin_allowlist', 'permissions',
             "`permissions` TEXT DEFAULT NULL");
 

@@ -20,7 +20,8 @@ $lang = $_SESSION['language'];
 
 $t = $lang === 'bm' ? [
     'eyebrow' => 'Pentadbir', 'admins_list' => 'Senarai admin',
-    'email' => 'Emel', 'phone' => 'Telefon', 'admin_name' => 'Nama', 'created' => 'Dibuat',
+    'email' => 'Emel', 'phone' => 'Telefon', 'admin_name' => 'Nama Penuh', 'created' => 'Dibuat',
+    'position' => 'Jawatan', 'last_online' => 'Dalam Talian Terakhir', 'never' => 'Tidak pernah',
     'no' => 'No.', 'export' => 'Eksport', 'delete' => 'Padam', 'delete_selected' => 'Padam terpilih',
     'no_records' => 'Tiada rekod admin', 'delete_confirm' => 'Padam admin terpilih?',
     'protected' => 'Dilindungi', 'you' => 'Anda', 'search' => 'Cari pentadbir',
@@ -31,7 +32,8 @@ $t = $lang === 'bm' ? [
     'selected' => 'dipilih',
 ] : [
     'eyebrow' => 'Administration', 'admins_list' => 'Admins',
-    'email' => 'Email', 'phone' => 'Phone', 'admin_name' => 'Name', 'created' => 'Created',
+    'email' => 'Email', 'phone' => 'Phone', 'admin_name' => 'Full Name', 'created' => 'Created',
+    'position' => 'Position', 'last_online' => 'Last Online', 'never' => 'Never',
     'no' => 'No.', 'export' => 'Export', 'delete' => 'Delete', 'delete_selected' => 'Delete selected',
     'no_records' => 'No admin records yet', 'delete_confirm' => 'Delete the selected admins?',
     'protected' => 'Protected', 'you' => 'You', 'search' => 'Search admins',
@@ -61,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($em, FILTER_VALIDATE_EMAIL) || !preg_match('/@(student\.)?uitm\.edu\.my$/', $em)) {
             $flash = ($lang === 'bm' ? 'Gunakan emel UiTM yang sah.' : 'Use a valid UiTM email.'); $flashType = 'bad';
         } else {
-            $st = $con->prepare("INSERT INTO admin_allowlist (email, is_locked, added_by) VALUES (?, 0, ?)
-                                 ON DUPLICATE KEY UPDATE email = email");
+            $st = $con->prepare("INSERT INTO admin_allowlist (email, role, is_active, is_locked, added_by) VALUES (?, 'admin', 1, 0, ?)
+                                 ON DUPLICATE KEY UPDATE role='admin', is_active=1");
             $st->bind_param('ss', $em, $me);
             $st->execute(); $st->close();
             $flash = ($lang === 'bm' ? 'Emel ditambah ke senarai dibenarkan.' : 'Email added to allowlist.');
@@ -110,7 +112,7 @@ if ($r = $con->query("SELECT * FROM `admin` ORDER BY userid ASC")) {
 }
 $allowSet = [];
 $allowRows = [];
-if ($hasAllow && ($r = $con->query("SELECT * FROM admin_allowlist ORDER BY is_locked DESC, email ASC"))) {
+if ($hasAllow && ($r = $con->query("SELECT * FROM admin_allowlist WHERE role='admin' ORDER BY is_locked DESC, email ASC"))) {
     while ($row = $r->fetch_assoc()) { $allowRows[] = $row; $allowSet[strtolower($row['email'])] = 1; }
 }
 
@@ -217,10 +219,9 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
           <tr>
             <th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Select all"></th>
             <th style="width:60px;"><?= htmlspecialchars($t['no']) ?></th>
-            <th><?= htmlspecialchars($t['email']) ?></th>
-            <th><?= htmlspecialchars($t['phone']) ?></th>
             <th><?= htmlspecialchars($t['admin_name']) ?></th>
-            <th><?= htmlspecialchars($t['created']) ?></th>
+            <th><?= htmlspecialchars($t['position']) ?></th>
+            <th><?= htmlspecialchars($t['last_online']) ?></th>
           </tr>
         </thead>
         <tbody>
@@ -230,7 +231,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
               $isSelf = ($em === $me);
               $isAllow = isset($allowSet[$em]);
               $protected = $isSelf || $isAllow;
-              $cdate = $row['created_at'] ?? $row['last_login'] ?? null;
+              $lastlg = $row['last_login'] ?? null;
           ?>
           <tr>
             <td>
@@ -241,12 +242,13 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
               <?php endif; ?>
             </td>
             <td class="meta"><?= $counter++ ?></td>
-            <td><strong><?= htmlspecialchars($row['email'] ?? '') ?></strong>
+            <td>
+              <strong><?= htmlspecialchars($row['name'] ?: '—') ?></strong>
               <?php if ($isSelf): ?><span class="pill info" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['you']) ?></span><?php endif; ?>
+              <div class="text-mono text-muted" style="font-size:12px;"><?= htmlspecialchars($row['email'] ?? '') ?></div>
             </td>
-            <td class="meta"><?= htmlspecialchars($row['phone'] ?? '—') ?></td>
-            <td><?= htmlspecialchars($row['name'] ?? '—') ?></td>
-            <td class="meta"><?= $cdate ? htmlspecialchars(date('d M Y', strtotime($cdate))) : '—' ?></td>
+            <td><?= htmlspecialchars($row['position'] ?? '—') ?></td>
+            <td class="meta"><?= $lastlg ? htmlspecialchars(date('d M Y, H:i', strtotime($lastlg))) : htmlspecialchars($t['never']) ?></td>
           </tr>
           <?php endforeach; ?>
         </tbody>

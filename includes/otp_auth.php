@@ -82,17 +82,28 @@ function nv_allowlist_role($con, string $email): ?string
     if (!nv_table_exists($con, 'admin_allowlist')) {
         return null;
     }
-    if ($stmt = @$con->prepare("SELECT role FROM admin_allowlist WHERE LOWER(email) = ? LIMIT 1")) {
-        $stmt->bind_param('s', $email);
-        if (@$stmt->execute()) {
-            $row = $stmt->get_result()->fetch_assoc();
+    // Prefer the is_active-aware query (is_active = the PERMISSION CONTROL toggle;
+    // a suspended entry => no access). The locked developer is always active.
+    // Fall back to role-only on a pre-migration schema.
+    foreach ([
+        "SELECT role, is_active, is_locked FROM admin_allowlist WHERE LOWER(email) = ? LIMIT 1",
+        "SELECT role FROM admin_allowlist WHERE LOWER(email) = ? LIMIT 1",
+    ] as $sql) {
+        if ($stmt = @$con->prepare($sql)) {
+            $stmt->bind_param('s', $email);
+            if (@$stmt->execute()) {
+                $row = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                if (!$row) { return null; }                   // not allowlisted
+                if (array_key_exists('is_active', $row)) {
+                    $active = (int) $row['is_active'] === 1 || (int) ($row['is_locked'] ?? 0) === 1;
+                    if (!$active) { return null; }             // suspended by an admin
+                }
+                return ($row['role'] ?? 'admin') === 'user' ? 'user' : 'admin';
+            }
             $stmt->close();
-            if (!$row) { return null; }                       // not allowlisted
-            return ($row['role'] ?? 'admin') === 'user' ? 'user' : 'admin';
         }
-        $stmt->close();
     }
-    // role column missing (pre-migration): membership implies admin (legacy).
     return nv_email_is_allowlisted($con, $email) ? 'admin' : null;
 }
 
