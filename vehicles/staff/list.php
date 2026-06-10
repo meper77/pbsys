@@ -60,6 +60,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <body>
 <div class="nv-shell">
 <?php $nv_active = 'staff'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
-<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_list_view.php'; ?>
+<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_table_view.php'; ?>
 </div>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

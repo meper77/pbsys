@@ -68,6 +68,16 @@ $t = ($lang === 'bm') ? [
     'required' => 'Plate number and phone are required.',
 ];
 
+$tf = ($lang === 'bm') ? [
+    'model' => 'Model kenderaan', 'model_ph' => 'cth. PERODUA MYVI',
+    'date' => 'Tarikh ambil', 'serial' => 'No. siri',
+    'serial_hint' => 'Biar kosong untuk auto (set semula setiap tahun).',
+] : [
+    'model' => 'Vehicle model', 'model_ph' => 'e.g. PERODUA MYVI',
+    'date' => 'Date taken', 'serial' => 'Serial no.',
+    'serial_hint' => 'Leave blank to auto-assign (resets each year).',
+];
+
 $error = '';
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
@@ -120,23 +130,32 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
                     <option value="" disabled selected><?php echo htmlspecialchars($t['select_type']); ?></option>
                     <option value="KERETA">KERETA</option>
                     <option value="MOTOSIKAL">MOTOSIKAL</option>
-                    <option value="LORI">LORI</option>
-                    <option value="4WD">4WD</option>
-                    <option value="VAN">VAN</option>
-                    <option value="MPV">MPV</option>
                 </select>
             </div>
             <div class="field">
-                <label class="field-label" for="name"><?php echo $t['name']; ?></label>
-                <input class="input" id="name" name="name" type="text" required placeholder="<?php echo htmlspecialchars($t['name_ph']); ?>">
+                <label class="field-label" for="model"><?php echo $tf['model']; ?></label>
+                <input class="input" id="model" name="model" type="text" placeholder="<?php echo htmlspecialchars($tf['model_ph']); ?>">
+            </div>
+            <div class="field">
+                <label class="field-label" for="date_taken"><?php echo $tf['date']; ?></label>
+                <input class="input mono" id="date_taken" name="date_taken" type="date" value="<?php echo date('Y-m-d'); ?>">
             </div>
             <div class="field">
                 <label class="field-label" for="idnumber"><?php echo $t['idnum']; ?></label>
                 <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?php echo htmlspecialchars($t['idnum_ph']); ?>">
             </div>
             <div class="field">
+                <label class="field-label" for="name"><?php echo $t['name']; ?></label>
+                <input class="input" id="name" name="name" type="text" required placeholder="<?php echo htmlspecialchars($t['name_ph']); ?>">
+            </div>
+            <div class="field">
                 <label class="field-label" for="phone"><?php echo $t['phone']; ?></label>
                 <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?php echo htmlspecialchars($t['phone_ph']); ?>">
+            </div>
+            <div class="field">
+                <label class="field-label" for="serial_no"><?php echo $tf['serial']; ?></label>
+                <input class="input mono" id="serial_no" name="serial_no" type="number" min="1" inputmode="numeric" placeholder="—">
+                <small class="text-muted"><?php echo htmlspecialchars($tf['serial_hint']); ?></small>
             </div>
         </div>
 
@@ -148,12 +167,12 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 </main>
 <script>
 (function(){
-    var plate = document.getElementById('platenum');
-    var idn = document.getElementById('idnumber');
+    var up = ['platenum','idnumber','model','name'];
+    up.forEach(function(id){ var el = document.getElementById(id);
+        if (el) el.addEventListener('input', function(){ this.value = this.value.toUpperCase(); }); });
     var ph = document.getElementById('phone');
-    if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+]/g,''); });
 })();
 </script>
+<script src="/assets/js/nv-autofill.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

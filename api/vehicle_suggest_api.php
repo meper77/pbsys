@@ -19,16 +19,23 @@ $by   = strtolower($_GET['by'] ?? 'any');
 $map  = ['plate' => 'platenum', 'name' => 'name', 'idnumber' => 'idnumber', 'phone' => 'phone'];
 $like = '%' . $q . '%';
 
+// Optional category scope (whitelisted) so list-page suggestions stay within their tab.
+$catWhitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor'];
+$status = trim($_GET['status'] ?? '');
+$catSql = in_array($status, $catWhitelist, true) ? " AND `status` = ? " : '';
+
 if (isset($map[$by])) {
-    $col  = $map[$by]; // from a fixed whitelist — safe to interpolate
+    $col = $map[$by]; // from a fixed whitelist — safe to interpolate
     $stmt = $con->prepare("SELECT platenum,name,idnumber,phone,type,status FROM `owner`
-                           WHERE `$col` LIKE ? ORDER BY platenum ASC LIMIT 15");
-    $stmt->bind_param('s', $like);
+                           WHERE `$col` LIKE ? $catSql ORDER BY platenum ASC LIMIT 15");
+    if ($catSql) { $stmt->bind_param('ss', $like, $status); }
+    else         { $stmt->bind_param('s', $like); }
 } else {
     $stmt = $con->prepare("SELECT platenum,name,idnumber,phone,type,status FROM `owner`
-                           WHERE platenum LIKE ? OR name LIKE ? OR idnumber LIKE ? OR phone LIKE ?
+                           WHERE (platenum LIKE ? OR name LIKE ? OR idnumber LIKE ? OR phone LIKE ?) $catSql
                            ORDER BY platenum ASC LIMIT 15");
-    $stmt->bind_param('ssss', $like, $like, $like, $like);
+    if ($catSql) { $stmt->bind_param('sssss', $like, $like, $like, $like, $status); }
+    else         { $stmt->bind_param('ssss', $like, $like, $like, $like); }
 }
 
 $out = [];

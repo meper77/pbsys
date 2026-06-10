@@ -37,16 +37,38 @@ $text['en'] = [
     'ic_placeholder' => 'e.g. 2023123456', 'plate_placeholder' => 'e.g. WPN 4421',
 ];
 $t = $text[$lang];
+$tf = ($lang === 'bm')
+    ? ['model' => 'Model kenderaan', 'model_ph' => 'cth. PERODUA MYVI', 'date' => 'Tarikh ambil', 'serial' => 'No. siri']
+    : ['model' => 'Vehicle model', 'model_ph' => 'e.g. PERODUA MYVI', 'date' => 'Date taken', 'serial' => 'Serial no.'];
 
 if (isset($_POST['submit'])) {
+    require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
+    nv_schema_autoprovision_once($con);
+
     $id = (int)($_GET['id'] ?? 0);
-    $name = mysqli_real_escape_string($con, $_POST['name']);
-    $phone = mysqli_real_escape_string($con, $_POST['phone']);
-    $idn = mysqli_real_escape_string($con, $_POST['idnumber']);
-    $type = mysqli_real_escape_string($con, $_POST['type']);
+    $name = mysqli_real_escape_string($con, strtoupper(trim($_POST['name'])));
+    $phone = mysqli_real_escape_string($con, trim($_POST['phone']));
+    $idn = mysqli_real_escape_string($con, strtoupper(trim($_POST['idnumber'])));
+    $type = mysqli_real_escape_string($con, strtoupper(trim($_POST['type'])));
     $status = mysqli_real_escape_string($con, $_POST['status']);
-    $plate = mysqli_real_escape_string($con, $_POST['platenum']);
-    $sql = "UPDATE `owner` SET name='$name', phone='$phone', idnumber='$idn', type='$type', status='$status', platenum='$plate' WHERE id=$id";
+    $plate = mysqli_real_escape_string($con, strtoupper(trim($_POST['platenum'])));
+
+    $set = "name='$name', phone='$phone', idnumber='$idn', type='$type', status='$status', platenum='$plate'";
+    $cols = nv_owner_new_cols($con);
+    if (isset($cols['model'])) {
+        $model = mysqli_real_escape_string($con, strtoupper(trim($_POST['model'] ?? '')) ?: 'N/A');
+        $set .= ", model='$model'";
+    }
+    if (isset($cols['date_taken'])) {
+        $draw = trim($_POST['date_taken'] ?? '');
+        $dts  = $draw !== '' ? strtotime($draw) : false;
+        $set .= $dts !== false ? ", date_taken='" . mysqli_real_escape_string($con, date('Y-m-d', $dts)) . "'" : ", date_taken=NULL";
+    }
+    if (isset($cols['serial_no'])) {
+        $sraw = trim($_POST['serial_no'] ?? '');
+        $set .= ($sraw !== '' && ctype_digit($sraw)) ? ", serial_no=" . (int) $sraw : ", serial_no=NULL";
+    }
+    $sql = "UPDATE `owner` SET $set WHERE id=$id";
     if (mysqli_query($con, $sql)) {
         echo "<script>alert('" . addslashes($t['update_success']) . "'); window.location.href='/vehicles/student/list.php';</script>";
         exit();
@@ -84,19 +106,32 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     <?php endforeach; ?>
                 </select></div>
             <div class="field"><label class="field-label" for="type"><?= htmlspecialchars($t['vehicle_type']) ?></label>
+                <?php
+                    $type_opts = ['KERETA', 'MOTOSIKAL'];
+                    $cur_type  = $vehicle_data['type'] ?? '';
+                    if ($cur_type !== '' && !in_array($cur_type, $type_opts, true)) { $type_opts[] = $cur_type; }
+                ?>
                 <select class="select" id="type" name="type" required>
-                    <?php foreach (['KERETA','MOTOSIKAL','LORI','4WD','VAN','MPV'] as $opt): ?>
-                        <option value="<?= $opt ?>" <?= ($vehicle_data['type']==$opt)?'selected':'' ?>><?= $opt ?></option>
+                    <?php foreach ($type_opts as $opt): ?>
+                        <option value="<?= htmlspecialchars($opt) ?>" <?= ($cur_type==$opt)?'selected':'' ?>><?= htmlspecialchars($opt) ?></option>
                     <?php endforeach; ?>
                 </select></div>
+            <div class="field"><label class="field-label" for="model"><?= htmlspecialchars($tf['model']) ?></label>
+                <input class="input" id="model" name="model" type="text" placeholder="<?= htmlspecialchars($tf['model_ph']) ?>" value="<?= htmlspecialchars(($vehicle_data['model'] ?? '') === 'N/A' ? '' : ($vehicle_data['model'] ?? '')) ?>"></div>
+            <div class="field"><label class="field-label" for="date_taken"><?= htmlspecialchars($tf['date']) ?></label>
+                <?php $dt = $vehicle_data['date_taken'] ?? ''; $dt = ($dt && $dt !== '0000-00-00') ? date('Y-m-d', strtotime($dt)) : ''; ?>
+                <input class="input mono" id="date_taken" name="date_taken" type="date" value="<?= htmlspecialchars($dt) ?>"></div>
+            <div class="field"><label class="field-label" for="idnumber"><?= htmlspecialchars($t['ic_number']) ?></label>
+                <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?= htmlspecialchars($t['ic_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['idnumber'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="name"><?= htmlspecialchars($t['name']) ?></label>
                 <input class="input" id="name" name="name" type="text" required placeholder="<?= htmlspecialchars($t['name_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['name'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="phone"><?= htmlspecialchars($t['phone']) ?></label>
                 <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?= htmlspecialchars($t['phone_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['phone'] ?? '') ?>"></div>
-            <div class="field"><label class="field-label" for="idnumber"><?= htmlspecialchars($t['ic_number']) ?></label>
-                <input class="input mono" id="idnumber" name="idnumber" type="text" required placeholder="<?= htmlspecialchars($t['ic_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['idnumber'] ?? '') ?>"></div>
             <div class="field"><label class="field-label" for="platenum"><?= htmlspecialchars($t['plate_number']) ?></label>
                 <input class="input mono plate-input" id="platenum" name="platenum" type="text" required placeholder="<?= htmlspecialchars($t['plate_placeholder']) ?>" value="<?= htmlspecialchars($vehicle_data['platenum'] ?? '') ?>"></div>
+            <div class="field"><label class="field-label" for="serial_no"><?= htmlspecialchars($tf['serial']) ?></label>
+                <input class="input mono" id="serial_no" name="serial_no" type="number" min="1" inputmode="numeric" value="<?= htmlspecialchars($vehicle_data['serial_no'] ?? '') ?>"></div>
+        </div>
         <div class="nv-row end gap-2">
             <a class="btn btn-ghost" href="/vehicles/student/list.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['cancel']) ?></a>
             <button class="btn btn-primary" type="submit" name="submit"><i data-lucide="check"></i> <?= htmlspecialchars($t['save']) ?></button>
@@ -106,10 +141,11 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var plate = document.getElementById('platenum'), idn = document.getElementById('idnumber'), ph = document.getElementById('phone');
-    if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
+    ['platenum','idnumber','model','name'].forEach(function(id){ var el = document.getElementById(id);
+        if (el) el.addEventListener('input', function(){ this.value = this.value.toUpperCase(); }); });
+    var ph = document.getElementById('phone');
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-]/g,''); });
 });
 </script>
+<script src="/assets/js/nv-autofill.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
