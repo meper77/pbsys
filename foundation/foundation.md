@@ -201,13 +201,13 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [import](./import.md)
 
-- [] remove import pages because have dedicated import/export
+- [x] remove import pages because have dedicated import/export
 
 
 ### [language](./language.md)
 
-- [] multi-language English & Malay
-- [] Professional words for both
+- [x] multi-language English & Malay
+- [x] Professional words for both
 
 ### [design](./design.md)
 
