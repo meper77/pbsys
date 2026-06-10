@@ -10,6 +10,7 @@ if (isset($_GET['logout'])) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chart.php';
 nv_require_login();
 $nv_admin = nv_is_admin();
 
@@ -150,6 +151,50 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <div class="val"><?= number_format($counts['contractor']) ?></div>
     </a>
   </div>
+
+  <?php
+  // Monthly registrations stacked by category, for a selectable year.
+  $cy = (isset($_GET['cy']) && ctype_digit($_GET['cy'])) ? (int) $_GET['cy'] : (int) date('Y');
+  $effHome = "COALESCE(`date_taken`, `created_at`)";
+  $cyYears = [];
+  $ry = @mysqli_query($con, "SELECT DISTINCT YEAR($effHome) y FROM `owner` WHERE $effHome IS NOT NULL ORDER BY y DESC");
+  if ($ry) { while ($r = mysqli_fetch_assoc($ry)) { if ($r['y']) { $cyYears[] = (int) $r['y']; } } }
+  if (!in_array($cy, $cyYears, true)) { $cyYears[] = $cy; rsort($cyYears); }
+  $cMonths = ($lang === 'bm')
+    ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
+    : [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
+  ?>
+  <div class="page-head mt-6" style="align-items:flex-end;">
+    <div>
+      <span class="eyebrow"><?= $lang === 'bm' ? 'Statistik' : 'Statistics' ?></span>
+      <h2 class="text-display" style="margin-top:4px;"><?= ($lang === 'bm' ? 'Pendaftaran bulanan — ' : 'Monthly registrations — ') . $cy ?></h2>
+    </div>
+    <form method="GET" class="actions">
+      <select name="cy" class="select" onchange="this.form.submit()" style="min-width:120px;">
+        <?php foreach ($cyYears as $yy): ?>
+          <option value="<?= $yy ?>" <?= $yy === $cy ? 'selected' : '' ?>><?= $yy ?></option>
+        <?php endforeach; ?>
+      </select>
+    </form>
+  </div>
+  <?php
+  echo nv_owner_chart_card($con, [
+    'status'   => '',
+    'year'     => $cy,
+    'seriesBy' => 'status',
+    'series'   => [
+      'Staf'       => ['label' => ($lang === 'bm' ? 'Staf' : 'Staff'),        'color' => '#6b21a8'],
+      'Pelajar'    => ['label' => ($lang === 'bm' ? 'Pelajar' : 'Student'),   'color' => '#f5c518'],
+      'Pelawat'    => ['label' => ($lang === 'bm' ? 'Pelawat' : 'Visitor'),   'color' => '#0ea5e9'],
+      'Kontraktor' => ['label' => ($lang === 'bm' ? 'Kontraktor' : 'Contractor'), 'color' => '#16a34a'],
+    ],
+    'months'   => $cMonths,
+    'lump'     => '',
+    'title'    => ($lang === 'bm' ? 'Pendaftaran bulanan mengikut kategori' : 'Monthly registrations by category'),
+    'sub'      => ($lang === 'bm' ? 'Jumlah setiap kategori setiap bulan' : 'Each category per month'),
+    'empty'    => ($lang === 'bm' ? 'Tiada data untuk tahun ini.' : 'No data for this year.'),
+  ]);
+  ?>
 </main>
 </div>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

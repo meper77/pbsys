@@ -17,6 +17,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/includes/contact_links.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/bulk_delete_component.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chart.php';
 
 nv_schema_autoprovision_once($con);          // ensure model/date_taken/serial_no exist on live
 $nv_admin = nv_is_admin();                    // mutating actions are admin-only
@@ -138,6 +139,25 @@ $months = ($lang === 'bm')
             </div>
         </div>
     </form>
+
+    <?php
+    // Statistical chart: monthly stacked bars by vehicle type for the selected year
+    // (defaults to the latest year with data, else the current year).
+    $chartYear = $fy > 0 ? $fy : (count($years) ? $years[0] : (int) date('Y'));
+    echo nv_owner_chart_card($con, [
+        'status'   => $category,
+        'year'     => $chartYear,
+        'seriesBy' => 'type',
+        'series'   => [
+            'KERETA'    => ['label' => 'KERETA',    'color' => '#6b21a8'],
+            'MOTOSIKAL' => ['label' => 'MOTOSIKAL', 'color' => '#f5c518'],
+        ],
+        'months'   => $months,
+        'title'    => ($lang === 'bm' ? 'Statistik bulanan — ' : 'Monthly statistics — ') . $chartYear,
+        'sub'      => ($lang === 'bm' ? 'Mengikut jenis kenderaan' : 'By vehicle type'),
+        'empty'    => ($lang === 'bm' ? 'Tiada data untuk tahun ini.' : 'No data for this year.'),
+    ]);
+    ?>
 
     <?php if (empty($rows)): ?>
         <div class="card flat"><div class="text-center" style="padding:48px 24px;">
