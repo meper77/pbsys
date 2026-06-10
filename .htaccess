@@ -95,3 +95,11 @@ DirectoryIndex index.php index.html
 <FilesMatch "\.(sql|md|log|sh|ps1|cmd|env)$">
   Require all denied
 </FilesMatch>
+
+# Security response headers.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+</IfModule>

@@ -16,6 +16,23 @@ exit();
 if (isset($_POST['id'])) {
     $id = intval($_POST['id']);
     $current_admin_email = $_SESSION['email_Admin'];
+
+    // Defense in depth: never delete self or an allow-listed admin (the Admins page
+    // enforces this too). Tolerant of a missing admin_allowlist table.
+    $selfEmail = strtolower($current_admin_email ?? '');
+    $tgtRow = @$con->query("SELECT email FROM admin WHERE userid = $id LIMIT 1");
+    $tgtEmail = ($tgtRow && $tgtRow->num_rows) ? strtolower($tgtRow->fetch_assoc()['email']) : '';
+    if ($tgtEmail !== '' && $tgtEmail === $selfEmail) {
+        echo "<script>alert('You cannot delete your own account.'); window.location.href='/admin/admins.php';</script>";
+        exit();
+    }
+    if ($tgtEmail !== '') {
+        $al = @$con->query("SELECT 1 FROM admin_allowlist WHERE LOWER(email)='" . $con->real_escape_string($tgtEmail) . "' LIMIT 1");
+        if ($al && $al->num_rows > 0) {
+            echo "<script>alert('This admin is allow-listed and cannot be deleted. Remove the email from the allowlist first.'); window.location.href='/admin/admins.php';</script>";
+            exit();
+        }
+    }
     
     // First, let's find out what columns exist
     $check_columns = mysqli_query($con, "SHOW COLUMNS FROM admin");

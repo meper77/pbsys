@@ -1,29 +1,26 @@
 # foundation.md
 <!-- ALL OF THE BELOW IS COMPULSORY -->
-Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Polis Bantuan UiTM Segamat Campus.
+Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Polis Bantuan UiTM Segamat Campus Intranet.
 
 ## architecture
 <!-- YOU ONLY ABLE TO CHECKLIST. THIS IS DRAFT PLANNING OR CORRECTION THERE IS MAY HAVE MISSING OR COMPLETED PIECES. DONT GUESS BUT ASK WHEN DONT KNOW TO COMPELTE IT. IT MUST WORKING AS INTENDED. BUILD ON LIVE, NOT LOCAL EXCEPT .APK -->
 
 ### [login](./login.md)
 
-- [] sign in/up with UiTM SMTP (no stored sign in/up locally)
-- [] can recovered password via SMTP
-- [] allowedlist staff email to can sign in/up as admin e.g example@uitm.edu.my exclude 2023818464@student.uitm.edu.my (Developer) (both full-access)
-- [] anyone with uitm email can sign in/up as users (full-access except admins, users, and import pages)
+- [] sign in/up with UiTM google auth (keep manual login)
+- [] only allowedlist staff email can sign in as admin or users e.g example@uitm.edu.my, exclude 2023818464@student.uitm.edu.my (Developer) (both full-access)
 
 ### [profile](./profile.md)
 
-**Details**
-- [x] can upload profile picture
-- [] name, uitm email, phone number, can request account deletion, no change password (because SMTP)
+- [] profile, full name, position, uitm email, phone number, logout
 
 ### [home](./home.md)
 
 - [] Welcome to NEO V-TRACK, [logged name]
-- [x] total number of staff/student/visitor/contractor and sum vehicles metrics
+- [] total number of each type and sum of all type metrics monthly for a year
+- [] total number of each type by vehicles in stacked bar charts monthly for a year
 - [x] each metrics redirect to its own pages
-- [] replace white bg to [animated Polis Bantuan UiTM](./assets/animatedPolisBantuanUiTM.md)
+- [] replace white bg to []() (HOLD FIRST - keep white bg for now)
 
 ### [search](./search.md)
 
@@ -35,59 +32,115 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 - [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
 - [x] select to delete
+- [] can import the table with the following [importStaff.xlsx]() in any month or year
+- [] can export the table with the following [exportStaff.xlsx]() in any month or year
+- [] can generate statistical chart in any month, year or all years
+- [] replace current table, have nine columns
+- [] table can sort by month, year or all years
+
+| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PEKERJA | NAMA | NO TELEFON | NO SIRI |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
+| NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
+
+- [] rules: all column uppercase
+- [] recycle increment number reset per year
 - [] register, fill any blank will auto suggest and auto fill the rest of the blank
 - [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique created of combination plate number + owner name + staff number + phone number + vehicle type + status, to accept duplicate plate number to allow a user have many vehicle
-- [] in active can select to delete
-- [] in active can be register and update (for testing - Developer)
+- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [] vehicle type two only (KERETA | MOTOSIKAL)
+- [] remove active/inactive & current data
 
 ### [student](./student.md)
 
 - [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
 - [x] select to delete
+- [] can import the table with the following [importStaff.xlsx]() in any month or year
+- [] can export the table with the following [exportStaff.xlsx]() in any month or year
+- [] can generate statistical chart in any month, year or all years
+- [] replace current table, have nine columns
+- [] table can sort by month, year or all years
+
+| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PELAJAR | NAMA | NO TELEFON | NO SIRI |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
+| NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
+
+- [] rules: all column uppercase
 - [] register, fill any blank will auto suggest and auto fill the rest of the blank
 - [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique created of combination plate number + owner name + matric numbers + phone number + vehicle type + status, to accept duplicate plate number to allow a user have many vehicle
-- [] in active can select to delete
-- [] in active can be register and update (for testing - Developer)
+- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [] vehicle type two only (KERETA | MOTOSIKAL)
+- [] remove active/inactive & current data
 
 ### [visitor](./visitor.md)
-
+<!-- HOLD FIRST TO CONFIRM THE TABLE-->
 - [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
 - [x] select to delete
+- [] can import the table with the following [importStaff.xlsx]() in any month or year
+- [] can export the table with the following [exportStaff.xlsx]() in any month or year
+- [] can generate statistical chart in any month, year or all years
+- [] replace current table, have nine columns
+- [] table can sort by month, year or all years
+
+| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PELAJAR | NAMA | NO TELEFON | NO SIRI |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
+| NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
+
+- [] rules: all column uppercase
 - [] register, fill any blank will auto suggest and auto fill the rest of the blank
 - [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique of combination plate number + owner name + phone number, to accept duplicate plate number
-- [] unique created of combination plate number + owner name+ phone number + vehicle type + status, to accept duplicate plate number to to allow a user have many vehicle
-- [] in active can select to delete
-- [] in active can be register and update (for testing - Developer)
+- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [] vehicle type two only (KERETA | MOTOSIKAL)
+- [] remove active/inactive & current data
 
 ### [contractor](./contractor.md)
-
+<!-- HOLD FIRST TO CONFIRM THE TABLE-->
 - [] the search should like search on [new-report](./foundation/new-report.md) and auto suggest
 - [x] select to delete
+- [] can import the table with the following [importStaff.xlsx]() in any month or year
+- [] can export the table with the following [exportStaff.xlsx]() in any month or year
+- [] can generate statistical chart in any month, year or all years
+- [] replace current table, have nine columns
+- [] table can sort by month, year or all years
+
+| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PELAJAR | NAMA | NO TELEFON | NO SIRI |
+| :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
+| NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
+
+- [] rules: all column uppercase
 - [] register, fill any blank will auto suggest and auto fill the rest of the blank
 - [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique created of combination plate number + owner name + phone number + vehicle type + status, to accept duplicate plate number to allow a user have many vehicle
-- [] in active can select to delete
-- [] in active can be register and update (for testing - Developer)
+- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [] vehicle type two only (KERETA | MOTOSIKAL)
+- [] remove active/inactive & current data
 
 ### [users](./users.md)
 
-- [] admin can only delete, cant modify user
-- [] the table should have email, phone, name, created only
-- [] auto delete user when inactive after a year
+- [] allowedlist staff email can sign in as admin or users
+- [] admin add allowed staff email to sign in as users
+- [] admin control users access via permission control
+- [] replace current table
+
+| NO. | FULL NAME | POSITION | LAST ONLINE | PERMISSION CONTROL |
+| :----: | :----: | :----: | :----: |:----: |
+| NUMBER | FULL NAME | POSITION | TIME | CHECKBOX |
+
+- [] remove auto delete user when inactive after a year
 - [] replace with select to delete like on [staff](./foundation/staff.md)
 
 
 ### [admin](./admin.md)
 
-- [] admin can delete, but cant modify each other
-- [] the table should have email, phone, name, created only
-- [] allowlist staff email for to able to sign in/up, when there is an account it cant be delete
+- [] allowedlist staff email can sign in as admin or users
+- [] admin add allowed staff email to sign in as admin
+- [] replace current table
+
+| NO. | FULL NAME | POSITION | LAST ONLINE |
+| :----: | :----: | :----: | :----: |
+| NUMBER | FULL NAME | POSITION | TIME |
+
+- [] when there is an account only it cant be delete
 - [] replace with select to delete like on [staff](./foundation/staff.md)
-
-
+ 
 ### [reports](./reports.md)
 
 - [x] search reports, from/to date
@@ -104,9 +157,7 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [import](./import.md)
 
-- [] when import there is match unqiue data the plate number is renew or register for a year
-- [] skip the row when already active & exist
-- [] update the .xsls template & dropdown the template column 'Type' and 'Category' & remove column 'Brand' 
+- [] remove import pages because have dedicated import/export
 
 
 ### [language](./language.md)
@@ -119,7 +170,8 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 - [x] keep current design
 
 ## [completing](./completing)
- 
+
+- [] write pipeline for each arhcitecture component in markdown 
 - [] finalize/verify/test/diagnose live fullstack web components end-to-end
 - [] commit, push, & deploy with CI/CD (local runnner)
 - [] native app of the latest live web
