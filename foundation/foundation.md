@@ -109,28 +109,28 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ### [contractor](./contractor.md)
 
-- [] the search should like search on [do-report](#do-report) and auto suggest
+- [x] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] complete .xlsx [CONTRACTOR 2026](./assets/KONTRAK%202026.xlsx)
-- [] consistent .xlsx format or template
-- [] download able clean .xlsx template
-- [] can import the table with selected month
-- [] can export the table with selected month
-- [] can print the selected month
-- [] can generate and print statistical chart in selected month, year or all years
-- [] replace current table, have 12 columns
-- [] table can sort by month, year or all years
+- [x] complete .xlsx [CONTRACTOR 2026](./assets/KONTRAK%202026.xlsx)
+- [x] consistent .xlsx format or template
+- [x] download able clean .xlsx template
+- [x] can import the table with selected month
+- [x] can export the table with selected month
+- [x] can print the selected month
+- [x] can generate and print statistical chart in selected month, year or all years
+- [x] replace current table, have 12 columns
+- [x] table can sort by month, year or all years
 
 | Bil. | NO SIRI | NAMA | NO. IC | NO KENDERAAN | KENDERAAN | MODEL KENDERAAN | SYARIKAT | NO TELEFON |TARIKH KELUAR PELEKAT | EMAIL | CATATAN |
 | :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
 | NUMBER | RECYCLE INCREMENT NUMBER | FULL NAME | ID | PLAT NUMBER | VEHICLE TYPE | VEHICLE MODEL | COMPANY | PHONE | DATE | EMAIL | NOTE |
 
-- [] rules: all column uppercase
-- [] register, fill any blank will auto suggest and auto fill the rest of the blank
-- [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
-- [] vehicle type two only (KERETA | MOTOSIKAL)
-- [] remove active/inactive & current data
+- [x] rules: all column uppercase
+- [x] register, fill any blank will auto suggest and auto fill the rest of the blank
+- [x] update, fill any blank will auto suggest and auto fill the rest of the blank
+- [x] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [x] vehicle type two only (KERETA | MOTOSIKAL)
+- [x] remove active/inactive & current data
 
 ### [alumni](./pesara.md)
 
