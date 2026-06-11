@@ -31,6 +31,7 @@ $nv_t = $nv_lang === 'bm' ? [
     'student'   => 'Pelajar',
     'visitor'   => 'Pelawat',
     'contractor'=> 'Kontraktor',
+    'alumni'    => 'Pesara',
     'users'     => 'Pengguna',
     'admin'     => 'Pentadbir',
     'reports'   => 'Laporan',
@@ -45,6 +46,7 @@ $nv_t = $nv_lang === 'bm' ? [
     'student'   => 'Student',
     'visitor'   => 'Visitor',
     'contractor'=> 'Contractor',
+    'alumni'    => 'Alumni',
     'users'     => 'Users',
     'admin'     => 'Admins',
     'reports'   => 'Reports',
@@ -105,6 +107,7 @@ function nv_item($slug, $href, $lucide, $label, $active) {
         nv_item('student',    '/vehicles/student/list.php',       'graduation-cap',   $nv_t['student'],    $nv_active);
         nv_item('visitor',    '/vehicles/visitor/list.php',       'user-round',       $nv_t['visitor'],    $nv_active);
         nv_item('contractor', '/vehicles/contractor/list.php',    'hard-hat',         $nv_t['contractor'], $nv_active);
+        nv_item('alumni',     '/vehicles/alumni/list.php',        'award',            $nv_t['alumni'],     $nv_active);
 
         // Admin-only sections (view permission): users / admins / reports / import.
         if ($nv_is_admin) {

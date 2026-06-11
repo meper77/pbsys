@@ -20,7 +20,7 @@ $map  = ['plate' => 'platenum', 'name' => 'name', 'idnumber' => 'idnumber', 'pho
 $like = '%' . $q . '%';
 
 // Optional category scope (whitelisted) so list-page suggestions stay within their tab.
-$catWhitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor'];
+$catWhitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor', 'Pesara'];
 $status = trim($_GET['status'] ?? '');
 $catSql = in_array($status, $catWhitelist, true) ? " AND `status` = ? " : '';
 
