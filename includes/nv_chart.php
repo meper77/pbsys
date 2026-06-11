@@ -17,17 +17,19 @@
  * @param string $lump       Label for the lumped "other" series ('' to drop others).
  * @return array ['x' => [labels...], 'keys' => [period => [seriesKey => count]]]
  */
-function nv_chart_aggregate($con, string $status, int $year, string $seriesBy, array $allowed, string $lump = 'LAIN-LAIN'): array
+function nv_chart_aggregate($con, string $status, int $year, string $seriesBy, array $allowed, string $lump = 'LAIN-LAIN', int $month = 0): array
 {
     $eff       = "COALESCE(`date_taken`, `created_at`)";
     $seriesCol = ($seriesBy === 'status') ? "`status`" : "UPPER(`type`)";
     $where     = "$eff IS NOT NULL";
     if ($status !== '') { $where .= " AND `status` = '" . mysqli_real_escape_string($con, $status) . "'"; }
+    // A specific month scopes every bucket to that month (single-month chart when a year is also set).
+    if ($month >= 1 && $month <= 12) { $where .= " AND MONTH($eff) = " . (int) $month; }
 
     if ($year > 0) {
         $where    .= " AND YEAR($eff) = " . (int) $year;
         $periodSql = "MONTH($eff)";
-        $periods   = range(1, 12);
+        $periods   = ($month >= 1 && $month <= 12) ? [(int) $month] : range(1, 12);
     } else {
         $periodSql = "YEAR($eff)";
         $periods   = [];
@@ -231,7 +233,8 @@ function nv_owner_chart_card($con, array $opts): string
     $allowed  = array_keys($defs);
     $months   = $opts['months'] ?? [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
 
-    $agg = nv_chart_aggregate($con, $status, $year, $seriesBy, $allowed, $opts['lump'] ?? 'LAIN-LAIN');
+    $month = (int) ($opts['month'] ?? 0);
+    $agg = nv_chart_aggregate($con, $status, $year, $seriesBy, $allowed, $opts['lump'] ?? 'LAIN-LAIN', $month);
 
     // X labels.
     $xLabels = [];

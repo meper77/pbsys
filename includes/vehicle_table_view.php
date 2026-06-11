@@ -199,23 +199,32 @@ if (!function_exists('nv_table_cell')) {
     </form>
 
     <?php
-    // Statistical chart by vehicle type, scoped to the filter:
-    //   a year selected  -> 12 monthly bars for that year
-    //   "All years"       -> one bar per year (year=0)
-    $allYears  = ($fy === 0 && $fm === 0);
-    $chartYear = $allYears ? 0 : ($fy > 0 ? $fy : (count($years) ? $years[0] : (int) date('Y')));
+    // Statistical chart by vehicle type, scoped to the same filter as the table:
+    //   year + month -> a single bar for that month
+    //   year only    -> 12 monthly bars for that year
+    //   month only   -> that month, one bar per year (all years)
+    //   neither      -> one bar per year (all years)
+    if ($fy > 0 && $fm > 0) {
+        $chartTitle = ($lang === 'bm' ? 'Statistik — ' : 'Statistics — ') . $months[$fm] . ' ' . $fy;
+    } elseif ($fy > 0) {
+        $chartTitle = ($lang === 'bm' ? 'Statistik bulanan — ' : 'Monthly statistics — ') . $fy;
+    } elseif ($fm > 0) {
+        $chartTitle = ($lang === 'bm' ? 'Statistik tahunan — ' : 'Yearly statistics — ') . $months[$fm]
+                    . ' (' . ($lang === 'bm' ? 'semua tahun' : 'all years') . ')';
+    } else {
+        $chartTitle = ($lang === 'bm' ? 'Statistik tahunan — Semua tahun' : 'Yearly statistics — All years');
+    }
     echo nv_owner_chart_card($con, [
         'status'   => $category,
-        'year'     => $chartYear,
+        'year'     => $fy,   // 0 = all years
+        'month'    => $fm,   // 0 = all months
         'seriesBy' => 'type',
         'series'   => [
             'KERETA'    => ['label' => 'KERETA',    'color' => '#6b21a8'],
             'MOTOSIKAL' => ['label' => 'MOTOSIKAL', 'color' => '#f5c518'],
         ],
         'months'   => $months,
-        'title'    => $allYears
-            ? ($lang === 'bm' ? 'Statistik tahunan — Semua tahun' : 'Yearly statistics — All years')
-            : (($lang === 'bm' ? 'Statistik bulanan — ' : 'Monthly statistics — ') . $chartYear),
+        'title'    => $chartTitle,
         'sub'      => ($lang === 'bm' ? 'Mengikut jenis kenderaan' : 'By vehicle type'),
         'empty'    => ($lang === 'bm' ? 'Tiada data.' : 'No data.'),
     ]);
