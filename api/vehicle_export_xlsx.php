@@ -30,6 +30,20 @@ $fy = (isset($_GET['y']) && ctype_digit($_GET['y'])) ? (int) $_GET['y'] : 0;
 $fm = (isset($_GET['m']) && ctype_digit($_GET['m']) && $_GET['m'] >= 1 && $_GET['m'] <= 12) ? (int) $_GET['m'] : 0;
 $year = $fy > 0 ? $fy : (int) date('Y');
 
+// Template download: serve the official blanked file (a copy of the original
+// foundation/assets form with the data removed) when one exists for the category.
+if ($isTemplate) {
+    $static = $_SERVER['DOCUMENT_ROOT'] . '/assets/templates/' . basename($category) . '.xlsx';
+    if (is_file($static)) {
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . strtoupper(nv_xlsx_meta($category)['cat']) . '_TEMPLATE.xlsx"');
+        header('Content-Length: ' . filesize($static));
+        header('Cache-Control: max-age=0');
+        readfile($static);
+        exit;
+    }
+}
+
 $spreadsheet = nv_xlsx_build($con, $category, $year, $fm, $isTemplate);
 
 $suffix = $isTemplate ? 'TEMPLATE' : ($fm > 0 ? sprintf('%04d-%02d', $year, $fm) : (string) $year);
