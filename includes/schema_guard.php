@@ -146,6 +146,14 @@ if (!function_exists('nv_schema_run')) {
             }
         }
 
+        // Vehicle type is KERETA or MOTOSIKAL only (foundation): normalise any legacy
+        // values (LORI/VAN/4WD/etc -> KERETA; MOTO* -> MOTOSIKAL). Idempotent.
+        if (nv_schema_table_exists($con, 'owner')) {
+            nv_schema_run($con, $results, 'normalise owner.type',
+                "UPDATE `owner` SET `type` = CASE WHEN UPPER(`type`) LIKE 'MOTO%' THEN 'MOTOSIKAL' ELSE 'KERETA' END
+                 WHERE `type` IS NOT NULL AND UPPER(`type`) NOT IN ('KERETA','MOTOSIKAL')");
+        }
+
         return $results;
     }
 

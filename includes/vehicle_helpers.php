@@ -22,6 +22,12 @@ function nv_serial_label($v): string
     return NV_SERIAL_PREFIX . str_pad((string) (int) $v, 4, '0', STR_PAD_LEFT);
 }
 
+/** Vehicle type is KERETA or MOTOSIKAL only (foundation): MOTO* -> MOTOSIKAL, else KERETA. */
+function nv_norm_vehicle_type($t): string
+{
+    return strncmp(strtoupper(trim((string) $t)), 'MOTO', 4) === 0 ? 'MOTOSIKAL' : 'KERETA';
+}
+
 if (!defined('NV_INACTIVE_AFTER')) {
     // SQL fragment for the effective lifecycle date.
     define('NV_EFFECTIVE_DATE_SQL', 'COALESCE(`reactivated_at`, `created_at`)');
@@ -143,7 +149,8 @@ function nv_vehicle_register($con, $category, &$error)
 
     $name   = mysqli_real_escape_string($con, strtoupper(trim($_POST['name'] ?? '')));
     $phone  = mysqli_real_escape_string($con, trim($_POST['phone'] ?? ''));
-    $type   = mysqli_real_escape_string($con, strtoupper(trim($_POST['type'] ?? '')));
+    // Vehicle type is KERETA or MOTOSIKAL only (foundation) — coerce anything else.
+    $type   = mysqli_real_escape_string($con, nv_norm_vehicle_type($_POST['type'] ?? ''));
     $plate  = mysqli_real_escape_string($con, strtoupper(trim($_POST['platenum'] ?? '')));
     $idnum  = mysqli_real_escape_string($con, strtoupper(trim($_POST['idnumber'] ?? '')));
     $status = mysqli_real_escape_string($con, $category);

@@ -192,9 +192,6 @@ $jsL = $lang === 'bm' ? [
                     <option value=""><?= htmlspecialchars($t['select']) ?></option>
                     <option value="KERETA">KERETA</option>
                     <option value="MOTOSIKAL">MOTOSIKAL</option>
-                    <option value="VAN">VAN</option>
-                    <option value="LORI">LORI</option>
-                    <option value="LAIN-LAIN">LAIN-LAIN</option>
                 </select>
             </div>
         </div>

@@ -37,7 +37,7 @@ if (isset($_POST['submit'])) {
     $name    = mysqli_real_escape_string($con, strtoupper(trim($_POST['name'])));
     $phone   = mysqli_real_escape_string($con, trim($_POST['phone']));
     $idnum   = mysqli_real_escape_string($con, strtoupper(trim($_POST['idnumber'] ?? '')));
-    $type    = mysqli_real_escape_string($con, strtoupper(trim($_POST['type'])));
+    $type    = mysqli_real_escape_string($con, nv_norm_vehicle_type($_POST['type']));
     $status  = mysqli_real_escape_string($con, $_POST['status']);
     $plate   = mysqli_real_escape_string($con, strtoupper(trim($_POST['platenum'])));
     $set = "name='$name', phone='$phone', idnumber='$idnum', type='$type', status='$status', platenum='$plate'";
