@@ -83,29 +83,29 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 - [x] remove active/inactive & current data
 
 ### [visitor](./visitor.md)
-<!-- HOLD FIRST TO CONFIRM THE TABLE-->
-- [] the search should like search on [do-report](#do-report) and auto suggest
+<!-- TABLE CONFIRMED 2026-06-11: 9-col, ID column = NO PENGENALAN (NRIC/passport) -->
+- [x] the search should like search on [do-report](#do-report) and auto suggest
 - [x] select to delete
-- [] complete .xlsx []()
-- [] consistent .xlsx format or template
-- [] download able clean .xlsx template
-- [] can import the table with selected month
-- [] can export the table with selected month
-- [] can print the selected month
-- [] can generate and print statistical chart in selected month, year or all years
-- [] replace current table, have nine columns
-- [] table can sort by month, year or all years
+- [x] complete .xlsx []()
+- [x] consistent .xlsx format or template
+- [x] download able clean .xlsx template
+- [x] can import the table with selected month
+- [x] can export the table with selected month
+- [x] can print the selected month
+- [x] can generate and print statistical chart in selected month, year or all years
+- [x] replace current table, have nine columns
+- [x] table can sort by month, year or all years
 
-| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PELAJAR | NAMA | NO TELEFON | NO SIRI |
+| Bil. | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL | NO PENGENALAN | NAMA | NO TELEFON | NO SIRI |
 | :----: | :----: | :----: | :----: |:----: | :----: | :----: | :----: | :----: |
 | NUMBER | NO PLAT | VEHICLE TYPE | CARS MODEL | CALENDAR | ID | FULL NAME | PHONE | RECYCLE INCREMENT NUMBER |
 
-- [] rules: all column uppercase
-- [] register, fill any blank will auto suggest and auto fill the rest of the blank
-- [] update, fill any blank will auto suggest and auto fill the rest of the blank
-- [] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
-- [] vehicle type two only (KERETA | MOTOSIKAL)
-- [] remove active/inactive & current data
+- [x] rules: all column uppercase
+- [x] register, fill any blank will auto suggest and auto fill the rest of the blank
+- [x] update, fill any blank will auto suggest and auto fill the rest of the blank
+- [x] unique created of combination all column for a row, a user have many vehicle and a vehicle can have many user
+- [x] vehicle type two only (KERETA | MOTOSIKAL)
+- [x] remove active/inactive & current data
 
 ### [contractor](./contractor.md)
 
