@@ -142,7 +142,9 @@ function nv_stacked_bar_svg(array $xLabels, array $series, array $opts = []): st
             if ($v > 0) {
                 $yTop = $y($acc + $v);
                 $hh   = $y($acc) - $yTop;
-                $svg .= '<rect x="' . round($x0($i), 1) . '" y="' . round($yTop, 1) . '" width="' . round($barW, 1) . '" height="' . round($hh, 1) . '" fill="' . nv_chart_esc($s['color']) . '"><title>' . nv_chart_esc($s['label'] . ': ' . $v) . '</title></rect>';
+                $svg .= '<rect class="nv-bar" x="' . round($x0($i), 1) . '" y="' . round($yTop, 1) . '" width="' . round($barW, 1) . '" height="' . round($hh, 1) . '" fill="' . nv_chart_esc($s['color'])
+                      . '" data-s="' . nv_chart_esc($s['label']) . '" data-v="' . $v . '" data-x="' . nv_chart_esc($lbl)
+                      . '"><title>' . nv_chart_esc($s['label'] . ': ' . $v . ' (' . $lbl . ')') . '</title></rect>';
                 $acc += $v;
             }
         }
@@ -160,7 +162,58 @@ function nv_stacked_bar_svg(array $xLabels, array $series, array $opts = []): st
     }
     $legend .= '</div>';
 
-    return $svg . $legend;
+    return nv_chart_interactive_assets() . $svg . $legend;
+}
+
+/**
+ * Shared interactivity for the SVG charts (emitted once per page): a floating
+ * tooltip on hover and a "dim the others" highlight. Bars carry data-s/data-v/
+ * data-x; print/no-JS still shows the native <title>.
+ */
+function nv_chart_interactive_assets(): string
+{
+    static $done = false;
+    if ($done) { return ''; }
+    $done = true;
+    return <<<'HTML'
+<style>
+  .nv-bar { transition: opacity .12s ease; cursor: pointer; }
+  svg:hover .nv-bar:not(:hover) { opacity: .35; }
+  #nv-chart-tip { position: fixed; z-index: 9999; display: none; pointer-events: none;
+    background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px;
+    line-height: 1.3; box-shadow: 0 6px 18px rgba(0,0,0,.28); white-space: nowrap; }
+  #nv-chart-tip .x { color: #c9c9d4; margin-left: 6px; }
+  @media print { svg:hover .nv-bar:not(:hover) { opacity: 1; } #nv-chart-tip { display: none !important; } }
+</style>
+<div id="nv-chart-tip"></div>
+<script>
+(function () {
+  if (window.__nvChartTip) { return; }
+  window.__nvChartTip = true;
+  var tip = document.getElementById('nv-chart-tip');
+  function show(r, x, y) {
+    tip.innerHTML = '<strong>' + r.getAttribute('data-s') + '</strong>: ' + r.getAttribute('data-v') +
+                    '<span class="x">' + r.getAttribute('data-x') + '</span>';
+    tip.style.display = 'block';
+    tip.style.left = (x + 14) + 'px';
+    tip.style.top  = (y + 14) + 'px';
+  }
+  document.addEventListener('mouseover', function (e) {
+    var r = e.target.closest && e.target.closest('.nv-bar');
+    if (r) { show(r, e.clientX, e.clientY); }
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (tip.style.display !== 'block') { return; }
+    var r = e.target.closest && e.target.closest('.nv-bar');
+    if (r) { tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }
+    else { tip.style.display = 'none'; }
+  });
+  document.addEventListener('mouseout', function (e) {
+    if (e.target.closest && e.target.closest('.nv-bar')) { tip.style.display = 'none'; }
+  });
+})();
+</script>
+HTML;
 }
 
 /**

@@ -119,16 +119,14 @@ if (!function_exists('nv_table_cell')) {
   .nv-sg-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f3; font-size:14px; }
   .nv-sg-item:hover, .nv-sg-item.active { background:var(--surface-tint,#f5f3ff); }
   .nv-sg-item .muted { color:#777; font-size:12px; }
-  /* Print: just the title + chart + data table for the selected scope. */
+  /* Print: the chart only (with its title), for the selected scope. */
   .nv-print-only { display:none; }
   @media print {
-    .nv-header, .nv-nav, .nv-footer, .nv-no-print, #filterForm, .page-head .actions,
-    #bulkDeleteBtn, .nv-sg-box,
-    #vehicleTable th:has(#selectAllCheckbox), #vehicleTable td:has(input[name="selected_ids[]"]) { display:none !important; }
+    .nv-header, .nv-nav, .nv-footer, .nv-no-print, #filterForm, .page-head,
+    #bulkDeleteForm, .nv-sg-box, .flash { display:none !important; }
     .nv-print-only { display:block !important; margin-bottom:14px; }
     body, .page { background:#fff !important; }
     .card { box-shadow:none !important; border:1px solid #ddd !important; }
-    #vehicleTable td, #vehicleTable th { font-size:11px; padding:4px 6px; }
     @page { margin:12mm; }
   }
 </style>
