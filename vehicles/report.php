@@ -220,9 +220,9 @@ $jsL = $lang === 'bm' ? [
                 <div style="font-size:13px;margin-bottom:8px;color:var(--fg-2);"><?= htmlspecialchars($t['manual_help']) ?></div>
                 <div class="nv-grid cols-2">
                     <div class="field"><label class="field-label">Latitude</label>
-                        <input type="text" class="input mono" id="latManual" inputmode="decimal" placeholder="2.51480"></div>
+                        <input type="text" class="input mono" id="latManual" inputmode="decimal" placeholder="2.48796"></div>
                     <div class="field"><label class="field-label">Longitude</label>
-                        <input type="text" class="input mono" id="lngManual" inputmode="decimal" placeholder="102.81560"></div>
+                        <input type="text" class="input mono" id="lngManual" inputmode="decimal" placeholder="102.72929"></div>
                 </div>
                 <div class="nv-row gap-2" style="flex-wrap:wrap;margin-top:6px;">
                     <button type="button" class="btn btn-ghost" id="useCampus"><i data-lucide="map-pin"></i> <?= htmlspecialchars($t['use_campus']) ?></button>
@@ -262,7 +262,7 @@ const NV_SUBMIT_LABEL = <?= json_encode($t['submit'], JSON_UNESCAPED_UNICODE) ?>
     const manualGeo = document.getElementById('manualGeo');
     const latManual = document.getElementById('latManual');
     const lngManual = document.getElementById('lngManual');
-    const CAMPUS = { lat: 2.51480, lng: 102.81560 }; // UiTM Cawangan Johor, Kampus Segamat (approx.)
+    const CAMPUS = { lat: 2.4879643974998853, lng: 102.72929186652237 }; // UiTM Cawangan Johor, Kampus Segamat
 
     function fmt(s, vars) { return s.replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null) ? vars[k] : m); }
     function setCoords(lat, lng, note) {
