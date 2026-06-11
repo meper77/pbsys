@@ -32,6 +32,7 @@ $t = $lang === 'bm' ? [
     'student' => 'Kenderaan pelajar',
     'visitor' => 'Kenderaan pelawat',
     'contractor' => 'Kenderaan kontraktor',
+    'alumni' => 'Kenderaan pesara',
     'view' => 'Lihat',
     'search' => 'Cari kenderaan',
     'timeLabel' => 'Masa',
@@ -44,6 +45,7 @@ $t = $lang === 'bm' ? [
     'student' => 'Student vehicles',
     'visitor' => 'Visitor vehicles',
     'contractor' => 'Contractor vehicles',
+    'alumni' => 'Alumni vehicles',
     'view' => 'View',
     'search' => 'Search vehicle',
     'timeLabel' => 'Time',
@@ -65,6 +67,7 @@ $dataStatus = [
     ['Pelajar','student','graduation-cap'],
     ['Pelawat','visitor','user-round'],
     ['Kontraktor','contractor','hard-hat'],
+    ['Pesara','alumni','award'],
 ];
 
 // Year-scoped metrics + monthly chart (one selector drives both).
@@ -154,6 +157,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php';
       'Pelajar'    => ['label' => ($lang === 'bm' ? 'Pelajar' : 'Student'),       'color' => '#f5c518'],
       'Pelawat'    => ['label' => ($lang === 'bm' ? 'Pelawat' : 'Visitor'),       'color' => '#0ea5e9'],
       'Kontraktor' => ['label' => ($lang === 'bm' ? 'Kontraktor' : 'Contractor'), 'color' => '#16a34a'],
+      'Pesara'     => ['label' => ($lang === 'bm' ? 'Pesara' : 'Alumni'),     'color' => '#ef4444'],
     ],
     'months'   => $uMonths,
     'lump'     => '',

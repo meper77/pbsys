@@ -46,6 +46,7 @@ $text['bm'] = [
     'student_vehicles' => 'Kenderaan pelajar',
     'visitor_vehicles' => 'Kenderaan pelawat',
     'contractor_vehicles' => 'Kenderaan kontraktor',
+    'alumni_vehicles' => 'Kenderaan pesara',
     'signed_in_as' => 'Log masuk sebagai',
     'brand_sub' => 'Anjung'
 ];
@@ -67,6 +68,7 @@ $text['en'] = [
     'student_vehicles' => 'Student vehicles',
     'visitor_vehicles' => 'Visitor vehicles',
     'contractor_vehicles' => 'Contractor vehicles',
+    'alumni_vehicles' => 'Alumni vehicles',
     'signed_in_as' => 'Signed in as',
     'brand_sub' => 'Home'
 ];
@@ -98,6 +100,7 @@ $counts = [
     'student'    => $yc['Pelajar'],
     'visitor'    => $yc['Pelawat'],
     'contractor' => $yc['Kontraktor'],
+    'alumni'     => $yc['Pesara'],
     'total'      => $yc['total'],
 ];
 $total_vehicles = $counts['total']; // back-compat
@@ -159,6 +162,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <div class="lbl"><?= htmlspecialchars($t['contractor_vehicles']) ?></div>
       <div class="val"><?= number_format($counts['contractor']) ?></div>
     </a>
+    <a class="kpi" href="/vehicles/alumni/list.php" style="text-decoration:none;color:inherit;">
+      <div class="lbl"><?= htmlspecialchars($t['alumni_vehicles']) ?></div>
+      <div class="val"><?= number_format($counts['alumni']) ?></div>
+    </a>
   </div>
 
   <?php
@@ -183,6 +190,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       'Pelajar'    => ['label' => ($lang === 'bm' ? 'Pelajar' : 'Student'),   'color' => '#f5c518'],
       'Pelawat'    => ['label' => ($lang === 'bm' ? 'Pelawat' : 'Visitor'),   'color' => '#0ea5e9'],
       'Kontraktor' => ['label' => ($lang === 'bm' ? 'Kontraktor' : 'Contractor'), 'color' => '#16a34a'],
+      'Pesara'     => ['label' => ($lang === 'bm' ? 'Pesara' : 'Alumni'),     'color' => '#ef4444'],
     ],
     'months'   => $cMonths,
     'lump'     => '',
