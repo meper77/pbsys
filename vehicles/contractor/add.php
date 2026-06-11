@@ -1,88 +1,51 @@
 <?php
 session_start();
-
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: /auth/role_selection.php');
-    exit();
-}
+if (isset($_GET['logout'])) { header('Location: /auth/logout.php'); exit; }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+if (!isset($_SESSION['email_Admin'])) { header('location:/auth/login.php'); exit; }
 
-if (!isset($_SESSION['email_Admin'])) {
-    header('location:/auth/login_admin.php');
-    exit();
-}
-
-if (!isset($_SESSION['language'])) {
-    $_SESSION['language'] = 'bm';
-}
+if (!isset($_SESSION['language'])) { $_SESSION['language'] = 'bm'; }
 if (isset($_GET['lang'])) {
     $_SESSION['language'] = ($_GET['lang'] == 'en') ? 'en' : 'bm';
-    header('Location: ' . $_SERVER['PHP_SELF']);
-    exit();
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?')); exit;
 }
 $lang = $_SESSION['language'];
 
 $t = ($lang === 'bm') ? [
-    'eyebrow' => 'KONTRAKTOR',
-    'title'   => 'Daftar kenderaan',
-    'sub'     => 'Tambah rekod kenderaan kontraktor baharu.',
-    'name'    => 'Nama kontraktor',
-    'name_ph' => 'Isi nama kontraktor',
-    'phone'   => 'No. telefon',
-    'phone_ph'=> 'Isi nombor telefon kontraktor',
-    'idnum'   => 'No. Kad Pengenalan',
-    'idnum_ph'=> 'Isi nombor kad pengenalan',
-    'type'    => 'Jenis kenderaan',
-    'plate'   => 'No. plat kenderaan',
-    'plate_ph'=> 'Isi nombor plat',
-
-    'select_type'=> 'Sila pilih',
-    'save'    => 'Simpan',
-    'cancel'  => 'Batal',
-    'plate_exists' => 'Nombor plat sudah wujud untuk pemilik lain.',
-    'success' => 'Kenderaan kontraktor berjaya didaftar.',
-    'reactivated' => 'Kenderaan sedia ada diaktifkan semula.',
-    'required' => 'Sila isi nombor plat dan telefon.',
+    'eyebrow' => 'KONTRAKTOR', 'title' => 'Daftar kenderaan', 'sub' => 'Tambah rekod kenderaan kontraktor baharu.',
+    'plate' => 'No. Kenderaan', 'plate_ph' => 'Isi nombor plat', 'type' => 'Kenderaan',
+    'model' => 'Model kenderaan', 'model_ph' => 'cth. TOYOTA HILUX', 'company' => 'Syarikat', 'company_ph' => 'Isi nama syarikat',
+    'name' => 'Nama', 'name_ph' => 'Isi nama', 'idnum' => 'No. IC', 'idnum_ph' => 'Isi nombor kad pengenalan',
+    'phone' => 'No. Telefon', 'phone_ph' => 'cth. 012-3456789', 'email' => 'Emel', 'email_ph' => 'cth. nama@syarikat.com',
+    'date' => 'Tarikh keluar pelekat', 'note' => 'Catatan', 'note_ph' => 'Catatan (pilihan)',
+    'serial' => 'No. Siri', 'serial_hint' => 'Biar kosong untuk auto (set semula setiap tahun).',
+    'select_type' => 'Sila pilih', 'save' => 'Simpan', 'cancel' => 'Batal',
+    'plate_exists' => 'Nombor plat sudah wujud untuk pemilik lain.', 'success' => 'Kenderaan kontraktor berjaya didaftar.',
+    'reactivated' => 'Kenderaan sedia ada diaktifkan semula.', 'required' => 'Sila isi nombor plat dan telefon.',
 ] : [
-    'eyebrow' => 'CONTRACTOR',
-    'title'   => 'Register vehicle',
-    'sub'     => 'Add a new contractor vehicle record.',
-    'name'    => 'Contractor name',
-    'name_ph' => 'Enter contractor name',
-    'phone'   => 'Phone number',
-    'phone_ph'=> 'Enter phone number',
-    'idnum'   => 'IC number',
-    'idnum_ph'=> 'Enter IC number',
-    'type'    => 'Vehicle type',
-    'plate'   => 'Plate number',
-    'plate_ph'=> 'Enter plate number',
-
-    'select_type'=> 'Please select',
-    'save'    => 'Save',
-    'cancel'  => 'Cancel',
-    'plate_exists' => 'Plate number already belongs to another owner.',
-    'success' => 'Contractor vehicle registered successfully.',
-    'reactivated' => 'Existing vehicle reactivated.',
-    'required' => 'Plate number and phone are required.',
+    'eyebrow' => 'CONTRACTOR', 'title' => 'Register vehicle', 'sub' => 'Add a new contractor vehicle record.',
+    'plate' => 'Plate number', 'plate_ph' => 'Enter plate number', 'type' => 'Vehicle',
+    'model' => 'Vehicle model', 'model_ph' => 'e.g. TOYOTA HILUX', 'company' => 'Company', 'company_ph' => 'Enter company name',
+    'name' => 'Name', 'name_ph' => 'Enter name', 'idnum' => 'IC number', 'idnum_ph' => 'Enter IC number',
+    'phone' => 'Phone', 'phone_ph' => 'e.g. 012-3456789', 'email' => 'Email', 'email_ph' => 'e.g. name@company.com',
+    'date' => 'Sticker issue date', 'note' => 'Note', 'note_ph' => 'Note (optional)',
+    'serial' => 'Serial no.', 'serial_hint' => 'Leave blank to auto-assign (resets each year).',
+    'select_type' => 'Please select', 'save' => 'Save', 'cancel' => 'Cancel',
+    'plate_exists' => 'Plate number already belongs to another owner.', 'success' => 'Contractor vehicle registered successfully.',
+    'reactivated' => 'Existing vehicle reactivated.', 'required' => 'Plate number and phone are required.',
 ];
 
 $error = '';
-
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
 if (isset($_POST['submit'])) {
     $result = nv_vehicle_register($con, 'Kontraktor', $error);
     if ($result === 'created' || $result === 'reactivated') {
         $_SESSION['success_message'] = $result === 'reactivated' ? $t['reactivated'] : $t['success'];
-        header('location:/vehicles/contractor/list.php');
-        exit();
-    } elseif ($error === 'plate_exists') {
-        $error = $t['plate_exists'];
-    } elseif ($error === 'required') {
-        $error = $t['required'];
-    }
+        header('location:/vehicles/contractor/list.php'); exit;
+    } elseif ($error === 'plate_exists') { $error = $t['plate_exists']; }
+    elseif ($error === 'required') { $error = $t['required']; }
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
@@ -101,55 +64,52 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <a class="btn btn-ghost" href="/vehicles/contractor/list.php"><i data-lucide="arrow-left"></i> <?php echo htmlspecialchars($t['cancel']); ?></a>
         </div>
     </div>
-
     <form class="card nv-stack gap-6" method="post" id="vehicleForm">
-        <?php if (!empty($error)): ?>
-            <div class="flash bad"><?php echo htmlspecialchars($error); ?></div>
-        <?php endif; ?>
-
+        <?php if (!empty($error)): ?><div class="flash bad"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
         <input type="hidden" name="status" value="Kontraktor">
-
         <div class="nv-grid cols-2">
-            <div class="field">
-                <label class="field-label" for="platenum"><?php echo $t['plate']; ?></label>
-                <input class="input mono" id="platenum" name="platenum" type="text" required placeholder="<?php echo htmlspecialchars($t['plate_ph']); ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="type"><?php echo $t['type']; ?></label>
+            <div class="field"><label class="field-label" for="platenum"><?php echo $t['plate']; ?></label>
+                <input class="input mono" id="platenum" name="platenum" type="text" required placeholder="<?php echo htmlspecialchars($t['plate_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="type"><?php echo $t['type']; ?></label>
                 <select class="select" id="type" name="type" required>
                     <option value="" disabled selected><?php echo htmlspecialchars($t['select_type']); ?></option>
                     <option value="KERETA">KERETA</option>
                     <option value="MOTOSIKAL">MOTOSIKAL</option>
-                    <option value="LORI">LORI</option>
-                    <option value="4WD">4WD</option>
-                    <option value="VAN">VAN</option>
-                    <option value="MPV">MPV</option>
-                </select>
-            </div>
-            <div class="field">
-                <label class="field-label" for="name"><?php echo $t['name']; ?></label>
-                <input class="input" id="name" name="name" type="text" required placeholder="<?php echo htmlspecialchars($t['name_ph']); ?>">
-            </div>
-            <div class="field">
-                <label class="field-label" for="phone"><?php echo $t['phone']; ?></label>
-                <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?php echo htmlspecialchars($t['phone_ph']); ?>">
-            </div>
+                </select></div>
+            <div class="field"><label class="field-label" for="model"><?php echo $t['model']; ?></label>
+                <input class="input" id="model" name="model" type="text" placeholder="<?php echo htmlspecialchars($t['model_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="company"><?php echo $t['company']; ?></label>
+                <input class="input" id="company" name="company" type="text" placeholder="<?php echo htmlspecialchars($t['company_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="name"><?php echo $t['name']; ?></label>
+                <input class="input" id="name" name="name" type="text" required placeholder="<?php echo htmlspecialchars($t['name_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="idnumber"><?php echo $t['idnum']; ?></label>
+                <input class="input mono" id="idnumber" name="idnumber" type="text" placeholder="<?php echo htmlspecialchars($t['idnum_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="phone"><?php echo $t['phone']; ?></label>
+                <input class="input mono" id="phone" name="phone" type="tel" required placeholder="<?php echo htmlspecialchars($t['phone_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="email"><?php echo $t['email']; ?></label>
+                <input class="input" id="email" name="email" type="email" placeholder="<?php echo htmlspecialchars($t['email_ph']); ?>"></div>
+            <div class="field"><label class="field-label" for="date_taken"><?php echo $t['date']; ?></label>
+                <input class="input mono" id="date_taken" name="date_taken" type="date" value="<?php echo date('Y-m-d'); ?>"></div>
+            <div class="field"><label class="field-label" for="serial_no"><?php echo $t['serial']; ?></label>
+                <input class="input mono" id="serial_no" name="serial_no" type="number" min="1" inputmode="numeric" placeholder="—">
+                <small class="text-muted"><?php echo htmlspecialchars($t['serial_hint']); ?></small></div>
+            <div class="field" style="grid-column:1 / -1;"><label class="field-label" for="note"><?php echo $t['note']; ?></label>
+                <input class="input" id="note" name="note" type="text" placeholder="<?php echo htmlspecialchars($t['note_ph']); ?>"></div>
         </div>
-
         <div class="nv-row end gap-2">
             <a class="btn btn-ghost" href="/vehicles/contractor/list.php"><?php echo htmlspecialchars($t['cancel']); ?></a>
             <button class="btn btn-primary" type="submit" name="submit"><i data-lucide="check"></i> <?php echo htmlspecialchars($t['save']); ?></button>
         </div>
     </form>
 </main>
+</div>
 <script>
 (function(){
-    var plate = document.getElementById('platenum');
-    var idn = document.getElementById('idnumber');
+    ['platenum','idnumber','model','name','company'].forEach(function(id){ var el=document.getElementById(id);
+        if (el) el.addEventListener('input', function(){ this.value = this.value.toUpperCase(); }); });
     var ph = document.getElementById('phone');
-    if (plate) plate.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-    if (idn) idn.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+]/g,''); });
 })();
 </script>
+<script src="/assets/js/nv-autofill.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>

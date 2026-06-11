@@ -14,7 +14,7 @@ session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
-$slug_map = ['Staf' => 'staff', 'Pelajar' => 'student', 'Pelawat' => 'visitor', 'Kontraktor' => 'contractor'];
+$slug_map = ['Staf' => 'staff', 'Pelajar' => 'student', 'Pelawat' => 'visitor', 'Kontraktor' => 'contractor', 'Pesara' => 'alumni'];
 
 if (!isset($_SESSION['email_Admin'])) {
     http_response_code(403);
@@ -70,30 +70,37 @@ try {
     $added = 0; $updated = 0; $skipped = 0; $errors = [];
     $lastRow = $sheet->getHighestDataRow();
 
+    // Map each spec column (by position) to a register field, mirroring the export.
+    $cols = nv_category_xlsx_cols($category);
+    $kindToField = ['plate' => 'platenum', 'type' => 'type', 'model' => 'model', 'date' => 'date_taken',
+                    'idnum' => 'idnumber', 'name' => 'name', 'phone' => 'phone', 'serial' => 'serial_no',
+                    'company' => 'company', 'email' => 'email', 'note' => 'note'];
+
     for ($row = 2; $row <= $lastRow; $row++) {
-        // B..I (col A = Bil is ignored).
-        $plate  = trim((string) $sheet->getCell('B' . $row)->getValue());
-        $type   = trim((string) $sheet->getCell('C' . $row)->getValue());
-        $model  = trim((string) $sheet->getCell('D' . $row)->getValue());
-        $date   = nv_cell_to_date($sheet->getCell('E' . $row));
-        $idnum  = trim((string) $sheet->getCell('F' . $row)->getValue());
-        $name   = trim((string) $sheet->getCell('G' . $row)->getValue());
-        $phone  = trim((string) $sheet->getCell('H' . $row)->getValue());
-        $serial = trim((string) $sheet->getCell('I' . $row)->getValue());
+        $vals = [];
+        foreach ($cols as $i => $c) {
+            $kind = $c[2];
+            if ($kind === 'bil' || !isset($kindToField[$kind])) { continue; }
+            $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            if ($kind === 'date') {
+                $vals['date_taken'] = nv_cell_to_date($sheet->getCell($letter . $row));
+            } else {
+                $vals[$kindToField[$kind]] = trim((string) $sheet->getCell($letter . $row)->getValue());
+            }
+        }
 
+        $plate = $vals['platenum'] ?? '';
+        $phone = $vals['phone'] ?? '';
+        $name  = $vals['name'] ?? '';
         if ($plate === '' && $name === '' && $phone === '') { continue; } // blank row
-
         if ($plate === '' || $phone === '') {
             $skipped++; $errors[] = "Row $row: plate and phone are required";
             continue;
         }
+        if (isset($vals['serial_no']) && !($vals['serial_no'] !== '' && ctype_digit($vals['serial_no']))) { $vals['serial_no'] = ''; }
 
-        // Reuse the register helper for identical behaviour.
-        $_POST = [
-            'platenum' => $plate, 'type' => $type, 'model' => $model,
-            'date_taken' => $date, 'idnumber' => $idnum, 'name' => $name,
-            'phone' => $phone, 'serial_no' => ($serial !== '' && ctype_digit($serial)) ? $serial : '',
-        ];
+        // Reuse the register helper for identical behaviour (reactivation, uppercasing, serial).
+        $_POST = $vals;
         $err = '';
         $res = nv_vehicle_register($con, $category, $err);
         if ($res === 'created') { $added++; }

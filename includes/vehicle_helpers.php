@@ -21,6 +21,58 @@ if (!defined('NV_INACTIVE_AFTER')) {
     define('NV_INACTIVE_WHERE', NV_EFFECTIVE_DATE_SQL . ' <  (NOW() - INTERVAL 1 YEAR)');
 }
 
+/**
+ * Ordered xlsx columns for a category (shared by export + import for a stable
+ * round-trip). Each entry is [header, ownerField, kind]; kind in
+ * bil|plate|type|model|date|idnum|name|phone|serial|company|email|note.
+ * Staf/Pelajar/Pelawat = 9 cols; Kontraktor = 12; Pesara (alumni) = 10.
+ */
+function nv_category_xlsx_cols(string $category): array
+{
+    if ($category === 'Kontraktor') {
+        return [
+            ['BIL', '', 'bil'],
+            ['NO SIRI', 'serial_no', 'serial'],
+            ['NAMA', 'name', 'name'],
+            ['NO. IC', 'idnumber', 'idnum'],
+            ['NO KENDERAAN', 'platenum', 'plate'],
+            ['KENDERAAN', 'type', 'type'],
+            ['MODEL KENDERAAN', 'model', 'model'],
+            ['SYARIKAT', 'company', 'company'],
+            ['NO TELEFON', 'phone', 'phone'],
+            ['TARIKH KELUAR PELEKAT', 'date_taken', 'date'],
+            ['EMAIL', 'ownerEmail', 'email'],
+            ['CATATAN', 'note', 'note'],
+        ];
+    }
+    if ($category === 'Pesara') {
+        return [
+            ['BIL', '', 'bil'],
+            ['NO SIRI PELEKAT', 'serial_no', 'serial'],
+            ['NO KENDERAAN', 'platenum', 'plate'],
+            ['JENIS KENDERAAN', 'type', 'type'],
+            ['MODEL KENDERAAN', 'model', 'model'],
+            ['TARIKH AMBIL PELEKAT', 'date_taken', 'date'],
+            ['NAMA', 'name', 'name'],
+            ['NO. KP', 'idnumber', 'idnum'],
+            ['NO. TELEFON', 'phone', 'phone'],
+            ['CATATAN', 'note', 'note'],
+        ];
+    }
+    $idH = ($category === 'Pelajar') ? 'NO PELAJAR' : (($category === 'Staf') ? 'NO PEKERJA' : 'NO PENGENALAN');
+    return [
+        ['BIL', '', 'bil'],
+        ['NO KENDERAAN', 'platenum', 'plate'],
+        ['JENIS KENDERAAN', 'type', 'type'],
+        ['MODEL KENDERAAN', 'model', 'model'],
+        ['TARIKH AMBIL', 'date_taken', 'date'],
+        [$idH, 'idnumber', 'idnum'],
+        ['NAMA', 'name', 'name'],
+        ['NO TELEFON', 'phone', 'phone'],
+        ['NO SIRI', 'serial_no', 'serial'],
+    ];
+}
+
 /** Which of the 9-column fields exist on `owner` right now (resilient to a half-provisioned DB). */
 function nv_owner_new_cols($con): array
 {

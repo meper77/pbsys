@@ -1,13 +1,10 @@
 <?php
 /**
- * Dedicated per-category 9-column XLSX export + blank template.
+ * Per-category XLSX export + blank template (foundation: staff/student 9-col,
+ * contractor 12-col, alumni/pesara 10-col). Columns come from the shared spec
+ * nv_category_xlsx_cols() so an exported file round-trips through the importer.
  *
- *   GET ?category=Staf|Pelajar|Pelawat|Kontraktor [&y=YYYY] [&m=1-12] [&template=1]
- *
- * Columns mirror the on-screen table so an exported file can be edited and
- * re-imported (api/vehicle_import_xlsx.php) as a round-trip:
- *   BIL | NO KENDERAAN | JENIS KENDERAAN | MODEL KENDERAAN | TARIKH AMBIL |
- *   NO PEKERJA/PELAJAR | NAMA | NO TELEFON | NO SIRI
+ *   GET ?category=Staf|Pelajar|Pelawat|Kontraktor|Pesara [&y=YYYY] [&m=1-12] [&template=1]
  *
  * Admin only.
  */
@@ -21,7 +18,7 @@ if (!isset($_SESSION['email_Admin'])) {
 }
 nv_schema_autoprovision_once($con);
 
-$cat_whitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor'];
+$cat_whitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor', 'Pesara'];
 $category = $_GET['category'] ?? '';
 if (!in_array($category, $cat_whitelist, true)) {
     http_response_code(400);
@@ -31,13 +28,28 @@ $isTemplate = !empty($_GET['template']);
 $fy = (isset($_GET['y']) && ctype_digit($_GET['y'])) ? (int) $_GET['y'] : 0;
 $fm = (isset($_GET['m']) && ctype_digit($_GET['m']) && $_GET['m'] >= 1 && $_GET['m'] <= 12) ? (int) $_GET['m'] : 0;
 
-// ID column header by category.
-$id_header = ($category === 'Pelajar') ? 'NO PELAJAR'
-           : (($category === 'Staf') ? 'NO PEKERJA' : 'NO PENGENALAN');
-$headers = ['BIL', 'NO KENDERAAN', 'JENIS KENDERAAN', 'MODEL KENDERAAN', 'TARIKH AMBIL',
-            $id_header, 'NAMA', 'NO TELEFON', 'NO SIRI'];
+$cols    = nv_category_xlsx_cols($category);
+$headers = array_map(function ($c) { return $c[0]; }, $cols);
 
-// Rows.
+/** Render one export cell by kind from an owner row. */
+$renderCell = function (string $kind, array $r, int $bil) {
+    switch ($kind) {
+        case 'bil':    return $bil;
+        case 'plate':  return strtoupper((string)($r['platenum'] ?? ''));
+        case 'type':   return strtoupper((string)($r['type'] ?? ''));
+        case 'model':  $m = (string)($r['model'] ?? ''); return ($m !== '' && $m !== 'N/A') ? strtoupper($m) : '';
+        case 'date':   $d = $r['date_taken'] ?? ''; return ($d && $d !== '0000-00-00') ? date('Y-m-d', strtotime($d)) : '';
+        case 'idnum':  return strtoupper((string)($r['idnumber'] ?? ''));
+        case 'name':   return strtoupper((string)($r['name'] ?? ''));
+        case 'phone':  return (string)($r['phone'] ?? '');
+        case 'serial': return (isset($r['serial_no']) && $r['serial_no'] !== null && $r['serial_no'] !== '') ? (int)$r['serial_no'] : '';
+        case 'company':return strtoupper((string)($r['company'] ?? ''));
+        case 'email':  return (string)($r['ownerEmail'] ?? '');
+        case 'note':   return strtoupper((string)($r['note'] ?? ''));
+    }
+    return '';
+};
+
 $dataRows = [];
 if (!$isTemplate) {
     $cat = mysqli_real_escape_string($con, $category);
@@ -49,25 +61,35 @@ if (!$isTemplate) {
     $bil = 1;
     if ($res) {
         while ($r = mysqli_fetch_assoc($res)) {
-            $dateR = $r['date_taken'] ?? '';
-            $dateD = ($dateR && $dateR !== '0000-00-00') ? date('Y-m-d', strtotime($dateR)) : '';
-            $dataRows[] = [
-                $bil++,
-                strtoupper((string)($r['platenum'] ?? '')),
-                strtoupper((string)($r['type'] ?? '')),
-                strtoupper((string)(($r['model'] ?? '') !== '' ? $r['model'] : '')),
-                $dateD,
-                strtoupper((string)($r['idnumber'] ?? '')),
-                strtoupper((string)($r['name'] ?? '')),
-                (string)($r['phone'] ?? ''),
-                (isset($r['serial_no']) && $r['serial_no'] !== null && $r['serial_no'] !== '') ? (int) $r['serial_no'] : '',
-            ];
+            $row = [];
+            foreach ($cols as $c) { $row[] = $renderCell($c[2], $r, $bil); }
+            $dataRows[] = $row;
+            $bil++;
         }
     }
 } else {
-    // Two example rows to show the expected shape.
-    $dataRows[] = [1, 'JSX1234', 'KERETA', 'PERODUA MYVI', date('Y-m-d'), ($category === 'Pelajar' ? '2023123456' : '200456'), 'AHMAD BIN ALI', '0123456789', 1];
-    $dataRows[] = [2, 'JMB6789', 'MOTOSIKAL', 'YAMAHA Y15', date('Y-m-d'), ($category === 'Pelajar' ? '2023987654' : '200789'), 'SITI BINTI YUSOF', '0139876543', 2];
+    // Two example rows to show the expected shape (per kind).
+    $ex = [
+        ['name' => 'AHMAD BIN ALI', 'plate' => 'JSX1234', 'type' => 'KERETA', 'model' => 'PERODUA MYVI',
+         'company' => 'ABC SDN BHD', 'phone' => '0123456789', 'email' => 'ahmad@abc.com', 'note' => 'VIP'],
+        ['name' => 'SITI BINTI YUSOF', 'plate' => 'JMB6789', 'type' => 'MOTOSIKAL', 'model' => 'YAMAHA Y15',
+         'company' => 'XYZ ENTERPRISE', 'phone' => '0139876543', 'email' => 'siti@xyz.com', 'note' => ''],
+    ];
+    $idEx = ($category === 'Pelajar') ? ['2023123456', '2023987654']
+          : (in_array($category, ['Kontraktor', 'Pesara'], true) ? ['990101-01-1234', '880202-02-5678'] : ['200456', '200789']);
+    foreach ([0, 1] as $i) {
+        $row = [];
+        foreach ($cols as $c) {
+            switch ($c[2]) {
+                case 'bil':    $row[] = $i + 1; break;
+                case 'serial': $row[] = $i + 1; break;
+                case 'idnum':  $row[] = $idEx[$i]; break;
+                case 'date':   $row[] = date('Y-m-d'); break;
+                default:       $row[] = $ex[$i][$c[2]] ?? ''; break;
+            }
+        }
+        $dataRows[] = $row;
+    }
 }
 
 require $_SERVER['DOCUMENT_ROOT'].'/vendor/autoload.php';
@@ -75,39 +97,55 @@ $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle(substr($category, 0, 31));
 
+$nCols   = count($cols);
+$lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($nCols);
+
 $sheet->fromArray([$headers], null, 'A1');
-$sheet->getStyle('A1:I1')->applyFromArray([
+$sheet->getStyle('A1:' . $lastCol . '1')->applyFromArray([
     'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4472C4']],
     'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
     'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
 ]);
 
-// Write TARIKH AMBIL + NO SIRI as text/number explicitly to keep the round-trip stable.
+// Find the date + type columns by kind for explicit-text + dropdown handling.
+$dateColIdx = null; $typeColIdx = null;
+foreach ($cols as $i => $c) {
+    if ($c[2] === 'date') { $dateColIdx = $i + 1; }
+    if ($c[2] === 'type') { $typeColIdx = $i + 1; }
+}
+
 $rowNo = 2;
 foreach ($dataRows as $d) {
     $sheet->fromArray([$d], null, 'A' . $rowNo);
-    $sheet->getCell('E' . $rowNo)->setValueExplicit((string)$d[4], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    if ($dateColIdx) {
+        $dl = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateColIdx);
+        $sheet->getCell($dl . $rowNo)->setValueExplicit((string)($d[$dateColIdx - 1] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    }
     $rowNo++;
 }
 
-// JENIS KENDERAAN dropdown (KERETA | MOTOSIKAL) for staff/student; broader for others.
-$typeOpts = in_array($category, ['Staf', 'Pelajar'], true)
-    ? ['KERETA', 'MOTOSIKAL']
-    : ['KERETA', 'MOTOSIKAL', 'LORI', '4WD', 'VAN', 'MPV', 'LAIN-LAIN'];
-for ($r = 2; $r <= 500; $r++) {
-    $dv = $sheet->getCell('C' . $r)->getDataValidation();
-    $dv->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-    $dv->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
-    $dv->setAllowBlank(true);
-    $dv->setShowDropDown(true);
-    $dv->setShowErrorMessage(true);
-    $dv->setErrorTitle('Invalid type');
-    $dv->setError('Choose a vehicle type from the list.');
-    $dv->setFormula1('"' . implode(',', $typeOpts) . '"');
+// JENIS/KENDERAAN dropdown (KERETA | MOTOSIKAL) on the type column.
+if ($typeColIdx) {
+    $tl = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($typeColIdx);
+    for ($r = 2; $r <= 500; $r++) {
+        $dv = $sheet->getCell($tl . $r)->getDataValidation();
+        $dv->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+        $dv->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+        $dv->setAllowBlank(true);
+        $dv->setShowDropDown(true);
+        $dv->setShowErrorMessage(true);
+        $dv->setErrorTitle('Invalid type');
+        $dv->setError('Choose KERETA or MOTOSIKAL.');
+        $dv->setFormula1('"KERETA,MOTOSIKAL"');
+    }
 }
 
-foreach (['A'=>6,'B'=>16,'C'=>16,'D'=>20,'E'=>14,'F'=>16,'G'=>28,'H'=>16,'I'=>10] as $col => $w) {
-    $sheet->getColumnDimension($col)->setWidth($w);
+for ($i = 1; $i <= $nCols; $i++) {
+    $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+    $kind = $cols[$i - 1][2];
+    $w = ['bil' => 6, 'serial' => 10, 'plate' => 16, 'type' => 14, 'model' => 20, 'date' => 16,
+          'idnum' => 18, 'name' => 28, 'phone' => 16, 'company' => 24, 'email' => 26, 'note' => 24][$kind] ?? 16;
+    $sheet->getColumnDimension($letter)->setWidth($w);
 }
 
 $suffix = $isTemplate ? 'template' : ($fy > 0 ? ($fm > 0 ? sprintf('%04d-%02d', $fy, $fm) : (string)$fy) : 'all');
