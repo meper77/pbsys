@@ -231,7 +231,7 @@ if (!function_exists('nv_table_cell')) {
     ?>
 
     <?php if (empty($rows)): ?>
-        <div class="card flat"><div class="text-center" style="padding:48px 24px;">
+        <div class="card flat nv-no-print"><div class="text-center" style="padding:48px 24px;">
             <h3 style="margin-bottom:6px;"><?php echo htmlspecialchars($t['empty_title']); ?></h3>
             <p class="text-muted"><?php echo htmlspecialchars($t['empty_sub']); ?></p>
             <?php if ($nv_admin): ?>
