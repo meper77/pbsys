@@ -40,13 +40,13 @@ if (!$report) {
 $photos = json_decode($report['photo_paths'] ?? '[]', true) ?: [];
 
 // Resolve a stored photo path to a working URL (new uploads live at /uploads/reports;
-// older ones were saved under /api/upload/reports).
-function nv_report_photo_url(string $p): string {
+// older ones were saved under /api/upload/reports). Returns null if the file is gone.
+function nv_report_photo_url(string $p): ?string {
     $doc = $_SERVER['DOCUMENT_ROOT'];
     if ($p !== '' && is_file($doc . $p)) { return $p; }
     $legacy = '/api/upload/reports/' . basename($p);
     if (is_file($doc . $legacy)) { return $legacy; }
-    return $p;
+    return null;
 }
 $mapEmbed = 'https://maps.google.com/maps?q=' . urlencode($report['latitude'] . ',' . $report['longitude']) . '&z=17&output=embed';
 $mapLink  = 'https://www.google.com/maps?q=' . urlencode($report['latitude'] . ',' . $report['longitude']);
@@ -121,9 +121,13 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <?php if (empty($photos)): ?>
         <p class="text-muted">No photos attached.</p>
       <?php else: foreach ($photos as $i => $p):
-          $url  = htmlspecialchars(nv_report_photo_url($p));
+          $resolved = nv_report_photo_url($p);
           $name = htmlspecialchars('report_' . (int)$report['id'] . '_' . ($i + 1) . '.' . (pathinfo($p, PATHINFO_EXTENSION) ?: 'jpg'));
-      ?>
+          if ($resolved === null): ?>
+        <div style="width:200px;height:200px;border-radius:12px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--fg-3);font-size:12px;padding:10px;">
+          <span><i data-lucide="image-off"></i><br><?= $lang === 'bm' ? 'Foto tidak ditemui' : 'Photo unavailable' ?></span>
+        </div>
+          <?php else: $url = htmlspecialchars($resolved); ?>
         <div style="display:flex;flex-direction:column;gap:6px;">
           <a href="<?= $url ?>" target="_blank" rel="noopener" title="View full size">
             <img src="<?= $url ?>" alt="Report photo" style="width:200px;height:200px;object-fit:cover;border-radius:12px;border:1px solid var(--border);">
@@ -133,7 +137,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <a class="btn btn-quiet" href="<?= $url ?>" download="<?= $name ?>" title="Download"><i data-lucide="download"></i></a>
           </div>
         </div>
-      <?php endforeach; endif; ?>
+      <?php endif; endforeach; endif; ?>
     </div>
   </div>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>
