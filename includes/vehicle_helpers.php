@@ -13,6 +13,15 @@
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/schema_guard.php';
 
+if (!defined('NV_SERIAL_PREFIX')) { define('NV_SERIAL_PREFIX', 'JA'); } // sticker series prefix (UiTM Johor)
+
+/** Display label for NO SIRI: e.g. 1 -> "JA0001"; null/'' -> "—". */
+function nv_serial_label($v): string
+{
+    if ($v === null || $v === '') { return '—'; }
+    return NV_SERIAL_PREFIX . str_pad((string) (int) $v, 4, '0', STR_PAD_LEFT);
+}
+
 if (!defined('NV_INACTIVE_AFTER')) {
     // SQL fragment for the effective lifecycle date.
     define('NV_EFFECTIVE_DATE_SQL', 'COALESCE(`reactivated_at`, `created_at`)');
@@ -32,7 +41,7 @@ function nv_category_xlsx_cols(string $category): array
     if ($category === 'Kontraktor') {
         return [
             ['BIL', '', 'bil'],
-            ['NO SIRI', 'serial_no', 'serial'],
+            ['NO. SIRI', 'serial_no', 'serial'],
             ['NAMA', 'name', 'name'],
             ['NO. IC', 'idnumber', 'idnum'],
             ['NO KENDERAAN', 'platenum', 'plate'],
@@ -48,14 +57,14 @@ function nv_category_xlsx_cols(string $category): array
     if ($category === 'Pesara') {
         return [
             ['BIL', '', 'bil'],
-            ['NO SIRI PELEKAT', 'serial_no', 'serial'],
-            ['NO KENDERAAN', 'platenum', 'plate'],
+            ['NO. SIRI PELEKAT', 'serial_no', 'serial'],
+            ['NO. KENDERAAN', 'platenum', 'plate'],
             ['JENIS KENDERAAN', 'type', 'type'],
             ['MODEL KENDERAAN', 'model', 'model'],
             ['TARIKH AMBIL PELEKAT', 'date_taken', 'date'],
             ['NAMA', 'name', 'name'],
             ['NO. KP', 'idnumber', 'idnum'],
-            ['NO. TELEFON', 'phone', 'phone'],
+            ['NO.TELEFON', 'phone', 'phone'],
             ['CATATAN', 'note', 'note'],
         ];
     }
