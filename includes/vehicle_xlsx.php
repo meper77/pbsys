@@ -161,6 +161,15 @@ function nv_xlsx_write_sheet($sheet, string $title, array $cols, array $dataRows
         $rowNo++;
     }
 
+    // Data grid: outer frame + vertical column dividers (A..last), no inner
+    // horizontal lines — matches the official blank template.
+    $lastDataRow = $rowNo - 1;
+    if ($lastDataRow >= 3) {
+        $bs = $sheet->getStyle('A3:' . $lastCol . $lastDataRow)->getBorders();
+        $bs->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)->getColor()->setARGB('FF000000');
+        $bs->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)->getColor()->setARGB('FF000000');
+    }
+
     if ($typeIdx) {
         $tl = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($typeIdx);
         for ($r = 3; $r <= 400; $r++) {
