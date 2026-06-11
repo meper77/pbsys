@@ -38,6 +38,16 @@ if (!$report) {
 }
 
 $photos = json_decode($report['photo_paths'] ?? '[]', true) ?: [];
+
+// Resolve a stored photo path to a working URL (new uploads live at /uploads/reports;
+// older ones were saved under /api/upload/reports).
+function nv_report_photo_url(string $p): string {
+    $doc = $_SERVER['DOCUMENT_ROOT'];
+    if ($p !== '' && is_file($doc . $p)) { return $p; }
+    $legacy = '/api/upload/reports/' . basename($p);
+    if (is_file($doc . $legacy)) { return $legacy; }
+    return $p;
+}
 $mapEmbed = 'https://maps.google.com/maps?q=' . urlencode($report['latitude'] . ',' . $report['longitude']) . '&z=17&output=embed';
 $mapLink  = 'https://www.google.com/maps?q=' . urlencode($report['latitude'] . ',' . $report['longitude']);
 
@@ -107,13 +117,22 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 
   <div class="card mt-6">
     <span class="eyebrow">Photos (<?= count($photos) ?>)</span>
-    <div class="mt-4" style="display:flex;flex-wrap:wrap;gap:10px;">
+    <div class="mt-4" style="display:flex;flex-wrap:wrap;gap:14px;">
       <?php if (empty($photos)): ?>
         <p class="text-muted">No photos attached.</p>
-      <?php else: foreach ($photos as $p):
-          $src = htmlspecialchars($p);
+      <?php else: foreach ($photos as $i => $p):
+          $url  = htmlspecialchars(nv_report_photo_url($p));
+          $name = htmlspecialchars('report_' . (int)$report['id'] . '_' . ($i + 1) . '.' . (pathinfo($p, PATHINFO_EXTENSION) ?: 'jpg'));
       ?>
-        <a href="<?= $src ?>" target="_blank" rel="noopener"><img src="<?= $src ?>" alt="Report photo" style="width:180px;height:180px;object-fit:cover;border-radius:12px;border:1px solid var(--border);"></a>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <a href="<?= $url ?>" target="_blank" rel="noopener" title="View full size">
+            <img src="<?= $url ?>" alt="Report photo" style="width:200px;height:200px;object-fit:cover;border-radius:12px;border:1px solid var(--border);">
+          </a>
+          <div class="nv-row gap-2" style="justify-content:center;">
+            <a class="btn btn-quiet" href="<?= $url ?>" target="_blank" rel="noopener" title="View"><i data-lucide="eye"></i></a>
+            <a class="btn btn-quiet" href="<?= $url ?>" download="<?= $name ?>" title="Download"><i data-lucide="download"></i></a>
+          </div>
+        </div>
       <?php endforeach; endif; ?>
     </div>
   </div>

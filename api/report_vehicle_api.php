@@ -40,8 +40,9 @@ function report_vehicle_clean_string(?string $value): string {
 }
 
 function report_vehicle_store_photos(array $files, string $plateNumber): array {
-    $uploadDir = __DIR__ . DIRECTORY_SEPARATOR . 'upload' . DIRECTORY_SEPARATOR . 'reports';
-    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0777, true) && !is_dir($uploadDir)) {
+    // Save under the web-served /uploads/reports so the stored URL resolves directly.
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/reports';
+    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
         throw new RuntimeException('Failed to create upload directory');
     }
 
