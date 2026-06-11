@@ -78,6 +78,10 @@ if (!function_exists('nv_schema_run')) {
         nv_schema_add_col($con, $results, 'owner', 'date_taken', "`date_taken` DATE NULL DEFAULT NULL");
         nv_schema_add_col($con, $results, 'owner', 'serial_no',  "`serial_no` INT NULL DEFAULT NULL");
 
+        // Contractor (SYARIKAT/CATATAN) + alumni (CATATAN) extra fields. EMAIL reuses ownerEmail.
+        nv_schema_add_col($con, $results, 'owner', 'company', "`company` VARCHAR(150) DEFAULT NULL");
+        nv_schema_add_col($con, $results, 'owner', 'note',    "`note` VARCHAR(255) DEFAULT NULL");
+
         // New tables.
         // admin_allowlist gates ALL sign-in now (foundation/login): only listed staff
         // may sign in, as admin OR user (per-row `role`). `permissions` holds the

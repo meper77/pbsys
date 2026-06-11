@@ -105,6 +105,16 @@ function nv_vehicle_register($con, $category, &$error)
     $cols    = nv_owner_new_cols($con);
     $hasNew  = !empty($cols);
 
+    // Extended optional fields (contractor SYARIKAT/EMAIL/CATATAN; alumni CATATAN),
+    // persisted only when the column exists. Email is kept as entered; the rest
+    // are uppercased like the other columns.
+    $extra = [];
+    if (function_exists('nv_schema_col_exists')) {
+        if (nv_schema_col_exists($con, 'owner', 'company'))    { $extra['company']    = mysqli_real_escape_string($con, strtoupper(trim($_POST['company'] ?? ''))); }
+        if (nv_schema_col_exists($con, 'owner', 'ownerEmail')) { $extra['ownerEmail'] = mysqli_real_escape_string($con, trim($_POST['email'] ?? '')); }
+        if (nv_schema_col_exists($con, 'owner', 'note'))       { $extra['note']       = mysqli_real_escape_string($con, strtoupper(trim($_POST['note'] ?? ''))); }
+    }
+
     // NO SIRI: use a provided number, else allocate the next free per (category, year).
     $serialRaw = trim($_POST['serial_no'] ?? '');
     $serial    = ($serialRaw !== '' && ctype_digit($serialRaw)) ? (int) $serialRaw : null;
@@ -128,6 +138,7 @@ function nv_vehicle_register($con, $category, &$error)
                 $set .= ", serial_no=" . (int) $serial;
             }
         }
+        foreach ($extra as $col => $val) { $set .= ", `$col`='$val'"; }
         mysqli_query($con, "UPDATE `owner` SET $set WHERE id=$id");
         return 'reactivated';
     }
@@ -146,6 +157,7 @@ function nv_vehicle_register($con, $category, &$error)
         if (isset($cols['model']))      { $colSql .= ", `model`";      $valSql .= ", '$model'"; }
         if (isset($cols['date_taken'])) { $colSql .= ", `date_taken`"; $valSql .= ", '$dateEsc'"; }
         if (isset($cols['serial_no']))  { $colSql .= ", `serial_no`";  $valSql .= ", " . (int) $serial; }
+        foreach ($extra as $col => $val) { $colSql .= ", `$col`"; $valSql .= ", '$val'"; }
         $sql = "INSERT INTO `owner` ($colSql) VALUES($valSql)";
     } else {
         $sql = "INSERT INTO `owner` (`name`, `phone`, `idnumber`, `type`, `status`, `platenum`)

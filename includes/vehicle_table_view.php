@@ -71,6 +71,41 @@ $months = ($lang === 'bm')
 
 // Human label for the active filter scope (used in the print header).
 $scopeLabel = trim(($fm > 0 ? ($months[$fm] . ' ') : '') . ($fy > 0 ? $fy : $H['all_years']));
+
+// Column config. Default = the 9-column staff/student shape; a page may set $nv_cols
+// before including to render another shape (contractor 12-col, alumni 10-col). Each
+// entry is [render-type, header-label]; render-type maps to nv_table_cell().
+if (!isset($nv_cols)) {
+    $nv_cols = [
+        ['plate',  $H['plate']],
+        ['type',   $H['type']],
+        ['model',  $H['model']],
+        ['date',   $H['date']],
+        ['idnum',  $id_label],
+        ['name',   $H['name']],
+        ['phone',  $H['phone']],
+        ['serial', $H['serial']],
+    ];
+}
+if (!function_exists('nv_table_cell')) {
+    /** Render one <td> for a render-type from an owner row (all cells uppercased via CSS). */
+    function nv_table_cell($type, $r) {
+        switch ($type) {
+            case 'plate':   return '<td><span class="plate">' . htmlspecialchars($r['platenum'] ?? '') . '</span></td>';
+            case 'type':    return '<td>' . htmlspecialchars($r['type'] ?? '') . '</td>';
+            case 'model':   $m = (($r['model'] ?? '') !== '' && ($r['model'] ?? '') !== 'N/A') ? $r['model'] : '—'; return '<td>' . htmlspecialchars($m) . '</td>';
+            case 'date':    $d = $r['date_taken'] ?? null; $dd = ($d && $d !== '0000-00-00') ? date('d M Y', strtotime($d)) : '—'; return '<td class="meta">' . htmlspecialchars($dd) . '</td>';
+            case 'idnum':   return '<td class="mono">' . htmlspecialchars($r['idnumber'] ?? '') . '</td>';
+            case 'name':    return '<td>' . htmlspecialchars($r['name'] ?? '') . '</td>';
+            case 'phone':   $p = htmlspecialchars($r['phone'] ?? ''); return '<td class="lower">' . ($p !== '' ? '<span class="text-mono">' . $p . '</span> ' . format_contact_links($r['phone']) : '<span class="text-muted">—</span>') . '</td>';
+            case 'serial':  $s = (isset($r['serial_no']) && $r['serial_no'] !== null && $r['serial_no'] !== '') ? str_pad((string)(int)$r['serial_no'], 4, '0', STR_PAD_LEFT) : '—'; return '<td class="mono">' . htmlspecialchars($s) . '</td>';
+            case 'company': $c = ($r['company'] ?? '') !== '' ? $r['company'] : '—'; return '<td>' . htmlspecialchars($c) . '</td>';
+            case 'email':   $e = htmlspecialchars($r['ownerEmail'] ?? ''); return '<td class="lower">' . ($e !== '' ? '<span class="text-mono">' . $e . '</span>' : '<span class="text-muted">—</span>') . '</td>';
+            case 'note':    $n = ($r['note'] ?? '') !== '' ? $r['note'] : '—'; return '<td>' . htmlspecialchars($n) . '</td>';
+        }
+        return '<td></td>';
+    }
+}
 ?>
 <style>
   #vehicleTable td, #vehicleTable th { text-transform: uppercase; }
@@ -212,43 +247,19 @@ $scopeLabel = trim(($fm > 0 ? ($months[$fm] . ' ') : '') . ($fy > 0 ? $fy : $H['
                     <thead><tr>
                         <?php if ($nv_admin) { echo bulk_delete_checkbox_header(); } ?>
                         <th style="width:50px;"><?php echo htmlspecialchars($H['bil']); ?></th>
-                        <th><?php echo htmlspecialchars($H['plate']); ?></th>
-                        <th><?php echo htmlspecialchars($H['type']); ?></th>
-                        <th><?php echo htmlspecialchars($H['model']); ?></th>
-                        <th><?php echo htmlspecialchars($H['date']); ?></th>
-                        <th><?php echo htmlspecialchars($id_label); ?></th>
-                        <th><?php echo htmlspecialchars($H['name']); ?></th>
-                        <th><?php echo htmlspecialchars($H['phone']); ?></th>
-                        <th><?php echo htmlspecialchars($H['serial']); ?></th>
+                        <?php foreach ($nv_cols as $c): ?><th><?php echo htmlspecialchars($c[1]); ?></th><?php endforeach; ?>
                         <?php if ($nv_admin) { echo '<th class="text-right nv-no-print"></th>'; } ?>
                     </tr></thead>
                     <tbody>
                     <?php
                     $bil = 1;
                     foreach ($rows as $r):
-                        $id     = (int) $r['id'];
-                        $plate  = htmlspecialchars($r['platenum'] ?? '');
-                        $type   = htmlspecialchars($r['type'] ?? '');
-                        $model  = htmlspecialchars(($r['model'] ?? '') !== '' ? $r['model'] : '—');
-                        $dateR  = $r['date_taken'] ?? null;
-                        $dateD  = ($dateR && $dateR !== '0000-00-00') ? date('d M Y', strtotime($dateR)) : '—';
-                        $idnum  = htmlspecialchars($r['idnumber'] ?? '');
-                        $name   = htmlspecialchars($r['name'] ?? '');
-                        $phone  = htmlspecialchars($r['phone'] ?? '');
-                        $serial = (isset($r['serial_no']) && $r['serial_no'] !== null && $r['serial_no'] !== '')
-                                  ? str_pad((string) (int) $r['serial_no'], 4, '0', STR_PAD_LEFT) : '—';
+                        $id = (int) $r['id'];
                     ?>
                         <tr>
                             <?php if ($nv_admin) { echo bulk_delete_checkbox($id); } ?>
                             <td class="meta"><?php echo $bil++; ?></td>
-                            <td><span class="plate"><?php echo $plate; ?></span></td>
-                            <td><?php echo $type; ?></td>
-                            <td><?php echo $model; ?></td>
-                            <td class="meta"><?php echo htmlspecialchars($dateD); ?></td>
-                            <td class="mono"><?php echo $idnum; ?></td>
-                            <td><?php echo $name; ?></td>
-                            <td class="lower"><?php echo $phone !== '' ? '<span class="text-mono">'.$phone.'</span> '.format_contact_links($r['phone']) : '<span class="text-muted">—</span>'; ?></td>
-                            <td class="mono"><?php echo $serial; ?></td>
+                            <?php foreach ($nv_cols as $c) { echo nv_table_cell($c[0], $r); } ?>
                             <?php if ($nv_admin) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>'; } ?>
                         </tr>
                     <?php endforeach; ?>
