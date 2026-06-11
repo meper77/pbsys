@@ -215,13 +215,13 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 
 ## [completing](./completing)
 
-- [] finalize/verify/test/diagnose live fullstack web components end-to-end
-- [] commit, push, & deploy with CI/CD (local runnner)
-- [] native app of the latest live web
+- [x] finalize/verify/test/diagnose live fullstack web components end-to-end
+- [x] commit, push, & deploy with CI/CD (local runnner)
+- [] native app of the latest live web <!-- needs app auth rework (web is now Google-only); gated on the Android Google OAuth client id (user's final step) -->
 - [] finalize/verify/test/diagnose fullstack app components end-to-end
 - [] save the .APK locally
 
 ## [security](./security.md)
 
-- [] security hardening both live web and app
-- [] commit, push, & deploy with CI/CD (local runnner)
+- [] security hardening both live web and app <!-- web: PHP security headers + admin-gated APIs + secrets 403 done & verified live; app hardening pending the app rework -->
+- [x] commit, push, & deploy with CI/CD (local runnner)
