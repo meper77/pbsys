@@ -154,6 +154,23 @@ if (!function_exists('nv_schema_run')) {
                  WHERE `type` IS NOT NULL AND UPPER(`type`) NOT IN ('KERETA','MOTOSIKAL')");
         }
 
+        // One-time: compact vehicle_reports ids to 1..N (oldest first) so the
+        // recycled-id scheme (api/report_vehicle_api.php) starts gap-free. Runs
+        // only while a gap exists (MAX(id) != COUNT(*)), so it is idempotent.
+        if (nv_schema_table_exists($con, 'vehicle_reports')) {
+            $cnt = 0; $maxId = 0;
+            if ($r = $con->query("SELECT COUNT(*) c, COALESCE(MAX(id),0) m FROM vehicle_reports")) {
+                $row = $r->fetch_assoc(); $cnt = (int) $row['c']; $maxId = (int) $row['m'];
+            }
+            if ($cnt > 0 && $maxId !== $cnt) {
+                $con->query("UPDATE vehicle_reports SET id = id + 1000000");   // dodge PK collisions
+                $con->query("SET @rn := 0");
+                $con->query("UPDATE vehicle_reports SET id = (@rn := @rn + 1) ORDER BY created_at ASC, id ASC");
+                $con->query("ALTER TABLE vehicle_reports AUTO_INCREMENT = 1");
+                $results[] = "OK   compact vehicle_reports ids ($cnt rows)";
+            }
+        }
+
         return $results;
     }
 

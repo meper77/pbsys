@@ -39,6 +39,17 @@ function report_vehicle_clean_string(?string $value): string {
     return trim((string)$value);
 }
 
+/** Smallest free positive integer id (recycles numbers freed by deletions). */
+function report_next_free_id(mysqli $con): int {
+    $used = [];
+    if ($r = $con->query("SELECT id FROM vehicle_reports")) {
+        while ($row = $r->fetch_assoc()) { $used[(int)$row['id']] = true; }
+    }
+    $n = 1;
+    while (isset($used[$n])) { $n++; }
+    return $n;
+}
+
 function report_vehicle_store_photos(array $files, string $plateNumber): array {
     // Save under the web-served /uploads/reports so the stored URL resolves directly.
     $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/reports';
@@ -136,55 +147,50 @@ try {
     }
 
     $photoPaths = json_encode($storedPhotos);
-    $stmt = $con->prepare("INSERT INTO vehicle_reports (
-        user_id, reporter_name, reporter_email, reporter_role, plate_number,
+
+    // Recycle the report id: assign the smallest free positive integer so numbers
+    // freed by deletions are reused (gap-free, like the vehicle NO SIRI). Retry if
+    // a concurrent insert grabbed the same id.
+    $insertSql = "INSERT INTO vehicle_reports (
+        id, user_id, reporter_name, reporter_email, reporter_role, plate_number,
         owner_name, id_number, phone, vehicle_type, vehicle_status,
         offense_details, latitude, longitude, photo_paths
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    if (!$stmt) {
-        throw new RuntimeException('Failed to prepare report insert');
+    $newId = 0; $saved = false;
+    for ($try = 0; $try < 6 && !$saved; $try++) {
+        $newId = report_next_free_id($con);
+        $stmt = $con->prepare($insertSql);
+        if (!$stmt) {
+            throw new RuntimeException('Failed to prepare report insert');
+        }
+        $stmt->bind_param(
+            'iisssssssssssss',
+            $newId, $reporterId, $reporterName, $reporterEmail, $reporterRole,
+            $plateNumber, $ownerName, $idNumber, $phone, $vehicleType, $vehicleStatus,
+            $offenseDetails, $latitude, $longitude, $photoPaths
+        );
+        if ($stmt->execute()) {
+            $saved = true;
+        } elseif ($con->errno === 1062) {        // id taken by a race — recompute + retry
+            $stmt->close();
+            continue;
+        } else {
+            $err = $stmt->error; $stmt->close();
+            throw new RuntimeException('Failed to save report: ' . $err);
+        }
+        $stmt->close();
     }
-
-    $stmt->bind_param(
-        'isssssssssssss',
-        $reporterId,
-        $reporterName,
-        $reporterEmail,
-        $reporterRole,
-        $plateNumber,
-        $ownerName,
-        $idNumber,
-        $phone,
-        $vehicleType,
-        $vehicleStatus,
-        $offenseDetails,
-        $latitude,
-        $longitude,
-        $photoPaths
-    );
-
-    if (!$stmt->execute()) {
-        throw new RuntimeException('Failed to save report');
-    }
-
-    $newId = $stmt->insert_id;
-    // Gap-free sequential number (total reports) for the confirmation message,
-    // instead of the auto-increment id which jumps after deletions.
-    $report_no = 0;
-    if ($cres = $con->query("SELECT COUNT(*) c FROM vehicle_reports")) {
-        $report_no = (int) ($cres->fetch_assoc()['c'] ?? 0);
+    if (!$saved) {
+        throw new RuntimeException('Could not assign a report id');
     }
 
     echo json_encode([
         'success' => 1,
         'message' => 'Report submitted successfully',
         'report_id' => $newId,
-        'report_no' => $report_no,
         'photos' => $storedPhotos,
     ]);
-
-    $stmt->close();
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([

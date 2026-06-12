@@ -35,7 +35,7 @@ $t = $lang === 'bm' ? [
     'all_status' => 'Semua status',
     'resolved' => 'Selesai',
     'pending' => 'Menunggu',
-    'id' => 'Bil.',
+    'id' => 'ID',
     'submitted' => 'Dihantar',
     'plate' => 'Plat',
     'reporter' => 'Pelapor',
@@ -64,7 +64,7 @@ $t = $lang === 'bm' ? [
     'all_status' => 'All status',
     'resolved' => 'Resolved',
     'pending' => 'Pending',
-    'id' => 'No.',
+    'id' => 'ID',
     'submitted' => 'Submitted',
     'plate' => 'Plate',
     'reporter' => 'Reporter',
@@ -181,7 +181,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         ?>
           <tr>
             <td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Select report <?= (int)$row['id'] ?>"></td>
-            <td class="meta nv-rownum"></td>
+            <td class="meta">#<?= (int)$row['id'] ?></td>
             <td class="meta"><?= htmlspecialchars(date('d M Y, H:i', strtotime($row['created_at']))) ?></td>
             <td><span class="plate"><?= htmlspecialchars($row['plate_number']) ?></span></td>
             <td>
@@ -213,7 +213,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         order: [[2, 'desc']],
         pageLength: 25,
         dom: 'rtip',
-        columnDefs: [{ targets: [0, 1], orderable: false, searchable: false }]
+        columnDefs: [{ targets: 0, orderable: false, searchable: false }]
       });
       $('#reportsSearch').on('input', function () { dt.search(this.value).draw(); });
 
@@ -238,15 +238,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         refreshSelection();
       });
 
-      // Sequential row number (1..N, continuous across pages) so deletions
-      // never leave gaps in the "No." column.
-      function renumber() {
-        var info = dt.page.info();
-        dt.column(1, { page: 'current' }).nodes().each(function (cell, i) { cell.innerHTML = info.start + i + 1; });
-      }
       // Re-bind after DataTables page changes
-      dt.on('draw', function () { renumber(); refreshSelection(); });
-      renumber();
+      dt.on('draw', refreshSelection);
       refreshSelection();
     });
   </script>
