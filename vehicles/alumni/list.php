@@ -25,6 +25,7 @@ $t = ($lang === 'bm') ? [
 
 $nv_slug  = 'alumni';
 $category = 'Pesara';
+nv_guard_page($con, $nv_slug);   // per-user page access (permission control)
 
 // 10-column alumni table (foundation/alumni).
 $nv_cols = ($lang === 'bm') ? [

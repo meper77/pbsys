@@ -13,6 +13,7 @@ if (isset($_GET['logout'])) { header('Location: /auth/logout.php'); exit; }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';   // nv_controlled_pages()
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/otp_auth.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/schema_guard.php';
 requireAdmin();
@@ -51,9 +52,42 @@ $t = $lang === 'bm' ? [
     'removed' => 'User removed.', 'updated' => 'Permission updated.',
 ];
 
+// Page labels for the permission-control checkboxes (matches nv_controlled_pages()).
+$pageLabels = $lang === 'bm'
+    ? ['search'=>'Carian','staff'=>'Staf','student'=>'Pelajar','visitor'=>'Pelawat','contractor'=>'Kontraktor','alumni'=>'Pesara']
+    : ['search'=>'Search','staff'=>'Staff','student'=>'Student','visitor'=>'Visitor','contractor'=>'Contractor','alumni'=>'Alumni'];
+
 /* ---------------- POST actions ---------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    // Per-page permission toggle (AJAX): grant/revoke one page for one user.
+    if ($action === 'set_perm') {
+        header('Content-Type: application/json');
+        $id   = (int)($_POST['id'] ?? 0);
+        $slug = (string)($_POST['slug'] ?? '');
+        $on   = (int)($_POST['val'] ?? 0) === 1;
+        if (!in_array($slug, nv_controlled_pages(), true)) { echo json_encode(['ok' => 0]); exit; }
+        $cur = null; $found = false;
+        if ($st = $con->prepare("SELECT permissions FROM admin_allowlist WHERE id=? AND role='user' AND is_locked=0 LIMIT 1")) {
+            $st->bind_param('i', $id); $st->execute();
+            if ($r = $st->get_result()->fetch_assoc()) { $found = true; $cur = $r['permissions']; }
+            $st->close();
+        }
+        if (!$found) { echo json_encode(['ok' => 0]); exit; }
+        $allPages = nv_controlled_pages();
+        // NULL/empty = unrestricted (all pages) — make that explicit before toggling.
+        $set = ($cur === null || $cur === '') ? $allPages
+             : array_values(array_intersect((array) json_decode($cur, true), $allPages));
+        if ($on) { if (!in_array($slug, $set, true)) { $set[] = $slug; } }
+        else     { $set = array_values(array_diff($set, [$slug])); }
+        $json = json_encode(array_values($set));
+        if ($u = $con->prepare("UPDATE admin_allowlist SET permissions=? WHERE id=? AND role='user' AND is_locked=0")) {
+            $u->bind_param('si', $json, $id); $u->execute(); $u->close();
+        }
+        echo json_encode(['ok' => 1, 'perms' => array_values($set)]); exit;
+    }
+
     $flash = ''; $flashType = 'ok';
 
     if ($action === 'add') {
@@ -67,12 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $st->bind_param('ss', $em, $me); $st->execute(); $st->close();
             $flash = $t['added'];
         }
-    } elseif ($action === 'set_active') {
-        $id  = (int)($_POST['id'] ?? 0);
-        $val = (int)($_POST['val'] ?? 0) === 1 ? 1 : 0;
-        $st = $con->prepare("UPDATE admin_allowlist SET is_active = ? WHERE id = ? AND is_locked = 0 AND role='user'");
-        $st->bind_param('ii', $val, $id); $st->execute(); $st->close();
-        $flash = $t['updated'];
     } elseif ($action === 'delete_users') {
         $ids = (array)($_POST['allow_ids'] ?? []);
         $deleted = 0;
@@ -103,7 +131,7 @@ unset($_SESSION['users_flash'], $_SESSION['users_flash_type']);
 
 /* ---------------- data: allowlisted users + their profile ---------------- */
 $rows = [];
-$sql = "SELECT a.id AS allow_id, a.email, a.is_active, a.is_locked,
+$sql = "SELECT a.id AS allow_id, a.email, a.is_active, a.is_locked, a.permissions,
                u.name, u.position, u.last_login, u.deletion_requested
         FROM admin_allowlist a
         LEFT JOIN `user` u ON LOWER(u.email) = LOWER(a.email)
@@ -115,13 +143,11 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <style>
-  .nv-switch{position:relative;display:inline-block;width:42px;height:22px;}
-  .nv-switch input{opacity:0;width:0;height:0;}
-  .nv-switch .sl{position:absolute;cursor:pointer;inset:0;background:#cfcfd6;border-radius:22px;transition:.2s;}
-  .nv-switch .sl:before{content:"";position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
-  .nv-switch input:checked + .sl{background:var(--status-ok,#16a34a);}
-  .nv-switch input:checked + .sl:before{transform:translateX(20px);}
-  .nv-switch input:disabled + .sl{opacity:.5;cursor:not-allowed;}
+  .perm-grid{display:grid;grid-template-columns:repeat(2,minmax(78px,auto));gap:3px 12px;}
+  .perm-chk{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .perm-chk input{margin:0;width:15px;height:15px;cursor:pointer;accent-color:var(--status-ok,#16a34a);}
+  .perm-chk input:disabled{cursor:not-allowed;opacity:.5;}
+  .perm-chk.busy{opacity:.5;}
 </style>
 <body>
 <div class="nv-shell">
@@ -179,14 +205,13 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <th><?= htmlspecialchars($t['name']) ?></th>
             <th><?= htmlspecialchars($t['position']) ?></th>
             <th><?= htmlspecialchars($t['last_online']) ?></th>
-            <th style="width:150px;"><?= htmlspecialchars($t['permission']) ?></th>
+            <th style="width:210px;"><?= htmlspecialchars($t['permission']) ?></th>
           </tr>
         </thead>
         <tbody>
           <?php $counter = 1; foreach ($rows as $row):
             $aid    = (int)$row['allow_id'];
             $locked = !empty($row['is_locked']);
-            $active = (int)($row['is_active'] ?? 1) === 1 || $locked;
             $lastlg = $row['last_login'] ?? null;
           ?>
           <tr>
@@ -207,16 +232,21 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td><?= htmlspecialchars($row['position'] ?: '—') ?></td>
             <td class="meta"><?= $lastlg ? htmlspecialchars(date('d M Y, H:i', strtotime($lastlg))) : htmlspecialchars($t['never']) ?></td>
             <td>
-              <form method="POST" style="margin:0;">
-                <input type="hidden" name="action" value="set_active">
-                <input type="hidden" name="id" value="<?= $aid ?>">
-                <input type="hidden" name="val" value="0" class="perm-val">
-                <label class="nv-switch" title="<?= htmlspecialchars($t['permission']) ?>">
-                  <input type="checkbox" class="perm-cb" <?= $active ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>
-                         onchange="this.closest('form').querySelector('.perm-val').value=this.checked?1:0;this.closest('form').submit();">
-                  <span class="sl"></span>
-                </label>
-              </form>
+              <?php
+                $permsRaw = $row['permissions'] ?? null;
+                $allowed  = ($permsRaw === null || $permsRaw === '') ? null
+                          : array_intersect((array) json_decode($permsRaw, true), nv_controlled_pages());
+              ?>
+              <div class="perm-grid">
+                <?php foreach (nv_controlled_pages() as $slug):
+                    $on = ($allowed === null) || in_array($slug, $allowed, true); ?>
+                  <label class="perm-chk">
+                    <input type="checkbox" class="perm-cb" data-id="<?= $aid ?>" data-slug="<?= $slug ?>"
+                           <?= $on ? 'checked' : '' ?> <?= $locked ? 'disabled' : '' ?>>
+                    <span><?= htmlspecialchars($pageLabels[$slug]) ?></span>
+                  </label>
+                <?php endforeach; ?>
+              </div>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -242,7 +272,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       $('#export-btn').on('click', function(){
           if (!table.length) return;
           var clone = table.clone();
-          clone.find('input,button,svg,.nv-switch').remove();
+          clone.find('input,button,svg,.perm-grid').remove();
           var wb = XLSX.utils.table_to_book(clone[0], {sheet: "Users"});
           XLSX.writeFile(wb, "users-<?= date('Y-m-d') ?>.xlsx");
       });
@@ -256,6 +286,16 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         $selectAll.prop('indeterminate', checked > 0 && checked < total);
       }
       $(document).on('change', '.user-cb', refresh);
+
+      // Per-page permission checkboxes -> save via AJAX (no reload, no nested form).
+      $(document).on('change', '.perm-cb', function () {
+        var cb = this, $lbl = $(cb).closest('.perm-chk').addClass('busy');
+        cb.disabled = true;
+        $.post('/admin/users.php', { action: 'set_perm', id: cb.dataset.id, slug: cb.dataset.slug, val: cb.checked ? 1 : 0 }, null, 'json')
+         .done(function (r) { if (!r || !r.ok) { cb.checked = !cb.checked; } })
+         .fail(function () { cb.checked = !cb.checked; })
+         .always(function () { cb.disabled = false; $lbl.removeClass('busy'); });
+      });
       $selectAll.on('change', function(){ $('.user-cb').prop('checked', this.checked); refresh(); });
       if (dt) dt.on('draw', refresh);
       refresh();

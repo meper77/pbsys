@@ -33,6 +33,7 @@ $t = ($lang === 'bm') ? [
 
 $nv_slug = 'student';
 $category = 'Pelajar';
+nv_guard_page($con, $nv_slug);   // per-user page access (permission control)
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>

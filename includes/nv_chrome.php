@@ -13,6 +13,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';  // nv_can_access_page()
 
 $nv_active = $nv_active ?? '';
 $nv_lang   = $nv_lang ?? ($_SESSION['language'] ?? 'bm');
@@ -101,13 +102,15 @@ function nv_item($slug, $href, $lucide, $label, $active) {
         <?php
         // Role-aware home + search so users land on their own pages, not the admin ones.
         $nv_is_admin = isset($_SESSION['email_Admin']) && !empty($_SESSION['email_Admin']);
+        $nv_con = $GLOBALS['con'] ?? null;
+        $nv_see = function ($slug) use ($nv_con) { return nv_can_access_page($nv_con, $slug); };  // admin: all; user: per permission control
         nv_item('dashboard',  $nv_is_admin ? '/index.php' : '/admin/index_user.php', 'layout-dashboard', $nv_t['dashboard'], $nv_active);
-        nv_item('search',     $nv_is_admin ? '/search/car_admin.php' : '/search/car_user.php', 'search', $nv_t['search'], $nv_active);
-        nv_item('staff',      '/vehicles/staff/list.php',         'user-cog',         $nv_t['staff'],      $nv_active);
-        nv_item('student',    '/vehicles/student/list.php',       'graduation-cap',   $nv_t['student'],    $nv_active);
-        nv_item('visitor',    '/vehicles/visitor/list.php',       'user-round',       $nv_t['visitor'],    $nv_active);
-        nv_item('contractor', '/vehicles/contractor/list.php',    'hard-hat',         $nv_t['contractor'], $nv_active);
-        nv_item('alumni',     '/vehicles/alumni/list.php',        'award',            $nv_t['alumni'],     $nv_active);
+        if ($nv_see('search'))     { nv_item('search',     $nv_is_admin ? '/search/car_admin.php' : '/search/car_user.php', 'search', $nv_t['search'], $nv_active); }
+        if ($nv_see('staff'))      { nv_item('staff',      '/vehicles/staff/list.php',         'user-cog',         $nv_t['staff'],      $nv_active); }
+        if ($nv_see('student'))    { nv_item('student',    '/vehicles/student/list.php',       'graduation-cap',   $nv_t['student'],    $nv_active); }
+        if ($nv_see('visitor'))    { nv_item('visitor',    '/vehicles/visitor/list.php',       'user-round',       $nv_t['visitor'],    $nv_active); }
+        if ($nv_see('contractor')) { nv_item('contractor', '/vehicles/contractor/list.php',    'hard-hat',         $nv_t['contractor'], $nv_active); }
+        if ($nv_see('alumni'))     { nv_item('alumni',     '/vehicles/alumni/list.php',        'award',            $nv_t['alumni'],     $nv_active); }
 
         // Admin-only sections (view permission): users / admins / reports / import.
         if ($nv_is_admin) {

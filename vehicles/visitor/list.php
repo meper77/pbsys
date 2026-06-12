@@ -25,6 +25,7 @@ $t = ($lang === 'bm') ? [
 
 $nv_slug  = 'visitor';
 $category = 'Pelawat';
+nv_guard_page($con, $nv_slug);   // per-user page access (permission control)
 
 // 9-column visitor table (foundation/visitor); ID column = NO PENGENALAN (NRIC/passport).
 $nv_cols = ($lang === 'bm') ? [

@@ -54,6 +54,7 @@ $t = ($lang === 'bm') ? [
 
 $nv_slug = 'staff';
 $category = 'Staf';
+nv_guard_page($con, $nv_slug);   // per-user page access (permission control)
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>

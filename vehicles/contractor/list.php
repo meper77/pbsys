@@ -25,6 +25,7 @@ $t = ($lang === 'bm') ? [
 
 $nv_slug  = 'contractor';
 $category = 'Kontraktor';
+nv_guard_page($con, $nv_slug);   // per-user page access (permission control)
 
 // 12-column contractor table (foundation/contractor).
 $nv_cols = ($lang === 'bm') ? [

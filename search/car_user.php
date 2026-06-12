@@ -12,6 +12,8 @@ if (!isset($_SESSION['email'])) {
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_guard_page($con, 'search');   // per-user page access (permission control)
 include $_SERVER['DOCUMENT_ROOT'].'/includes/search_backend.php';
 require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';   // handles ?lang=, sets $lang
 
