@@ -168,10 +168,19 @@ try {
         throw new RuntimeException('Failed to save report');
     }
 
+    $newId = $stmt->insert_id;
+    // Gap-free sequential number (total reports) for the confirmation message,
+    // instead of the auto-increment id which jumps after deletions.
+    $report_no = 0;
+    if ($cres = $con->query("SELECT COUNT(*) c FROM vehicle_reports")) {
+        $report_no = (int) ($cres->fetch_assoc()['c'] ?? 0);
+    }
+
     echo json_encode([
         'success' => 1,
         'message' => 'Report submitted successfully',
-        'report_id' => $stmt->insert_id,
+        'report_id' => $newId,
+        'report_no' => $report_no,
         'photos' => $storedPhotos,
     ]);
 

@@ -73,7 +73,7 @@ $jsL = $lang === 'bm' ? [
     'applied' => 'Lokasi manual digunakan: {c}', 'set' => 'Lokasi ditetapkan: {c}',
     'invalid' => 'Masukkan latitud (-90..90) dan longitud (-180..180) yang sah.',
     'loc_required' => 'Lokasi diperlukan. Benarkan akses lokasi atau masukkannya secara manual.',
-    'submitting' => 'Menghantar…', 'success' => 'Laporan dihantar (ID #{id}). Terima kasih.',
+    'submitting' => 'Menghantar…', 'success' => 'Laporan dihantar (No. {id}). Terima kasih.',
     'failed_submit' => 'Penghantaran gagal.', 'neterr' => 'Ralat rangkaian: {e}',
 ] : [
     'unsupported' => 'Geolocation is not supported. Enter the location manually below.',
@@ -85,7 +85,7 @@ $jsL = $lang === 'bm' ? [
     'applied' => 'Manual location applied: {c}', 'set' => 'Location set: {c}',
     'invalid' => 'Enter a valid latitude (-90..90) and longitude (-180..180).',
     'loc_required' => 'Location is required. Allow location access or enter it manually.',
-    'submitting' => 'Submitting…', 'success' => 'Report submitted (ID #{id}). Thank you.',
+    'submitting' => 'Submitting…', 'success' => 'Report submitted (No. {id}). Thank you.',
     'failed_submit' => 'Submission failed.', 'neterr' => 'Network error: {e}',
 ];
 ?>
@@ -364,7 +364,7 @@ const NV_SUBMIT_LABEL = <?= json_encode($t['submit'], JSON_UNESCAPED_UNICODE) ?>
             const res = await fetch(form.action, { method: 'POST', body: new FormData(form) });
             const data = await res.json();
             if (data.success) {
-                alertBox.innerHTML = '<div class="flash ok">' + fmt(NVL.success, { id: data.report_id }) + '</div>';
+                alertBox.innerHTML = '<div class="flash ok">' + fmt(NVL.success, { id: (data.report_no != null ? data.report_no : data.report_id) }) + '</div>';
                 form.reset(); preview.innerHTML = ''; coordsEl.value = ''; latEl.value = lngEl.value = ''; matchStatus.textContent = '';
                 requestLocation();
             } else {
