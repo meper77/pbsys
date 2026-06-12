@@ -43,7 +43,6 @@ $t = ($lang === 'bm') ? [
     'cancel'  => 'Batal',
     'plate_exists' => 'Nombor plat sudah wujud untuk pemilik lain.',
     'success' => 'Kenderaan staf berjaya didaftar.',
-    'reactivated' => 'Kenderaan sedia ada diaktifkan semula.',
     'required' => 'Sila isi nombor plat dan telefon.',
 ] : [
     'eyebrow' => 'STAFF',
@@ -64,7 +63,6 @@ $t = ($lang === 'bm') ? [
     'cancel'  => 'Cancel',
     'plate_exists' => 'Plate number already belongs to another owner.',
     'success' => 'Staff vehicle registered successfully.',
-    'reactivated' => 'Existing vehicle reactivated.',
     'required' => 'Plate number and phone are required.',
 ];
 
@@ -84,8 +82,8 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
 if (isset($_POST['submit'])) {
     $result = nv_vehicle_register($con, 'Staf', $error);
-    if ($result === 'created' || $result === 'reactivated') {
-        $_SESSION['success_message'] = $result === 'reactivated' ? $t['reactivated'] : $t['success'];
+    if ($result !== false) {
+        $_SESSION['success_message'] = $t['success'];
         header('location:/vehicles/staff/list.php');
         exit();
     } elseif ($error === 'plate_exists') {

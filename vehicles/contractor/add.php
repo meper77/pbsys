@@ -22,7 +22,7 @@ $t = ($lang === 'bm') ? [
     'serial' => 'No. Siri', 'serial_hint' => 'Biar kosong untuk auto (set semula setiap tahun).',
     'select_type' => 'Sila pilih', 'save' => 'Simpan', 'cancel' => 'Batal',
     'plate_exists' => 'Nombor plat sudah wujud untuk pemilik lain.', 'success' => 'Kenderaan kontraktor berjaya didaftar.',
-    'reactivated' => 'Kenderaan sedia ada diaktifkan semula.', 'required' => 'Sila isi nombor plat dan telefon.',
+    'required' => 'Sila isi nombor plat dan telefon.',
 ] : [
     'eyebrow' => 'CONTRACTOR', 'title' => 'Register vehicle', 'sub' => 'Add a new contractor vehicle record.',
     'plate' => 'Plate number', 'plate_ph' => 'Enter plate number', 'type' => 'Vehicle',
@@ -33,7 +33,7 @@ $t = ($lang === 'bm') ? [
     'serial' => 'Serial no.', 'serial_hint' => 'Leave blank to auto-assign (resets each year).',
     'select_type' => 'Please select', 'save' => 'Save', 'cancel' => 'Cancel',
     'plate_exists' => 'Plate number already belongs to another owner.', 'success' => 'Contractor vehicle registered successfully.',
-    'reactivated' => 'Existing vehicle reactivated.', 'required' => 'Plate number and phone are required.',
+    'required' => 'Plate number and phone are required.',
 ];
 
 $error = '';
@@ -41,8 +41,8 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_helpers.php';
 
 if (isset($_POST['submit'])) {
     $result = nv_vehicle_register($con, 'Kontraktor', $error);
-    if ($result === 'created' || $result === 'reactivated') {
-        $_SESSION['success_message'] = $result === 'reactivated' ? $t['reactivated'] : $t['success'];
+    if ($result !== false) {
+        $_SESSION['success_message'] = $t['success'];
         header('location:/vehicles/contractor/list.php'); exit;
     } elseif ($error === 'plate_exists') { $error = $t['plate_exists']; }
     elseif ($error === 'required') { $error = $t['required']; }

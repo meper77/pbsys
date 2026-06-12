@@ -55,7 +55,7 @@ try {
     $stats = [];
     nv_xlsx_import($spreadsheet, $category, $con, $stats);
 
-    $msg = "Import complete: {$stats['added']} added, {$stats['updated']} updated, {$stats['skipped']} skipped.";
+    $msg = "Import complete: {$stats['added']} added, {$stats['skipped']} skipped.";
     if (!empty($stats['errors'])) {
         $msg .= ' (' . implode('; ', array_slice($stats['errors'], 0, 5)) . (count($stats['errors']) > 5 ? '…' : '') . ')';
     }

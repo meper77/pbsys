@@ -133,15 +133,19 @@ function nv_next_serial($con, $year): int
 }
 
 /**
- * Register (or reactivate) a vehicle from $_POST.
+ * Register a vehicle from $_POST.
  *
  * Identity rules (per upgrade spec):
  *   - staff/student keep `idnumber` (staff no / matric).
  *   - visitor/contractor have no IC; their identity is the phone number.
- *   - Re-uploading the SAME plate + phone reactivates the existing record
- *     (resets the 1-year clock) instead of erroring.
  *
- * @return string|false 'created' | 'reactivated' on success, false on error.
+ * Per-year, many-to-many model: each registration is its own row (the same plate
+ * may recur across years and across owners), so there is no reactivation and no
+ * plate-level block. An exact duplicate of every stored column is a no-op so a
+ * double-submit can't create a twin.
+ *
+ * @return string|false 'created' (new row) | 'exists' (identical row already
+ *                      present) on success, false on error.
  */
 function nv_vehicle_register($con, $category, &$error)
 {
@@ -190,32 +194,17 @@ function nv_vehicle_register($con, $category, &$error)
         $serial = nv_next_serial($con, nv_owner_year_of($dateVal));
     }
 
-    // Reactivation: same plate AND phone => reset the lifecycle clock.
-    $r = mysqli_query($con, "SELECT id, serial_no FROM `owner` WHERE platenum='$plate' AND phone='$phone' LIMIT 1");
-    if ($r && mysqli_num_rows($r) > 0) {
-        $row = mysqli_fetch_assoc($r);
-        $id  = (int) $row['id'];
-        $set = "name='$name', idnumber='$idnum', type='$type', status='$status', reactivated_at=NOW()";
-        if (isset($cols['model']))      { $set .= ", model='$model'"; }
-        if (isset($cols['date_taken'])) { $set .= ", date_taken='$dateEsc'"; }
-        if (isset($cols['serial_no'])) {
-            // Keep an existing serial; only assign when missing.
-            if ($row['serial_no'] === null || $row['serial_no'] === '') {
-                $set .= ", serial_no=" . (int) $serial;
-            } elseif ($serialRaw !== '' && ctype_digit($serialRaw)) {
-                $set .= ", serial_no=" . (int) $serial;
-            }
-        }
-        foreach ($extra as $col => $val) { $set .= ", `$col`='$val'"; }
-        mysqli_query($con, "UPDATE `owner` SET $set WHERE id=$id");
-        return 'reactivated';
-    }
-
-    // Plate already used by a different phone => genuine conflict.
-    $p = mysqli_query($con, "SELECT id FROM `owner` WHERE platenum='$plate' LIMIT 1");
-    if ($p && mysqli_num_rows($p) > 0) {
-        $error = 'plate_exists';
-        return false;
+    // Per-year, many-to-many model (foundation): never reactivate and never block
+    // on the plate alone — the same vehicle in another year, or for another owner,
+    // is its own row. Skip only an EXACT duplicate (every stored column) so a
+    // double-submit can't create a twin.
+    $dupWhere = "platenum='$plate' AND phone='$phone' AND name='$name' AND idnumber='$idnum' AND type='$type' AND status='$status'";
+    if (isset($cols['model']))      { $dupWhere .= " AND model='$model'"; }
+    if (isset($cols['date_taken'])) { $dupWhere .= " AND date_taken='$dateEsc'"; }
+    foreach ($extra as $col => $val) { $dupWhere .= " AND `$col`='$val'"; }
+    $dq = mysqli_query($con, "SELECT id FROM `owner` WHERE $dupWhere LIMIT 1");
+    if ($dq && mysqli_num_rows($dq) > 0) {
+        return 'exists'; // identical record already present — idempotent, no twin
     }
 
     // brand has a DB default ('N/A'); omit it so the default applies.

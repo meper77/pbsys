@@ -296,8 +296,8 @@ function nv_xlsx_import($spreadsheet, string $category, $con, array &$stats): vo
             $err = '';
             $res = nv_vehicle_register($con, $category, $err);
             if ($res === 'created') { $stats['added']++; }
-            elseif ($res === 'reactivated') { $stats['updated']++; }
-            else { $stats['skipped']++; $stats['errors'][] = "$sheetName r$row: " . ($err === 'plate_exists' ? 'plate belongs to another owner' : ($err ?: 'skipped')); }
+            elseif ($res === 'exists') { $stats['skipped']++; }   // identical row already present — no change
+            else { $stats['skipped']++; $stats['errors'][] = "$sheetName r$row: " . ($err ?: 'skipped'); }
         }
     }
 }
