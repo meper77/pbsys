@@ -171,6 +171,14 @@ if (!function_exists('nv_schema_run')) {
             }
         }
 
+        // Per-page permission control replaced the binary user sign-in toggle, so
+        // keep every role='user' allowlist row sign-in-enabled; page access is now
+        // governed entirely by `permissions`. (No user is stranded is_active=0.)
+        if (nv_schema_table_exists($con, 'admin_allowlist')
+            && nv_schema_col_exists($con, 'admin_allowlist', 'is_active')) {
+            @$con->query("UPDATE `admin_allowlist` SET `is_active` = 1 WHERE `role` = 'user' AND `is_active` = 0");
+        }
+
         return $results;
     }
 
