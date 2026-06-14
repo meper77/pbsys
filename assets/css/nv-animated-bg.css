@@ -1,7 +1,7 @@
-/* NEO V-TRACK — plain white background (replaced from animated night scene) */
+/* NEO V-TRACK — homepage background matches the app/search page background (--bg) */
 
 body.nv-home-night { 
-  background: #ffffff !important; 
+  background: var(--bg) !important;   /* match the search/app page background (--brand-paper) */ 
 }
 
 /* Keep shell/page transparent so cards keep their surfaces */
@@ -20,7 +20,7 @@ body.nv-home-night .nv-shell {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #ffffff !important;
+  background: var(--bg) !important;   /* match the search/app page background (--brand-paper) */
   display: block !important;
   visibility: visible !important;
 }
