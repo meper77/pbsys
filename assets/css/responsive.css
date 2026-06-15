@@ -260,41 +260,13 @@ td {
   .table-wrapper {
     display: block;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  table {
-    display: block;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  thead {
-    display: none;
-  }
-
-  tr {
-    display: block;
-    margin-bottom: clamp(0.5rem, 1vw, 1rem);
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-  }
-
-  td {
-    display: block;
-    padding: clamp(0.4rem, 1vw, 0.75rem);
-    text-align: right;
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  td:last-child {
-    border-bottom: none;
-  }
-
-  td::before {
-    content: attr(data-label);
-    float: left;
-    font-weight: 600;
-  }
+  /* NOTE: the app's data tables (.table) carry no data-label attributes, so we do
+     NOT stack them into cards (that produced unlabeled cells with the header hidden).
+     They keep real columns and scroll horizontally inside their card — see the
+     .card.flat rule in the max-width:768px block below. */
 
   .hide-mobile {
     display: none;
@@ -580,7 +552,20 @@ td {
 /* --- Mobile overflow safeguards (2026-06-03 upgrade) --- */
 @media (max-width: 768px) {
   html, body { max-width: 100%; overflow-x: hidden; }
-  /* Wide data tables scroll within their card, not the whole page */
-  .card .table, main .table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Wide data tables: the CARD scrolls horizontally; the table keeps real columns
+     (do not set display:block on the table itself — that collapses the layout). */
+  .card.flat { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .nv-shell .table, main .table { display: table; min-width: 560px; }
   .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important; }
+
+  /* Page header: title and actions stack; the action buttons wrap full-width. */
+  .page-head { align-items: flex-start; }
+  .page-head .actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
+
+  /* Vehicle-list filter bar: search takes the full row, year/month/apply wrap below. */
+  .nv-filter-bar .nv-sg-wrap { flex: 1 1 100%; }
+
+  /* Key-value blocks (report view / profile) with a tighter label column. */
+  .kv { grid-template-columns: 104px 1fr; }
 }
