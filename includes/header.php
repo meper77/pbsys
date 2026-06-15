@@ -18,4 +18,5 @@ if (session_status() === PHP_SESSION_NONE) {
     <script src="https://unpkg.com/lucide@latest" defer></script>
 
     <!-- Minimal JS we still rely on (DataTables in admin/, jQuery is loaded only where needed) -->
+    <script>window.NV_DT_BM = { info: "Memaparkan _START_–_END_ daripada _TOTAL_", infoEmpty: "Tiada rekod", infoFiltered: "(ditapis daripada _MAX_)", zeroRecords: "Tiada rekod sepadan", emptyTable: "Tiada data", paginate: { first: "Pertama", last: "Akhir", next: "Seterusnya", previous: "Sebelumnya" } };</script>
 </head>

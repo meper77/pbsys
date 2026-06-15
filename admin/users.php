@@ -261,7 +261,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   $(function(){
       var table = $('#userTable'), dt = null;
       if (table.length) {
-          dt = table.DataTable({ "pageLength": 25, "order": [[1, "asc"]], "autoWidth": false, "dom": "rtip",
+          dt = table.DataTable({ language: NV_DT_BM, "pageLength": 25, "order": [[1, "asc"]], "autoWidth": false, "dom": "rtip",
               "columnDefs": [{ "orderable": false, "targets": [0, 5] }] });
           $('#usersSearch').on('input', function () { dt.search(this.value).draw(); });
       }

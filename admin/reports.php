@@ -210,6 +210,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   <script>
     $(function(){
       var dt = $('#reportsTable').DataTable({
+        language: NV_DT_BM,
         order: [[2, 'desc']],
         pageLength: 25,
         dom: 'rtip',
