@@ -47,8 +47,8 @@ $t = $lang === 'bm' ? [
     'action' => 'Tindakan',
     'view' => 'Lihat',
     'delete' => 'Padam',
-    'no_reports' => 'No reports selected.',
-    'selected_count' => 'selected',
+    'no_reports' => 'Tiada laporan dipilih.',
+    'selected_count' => 'dipilih',
 ] : [
     'reports' => 'Reports',
     'vehicle_reports' => 'Vehicle reports',
@@ -149,7 +149,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   </form>
 
   <form id="bulkForm" method="POST" action="/admin/delete_report.php" class="mt-6"
-        onsubmit="return confirm('Delete ' + document.querySelectorAll('#reportsTable tbody input[name=&quot;ids[]&quot;]:checked').length + ' report(s)?');">
+        onsubmit="return confirm('Padam ' + document.querySelectorAll('#reportsTable tbody input[name=&quot;ids[]&quot;]:checked').length + ' laporan?');">
     <div class="nv-row between mb-4">
       <span class="text-muted" id="bulkCount" style="font-size:13px;"><?= htmlspecialchars($t['no_reports']) ?></span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled>
@@ -161,7 +161,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <table id="reportsTable" class="table">
         <thead>
           <tr>
-            <th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Select all"></th>
+            <th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Pilih semua"></th>
             <th><?= htmlspecialchars($t['id']) ?></th>
             <th><?= htmlspecialchars($t['submitted']) ?></th>
             <th><?= htmlspecialchars($t['plate']) ?></th>
@@ -180,7 +180,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             $mapUrl = 'https://www.google.com/maps?q=' . urlencode($row['latitude'] . ',' . $row['longitude']);
         ?>
           <tr>
-            <td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Select report <?= (int)$row['id'] ?>"></td>
+            <td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Pilih laporan <?= (int)$row['id'] ?>"></td>
             <td class="meta">#<?= (int)$row['id'] ?></td>
             <td class="meta"><?= htmlspecialchars(date('d M Y, H:i', strtotime($row['created_at']))) ?></td>
             <td><span class="plate"><?= htmlspecialchars($row['plate_number']) ?></span></td>
@@ -193,7 +193,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td><?= htmlspecialchars($row['owner_name'] ?: '—') ?></td>
             <td class="meta"><?= htmlspecialchars($row['vehicle_type'] ?: '—') ?></td>
             <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= htmlspecialchars($row['offense_details']) ?>"><?= htmlspecialchars($row['offense_details']) ?></td>
-            <td><a href="<?= $mapUrl ?>" target="_blank" rel="noopener"><i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;"></i> Map</a></td>
+            <td><a href="<?= $mapUrl ?>" target="_blank" rel="noopener"><i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;"></i> Peta</a></td>
             <td class="meta"><?= count($photos) ?> <i data-lucide="camera" style="width:14px;height:14px;vertical-align:-2px;"></i></td>
             <td>
               <a href="/admin/report_view.php?id=<?= (int)$row['id'] ?>" class="btn btn-quiet" title="<?= htmlspecialchars($t['view']) ?>"><i data-lucide="eye"></i></a>

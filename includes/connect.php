@@ -16,6 +16,14 @@ if (!headers_sent()) {
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
+// Single language: professional Malay only (the English option was removed).
+// Pin every UI request to BM and neutralise any ?lang= so per-page handlers and
+// the shared language includes can never switch away.
+if (session_status() === PHP_SESSION_ACTIVE) {
+    $_SESSION['language'] = 'bm';
+    unset($_GET['lang']);
+}
+
 // Auto-detect production on Hestia, otherwise use local XAMPP credentials.
 $server_name = strtolower($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
 $environment = getenv('NEOVTRACK_ENV') ?: (strpos($server_name, 'neovtrack.uitm.edu.my') !== false ? 'live' : 'local');

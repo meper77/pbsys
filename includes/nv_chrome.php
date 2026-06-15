@@ -77,10 +77,6 @@ function nv_item($slug, $href, $lucide, $label, $active) {
 
         <div class="nv-spacer"></div>
 
-        <?php if ($nv_show_lang_switcher): ?>
-            <a href="?lang=bm" class="nv-btn nv-btn-ghost" style="<?php echo $nv_lang === 'bm' ? 'background:var(--brand-yellow);color:var(--neutral-900);border-color:var(--brand-yellow);' : ''; ?>padding:5px 10px;font-size:12px;">BM</a>
-            <a href="?lang=en" class="nv-btn nv-btn-ghost" style="<?php echo $nv_lang === 'en' ? 'background:var(--brand-yellow);color:var(--neutral-900);border-color:var(--brand-yellow);' : ''; ?>padding:5px 10px;font-size:12px;">EN</a>
-        <?php endif; ?>
 
         <div class="nv-who">
             <a href="/auth/profile.php" class="nv-who-link" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;" title="<?php echo htmlspecialchars($nv_t['profile']); ?>">

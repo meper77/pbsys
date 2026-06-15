@@ -16,7 +16,7 @@
 function bulk_delete_button($options = []) {
   $opts = array_merge([
     'endpoint' => '/api/bulk_delete_api.php',
-    'confirm_message' => 'Delete selected items? This cannot be undone.',
+    'confirm_message' => 'Padam item dipilih? Tindakan ini tidak boleh dibatalkan.',
     'button_class' => 'btn btn-ghost text-danger'
   ], $options);
   
@@ -36,7 +36,7 @@ function bulk_delete_button($options = []) {
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
     <path d="M3 6h18"></path>
     <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg> Delete selected
+  </svg> Padam dipilih
 </button>
 <script src="/assets/js/bulk-delete.js"></script>
 HTML;
@@ -45,7 +45,7 @@ HTML;
 function bulk_delete_checkbox_header() {
   return <<<HTML
 <th style="width: 40px;">
-  <input type="checkbox" id="selectAllCheckbox" title="Select all on this page">
+  <input type="checkbox" id="selectAllCheckbox" title="Pilih semua di halaman ini">
 </th>
 HTML;
 }
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bulkDeleteBtn) {
       const checked = document.querySelectorAll('input[name="selected_ids[]"]:checked').length;
       bulkDeleteBtn.disabled = checked === 0;
-      bulkDeleteBtn.textContent = checked > 0 ? `Delete selected (\${checked})` : 'Delete selected';
+      bulkDeleteBtn.textContent = checked > 0 ? `Padam dipilih (\${checked})` : 'Padam dipilih';
     }
   });
 });

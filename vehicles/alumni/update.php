@@ -57,8 +57,8 @@ $vehicle_data = null;
 if ($id > 0) {
     $res = mysqli_query($con, "SELECT * FROM `owner` WHERE id = $id");
     if ($res && mysqli_num_rows($res) > 0) { $vehicle_data = mysqli_fetch_assoc($res); }
-    else { echo "<script>alert('Record not found.'); window.location.href='/vehicles/alumni/list.php';</script>"; exit; }
-} else { echo "<script>alert('Invalid ID.'); window.location.href='/vehicles/alumni/list.php';</script>"; exit; }
+    else { echo "<script>alert('Rekod tidak ditemui.'); window.location.href='/vehicles/alumni/list.php';</script>"; exit; }
+} else { echo "<script>alert('ID tidak sah.'); window.location.href='/vehicles/alumni/list.php';</script>"; exit; }
 
 $dtv = $vehicle_data['date_taken'] ?? ''; $dtv = ($dtv && $dtv !== '0000-00-00') ? date('Y-m-d', strtotime($dtv)) : '';
 $type_opts = ['KERETA', 'MOTOSIKAL'];

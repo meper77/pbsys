@@ -245,7 +245,7 @@ if (!function_exists('nv_table_cell')) {
             <div class="nv-row between mt-4" style="align-items:center;">
                 <p class="text-muted" style="margin:0;"><?php echo htmlspecialchars($H['showing']); ?> <strong><?php echo count($rows); ?></strong> <?php echo htmlspecialchars($H['records']); ?></p>
                 <?php if ($nv_admin): ?>
-                    <?php echo bulk_delete_button(['endpoint' => '/api/bulk_delete_api.php', 'confirm_message' => 'Delete selected vehicles? This cannot be undone.']); ?>
+                    <?php echo bulk_delete_button(['endpoint' => '/api/bulk_delete_api.php', 'confirm_message' => 'Padam kenderaan dipilih? Tindakan ini tidak boleh dibatalkan.']); ?>
                 <?php endif; ?>
             </div>
 
@@ -267,7 +267,7 @@ if (!function_exists('nv_table_cell')) {
                             <?php if ($nv_admin) { echo bulk_delete_checkbox($id); } ?>
                             <td class="meta"><?php echo $bil++; ?></td>
                             <?php foreach ($nv_cols as $c) { echo nv_table_cell($c[0], $r); } ?>
-                            <?php if ($nv_admin) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Edit"><i data-lucide="pencil"></i></a></td>'; } ?>
+                            <?php if ($nv_admin) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Kemaskini"><i data-lucide="pencil"></i></a></td>'; } ?>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>

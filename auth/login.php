@@ -150,13 +150,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
       </form>
     <?php endif; ?>
 
-    <div class="auth-foot">
-      <span class="text-mono lang-selector">
-        <a href="?lang=bm<?= $devMode ? '&dev=1' : '' ?>" class="<?= $lang === 'bm' ? 'lang-active' : 'lang-inactive' ?>">BM</a>
-        ·
-        <a href="?lang=en<?= $devMode ? '&dev=1' : '' ?>" class="<?= $lang === 'en' ? 'lang-active' : 'lang-inactive' ?>">EN</a>
-      </span>
-    </div>
   </div>
 </div>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
