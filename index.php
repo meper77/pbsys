@@ -115,8 +115,7 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 ?>
-<body class="nv-home-night">
-<?php include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_night_bg.php'; ?>
+<body>
 <div class="nv-shell">
 <?php $nv_active = 'dashboard'; $nv_admin_display = $admin_display; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
 <main class="page">
