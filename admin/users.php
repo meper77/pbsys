@@ -54,8 +54,8 @@ $t = $lang === 'bm' ? [
 
 // Page labels for the permission-control checkboxes (matches nv_controlled_pages()).
 $pageLabels = $lang === 'bm'
-    ? ['search'=>'Carian','staff'=>'Staf','student'=>'Pelajar','visitor'=>'Pelawat','contractor'=>'Kontraktor','alumni'=>'Pesara']
-    : ['search'=>'Search','staff'=>'Staff','student'=>'Student','visitor'=>'Visitor','contractor'=>'Contractor','alumni'=>'Alumni'];
+    ? ['search'=>'Carian','staff'=>'Staf','student'=>'Pelajar','visitor'=>'Pelawat','contractor'=>'Kontraktor','alumni'=>'Pesara','report'=>'Lapor']
+    : ['search'=>'Search','staff'=>'Staff','student'=>'Student','visitor'=>'Visitor','contractor'=>'Contractor','alumni'=>'Alumni','report'=>'Report'];
 
 /* ---------------- POST actions ---------------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

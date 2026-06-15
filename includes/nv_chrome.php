@@ -33,6 +33,7 @@ $nv_t = $nv_lang === 'bm' ? [
     'visitor'   => 'Pelawat',
     'contractor'=> 'Kontraktor',
     'alumni'    => 'Pesara',
+    'report'    => 'Lapor',
     'users'     => 'Pengguna',
     'admin'     => 'Pentadbir',
     'reports'   => 'Laporan',
@@ -48,6 +49,7 @@ $nv_t = $nv_lang === 'bm' ? [
     'visitor'   => 'Visitor',
     'contractor'=> 'Contractor',
     'alumni'    => 'Alumni',
+    'report'    => 'Report',
     'users'     => 'Users',
     'admin'     => 'Admins',
     'reports'   => 'Reports',
@@ -107,6 +109,7 @@ function nv_item($slug, $href, $lucide, $label, $active) {
         if ($nv_see('visitor'))    { nv_item('visitor',    '/vehicles/visitor/list.php',       'user-round',       $nv_t['visitor'],    $nv_active); }
         if ($nv_see('contractor')) { nv_item('contractor', '/vehicles/contractor/list.php',    'hard-hat',         $nv_t['contractor'], $nv_active); }
         if ($nv_see('alumni'))     { nv_item('alumni',     '/vehicles/alumni/list.php',        'award',            $nv_t['alumni'],     $nv_active); }
+        if ($nv_see('report'))     { nv_item('report',     '/vehicles/report.php',             'flag',             $nv_t['report'],     $nv_active); }
 
         // Admin-only sections (view permission): users / admins / reports / import.
         if ($nv_is_admin) {
