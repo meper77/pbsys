@@ -3,10 +3,9 @@ session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 
-if (!isset($_SESSION['email_Admin'])) {
-    header('Location: /auth/login_admin.php');
-    exit;
-}
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_require_login();
+nv_guard_page($con, 'reports');   // admins, or users granted the reports page
 
 if (isset($_GET['logout'])) {
     session_destroy();
@@ -67,10 +66,12 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </div>
     <div class="actions">
       <a class="btn btn-ghost" href="/admin/reports.php"><i data-lucide="arrow-left"></i> Kembali ke senarai</a>
+      <?php if (nv_is_admin()): ?>
       <form method="POST" action="/admin/delete_report.php" style="display:inline" onsubmit="return confirm('Padam laporan #<?= (int)$report['id'] ?>?')">
         <input type="hidden" name="ids[]" value="<?= (int)$report['id'] ?>">
         <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Padam</button>
       </form>
+      <?php endif; ?>
     </div>
   </div>
 

@@ -58,7 +58,7 @@ function nv_require_admin() {
 
 /** Page slugs an admin can grant/revoke per user (dashboard is always allowed). */
 function nv_controlled_pages(): array {
-    return ['search', 'staff', 'student', 'visitor', 'contractor', 'alumni', 'report'];
+    return ['search', 'staff', 'student', 'visitor', 'contractor', 'alumni', 'report', 'reports'];
 }
 
 /**

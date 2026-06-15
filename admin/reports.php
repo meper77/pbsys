@@ -2,9 +2,11 @@
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/permission_check.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 
-// Admin only
-requireAdmin();
+// Admins, or users granted the 'reports' page (view-only — delete stays admin).
+nv_guard_page($con, 'reports');
+$isAdmin = isAdmin();
 
 if (isset($_GET['logout'])) {
     session_destroy();
@@ -121,10 +123,12 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <span class="eyebrow"><?= htmlspecialchars($t['reports']) ?></span>
       <h1><?= htmlspecialchars($t['vehicle_reports']) ?></h1>
     </div>
+    <?php if ($isAdmin): ?>
     <div class="actions">
       <a class="btn btn-signal" href="/vehicles/report.php"><i data-lucide="plus"></i> <?= htmlspecialchars($t['new_report']) ?></a>
       <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
     </div>
+    <?php endif; ?>
   </div>
 
   <?php if ($flash): ?>
@@ -150,18 +154,20 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 
   <form id="bulkForm" method="POST" action="/admin/delete_report.php" class="mt-6"
         onsubmit="return confirm('Padam ' + document.querySelectorAll('#reportsTable tbody input[name=&quot;ids[]&quot;]:checked').length + ' laporan?');">
+    <?php if ($isAdmin): ?>
     <div class="nv-row between mb-4">
       <span class="text-muted" id="bulkCount" style="font-size:13px;"><?= htmlspecialchars($t['no_reports']) ?></span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled>
         <i data-lucide="trash-2"></i> <?= htmlspecialchars($t['bulk_delete']) ?>
       </button>
     </div>
+    <?php endif; ?>
 
     <div class="card flat">
       <table id="reportsTable" class="table">
         <thead>
           <tr>
-            <th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Pilih semua"></th>
+            <?php if ($isAdmin): ?><th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Pilih semua"></th><?php endif; ?>
             <th><?= htmlspecialchars($t['id']) ?></th>
             <th><?= htmlspecialchars($t['submitted']) ?></th>
             <th><?= htmlspecialchars($t['plate']) ?></th>
@@ -180,7 +186,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             $mapUrl = 'https://www.google.com/maps?q=' . urlencode($row['latitude'] . ',' . $row['longitude']);
         ?>
           <tr>
-            <td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Pilih laporan <?= (int)$row['id'] ?>"></td>
+            <?php if ($isAdmin): ?><td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Pilih laporan <?= (int)$row['id'] ?>"></td><?php endif; ?>
             <td class="meta">#<?= (int)$row['id'] ?></td>
             <td class="meta"><?= htmlspecialchars(date('d M Y, H:i', strtotime($row['created_at']))) ?></td>
             <td><span class="plate"><?= htmlspecialchars($row['plate_number']) ?></span></td>
