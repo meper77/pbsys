@@ -132,9 +132,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
       <h1 class="h1-compact"><?= htmlspecialchars($t['admins_list']) ?></h1>
     </div>
-    <div class="actions">
-      <button class="btn btn-ghost" id="export-btn"><i data-lucide="download"></i> <?= htmlspecialchars($t['export']) ?></button>
-    </div>
   </div>
 
   <?php if ($flash): ?>
@@ -261,7 +258,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.1/xlsx.full.min.js"></script>
   <script>
   $(function(){
       var table = $('#adminTable');
@@ -271,13 +267,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
               "columnDefs": [{ "orderable": false, "targets": 0 }] });
           $('#adminsSearch').on('input', function () { dt.search(this.value).draw(); });
       }
-      $('#export-btn').on('click', function(){
-          if (!table.length) return;
-          var clone = table.clone();
-          clone.find('input,button,svg,.pill').remove();
-          var wb = XLSX.utils.table_to_book(clone[0], {sheet: "Admins"});
-          XLSX.writeFile(wb, "admins-<?= date('Y-m-d') ?>.xlsx");
-      });
 
       var $selectAll = $('#selectAll'), $btn = $('#bulkDeleteBtn'), $count = $('#bulkCount');
       function refresh(){
