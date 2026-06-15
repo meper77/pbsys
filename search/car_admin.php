@@ -11,6 +11,7 @@ if (isset($_GET['logout'])) {
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/search_backend.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_category.php';
 nv_require_login();
 
 // LANGUAGE SYSTEM
@@ -149,17 +150,16 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         $counter = 1;
         foreach ($results as $row):
             $status_raw = strtolower($row['status'] ?? '');
-            $tone = 'info';
-            if (in_array($status_raw, ['staf', 'staff']))            { $tone = 'info';    $status_text = ($lang === 'bm' ? 'Staf' : 'Staff'); }
-            elseif (in_array($status_raw, ['pelajar', 'student']))   { $tone = 'info';    $status_text = ($lang === 'bm' ? 'Pelajar' : 'Student'); }
-            elseif (in_array($status_raw, ['pelawat', 'visitor']))   { $tone = 'warn';    $status_text = ($lang === 'bm' ? 'Pelawat' : 'Visitor'); }
-            elseif (in_array($status_raw, ['kontraktor', 'contractor'])) { $tone = 'ok'; $status_text = ($lang === 'bm' ? 'Kontraktor' : 'Contractor'); }
-            else { $tone = 'neutral'; $status_text = htmlspecialchars($row['status'] ?? ''); }
-
+            if (in_array($status_raw, ['staf', 'staff']))                { $status_text = ($lang === 'bm' ? 'Staf' : 'Staff'); }
+            elseif (in_array($status_raw, ['pelajar', 'student']))       { $status_text = ($lang === 'bm' ? 'Pelajar' : 'Student'); }
+            elseif (in_array($status_raw, ['pelawat', 'visitor']))       { $status_text = ($lang === 'bm' ? 'Pelawat' : 'Visitor'); }
+            elseif (in_array($status_raw, ['kontraktor', 'contractor'])) { $status_text = ($lang === 'bm' ? 'Kontraktor' : 'Contractor'); }
+            elseif (in_array($status_raw, ['pesara', 'alumni']))         { $status_text = ($lang === 'bm' ? 'Pesara' : 'Alumni'); }
+            else { $status_text = $row['status'] ?? ''; }
         ?>
         <tr>
           <td class="meta"><?= $counter++ ?></td>
-          <td><span class="pill <?= $tone ?>"><span class="dot"></span> <?= htmlspecialchars($status_text) ?></span></td>
+          <td><?= nv_category_pill($row['status'] ?? '', $status_text) ?></td>
           <td><?= htmlspecialchars($row['idnumber'] ?? '') ?></td>
           <td><strong><?= htmlspecialchars($row['name'] ?? '') ?></strong></td>
           <td><?= htmlspecialchars($row['phone'] ?? '') ?></td>

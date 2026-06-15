@@ -11,6 +11,7 @@ if (isset($_GET['logout'])) {
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chart.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_category.php';
 nv_require_login();
 $nv_admin = nv_is_admin();
 
@@ -185,11 +186,11 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     'year'     => $cy,
     'seriesBy' => 'status',
     'series'   => [
-      'Staf'       => ['label' => ($lang === 'bm' ? 'Staf' : 'Staff'),        'color' => '#6b21a8'],
-      'Pelajar'    => ['label' => ($lang === 'bm' ? 'Pelajar' : 'Student'),   'color' => '#f5c518'],
-      'Pelawat'    => ['label' => ($lang === 'bm' ? 'Pelawat' : 'Visitor'),   'color' => '#0ea5e9'],
-      'Kontraktor' => ['label' => ($lang === 'bm' ? 'Kontraktor' : 'Contractor'), 'color' => '#16a34a'],
-      'Pesara'     => ['label' => ($lang === 'bm' ? 'Pesara' : 'Alumni'),     'color' => '#ef4444'],
+      'Staf'       => ['label' => ($lang === 'bm' ? 'Staf' : 'Staff'),        'color' => nv_category_color('Staf')],
+      'Pelajar'    => ['label' => ($lang === 'bm' ? 'Pelajar' : 'Student'),   'color' => nv_category_color('Pelajar')],
+      'Pelawat'    => ['label' => ($lang === 'bm' ? 'Pelawat' : 'Visitor'),   'color' => nv_category_color('Pelawat')],
+      'Kontraktor' => ['label' => ($lang === 'bm' ? 'Kontraktor' : 'Contractor'), 'color' => nv_category_color('Kontraktor')],
+      'Pesara'     => ['label' => ($lang === 'bm' ? 'Pesara' : 'Alumni'),     'color' => nv_category_color('Pesara')],
     ],
     'months'   => $cMonths,
     'lump'     => '',

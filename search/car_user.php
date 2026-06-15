@@ -13,6 +13,7 @@ if (!isset($_SESSION['email'])) {
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_category.php';
 nv_guard_page($con, 'search');   // per-user page access (permission control)
 include $_SERVER['DOCUMENT_ROOT'].'/includes/search_backend.php';
 require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';   // handles ?lang=, sets $lang
@@ -131,15 +132,16 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
       <tbody>
         <?php $no = 1; foreach ($results as $row):
           $sraw = strtolower($row['status'] ?? '');
-          $tone = 'neutral'; $stext = $row['status'] ?? '';
-          if (in_array($sraw, ['staf','staff'])) { $tone='info'; $stext = $lang==='bm'?'Staf':'Staff'; }
-          elseif (in_array($sraw, ['pelajar','student'])) { $tone='info'; $stext = $lang==='bm'?'Pelajar':'Student'; }
-          elseif (in_array($sraw, ['pelawat','visitor'])) { $tone='warn'; $stext = $lang==='bm'?'Pelawat':'Visitor'; }
-          elseif (in_array($sraw, ['kontraktor','contractor'])) { $tone='ok'; $stext = $lang==='bm'?'Kontraktor':'Contractor'; }
+          $stext = $row['status'] ?? '';
+          if (in_array($sraw, ['staf','staff'])) { $stext = $lang==='bm'?'Staf':'Staff'; }
+          elseif (in_array($sraw, ['pelajar','student'])) { $stext = $lang==='bm'?'Pelajar':'Student'; }
+          elseif (in_array($sraw, ['pelawat','visitor'])) { $stext = $lang==='bm'?'Pelawat':'Visitor'; }
+          elseif (in_array($sraw, ['kontraktor','contractor'])) { $stext = $lang==='bm'?'Kontraktor':'Contractor'; }
+          elseif (in_array($sraw, ['pesara','alumni'])) { $stext = $lang==='bm'?'Pesara':'Alumni'; }
         ?>
         <tr>
           <td class="meta"><?= $no++ ?></td>
-          <td><span class="pill <?= $tone ?>"><span class="dot"></span> <?= htmlspecialchars($stext) ?></span></td>
+          <td><?= nv_category_pill($row['status'] ?? '', $stext) ?></td>
           <td><?= htmlspecialchars($row['idnumber'] ?? '') ?></td>
           <td><strong><?= htmlspecialchars($row['name'] ?? '') ?></strong></td>
           <td><?= htmlspecialchars($row['phone'] ?? '') ?></td>
