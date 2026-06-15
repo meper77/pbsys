@@ -44,7 +44,7 @@ img { max-width: 100%; }
 
 /* ---------- HEADER (custom — emitted by nv_chrome.php) ---------- */
 .nv-header { background: var(--brand-purple-deep); color: white; position: sticky; top: 0; z-index: 20; }
-.nv-header-row { display: flex; align-items: center; gap: 18px; padding: 12px 28px; max-width: 1480px; margin: 0 auto; }
+.nv-header-row { display: flex; align-items: center; gap: 18px; padding: 12px 28px; width: 100%; }
 .nv-brand { display: flex; align-items: center; gap: 12px; padding-right: 16px; border-right: 1px solid rgba(255,255,255,0.12); }
 .nv-uitm { height: 38px; width: auto; display: block; }
 .nv-neo  { height: 40px; width: auto; display: block; background: white; border-radius: 6px; padding: 3px 6px; }
@@ -60,7 +60,7 @@ img { max-width: 100%; }
 
 /* NAV row */
 .nv-nav { background: var(--brand-purple-deep); border-top: 1px solid rgba(255,255,255,0.08); position: sticky; top: 62px; z-index: 19; }
-.nv-nav-row { display: flex; align-items: stretch; padding: 0 18px; max-width: 1480px; margin: 0 auto; overflow-x: auto; }
+.nv-nav-row { display: flex; align-items: stretch; padding: 0 18px; width: 100%; overflow-x: auto; }
 .nv-nav-row::-webkit-scrollbar { display: none; }
 .nv-nav-item { display: inline-flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.65); cursor: pointer; user-select: none; border-bottom: 2px solid transparent; transition: color 120ms var(--ease-out), border-color 120ms var(--ease-out); margin-bottom: -1px; text-decoration: none; white-space: nowrap; }
 .nv-nav-item:hover { color: white; text-decoration: none; }
@@ -76,7 +76,7 @@ img { max-width: 100%; }
 .nv-btn-ghost:hover { background: rgba(255,255,255,0.14); color: white; }
 
 /* ---------- PAGE HEADING ---------- */
-.page { padding: 24px 28px; max-width: 1480px; margin: 0 auto; width: 100%; }
+.page { padding: 24px 28px; width: 100%; }
 .page-head { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
 .page-head h1 { font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
 .page-head .sub { color: var(--fg-3); font-size: 14px; margin-left: 4px; }
