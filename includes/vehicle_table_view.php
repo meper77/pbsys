@@ -95,10 +95,10 @@ if (!function_exists('nv_table_cell')) {
             case 'type':    return '<td>' . htmlspecialchars($r['type'] ?? '') . '</td>';
             case 'model':   $m = (($r['model'] ?? '') !== '' && ($r['model'] ?? '') !== 'N/A') ? $r['model'] : '—'; return '<td>' . htmlspecialchars($m) . '</td>';
             case 'date':    $d = $r['date_taken'] ?? null; $dd = ($d && $d !== '0000-00-00') ? date('d M Y', strtotime($d)) : '—'; return '<td class="meta">' . htmlspecialchars($dd) . '</td>';
-            case 'idnum':   return '<td class="mono">' . htmlspecialchars($r['idnumber'] ?? '') . '</td>';
+            case 'idnum':   return '<td class="text-mono">' . htmlspecialchars($r['idnumber'] ?? '') . '</td>';
             case 'name':    return '<td>' . htmlspecialchars($r['name'] ?? '') . '</td>';
             case 'phone':   $p = htmlspecialchars($r['phone'] ?? ''); return '<td class="lower">' . ($p !== '' ? '<span class="text-mono">' . $p . '</span> ' . format_contact_links($r['phone']) : '<span class="text-muted">—</span>') . '</td>';
-            case 'serial':  return '<td class="mono">' . htmlspecialchars(nv_serial_label($r['serial_no'] ?? null)) . '</td>';
+            case 'serial':  return '<td class="text-mono">' . htmlspecialchars(nv_serial_label($r['serial_no'] ?? null)) . '</td>';
             case 'company': $c = ($r['company'] ?? '') !== '' ? $r['company'] : '—'; return '<td>' . htmlspecialchars($c) . '</td>';
             case 'email':   $e = htmlspecialchars($r['ownerEmail'] ?? ''); return '<td class="lower">' . ($e !== '' ? '<span class="text-mono">' . $e . '</span>' : '<span class="text-muted">—</span>') . '</td>';
             case 'note':    $n = ($r['note'] ?? '') !== '' ? $r['note'] : '—'; return '<td>' . htmlspecialchars($n) . '</td>';
