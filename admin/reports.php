@@ -123,12 +123,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <span class="eyebrow"><?= htmlspecialchars($t['reports']) ?></span>
       <h1><?= htmlspecialchars($t['vehicle_reports']) ?></h1>
     </div>
-    <?php if ($isAdmin): ?>
     <div class="actions">
       <a class="btn btn-signal" href="/vehicles/report.php"><i data-lucide="plus"></i> <?= htmlspecialchars($t['new_report']) ?></a>
-      <a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a>
+      <?php if ($isAdmin): ?><a class="btn btn-ghost" href="/admin/admins.php"><i data-lucide="arrow-left"></i> <?= htmlspecialchars($t['back']) ?></a><?php endif; ?>
     </div>
-    <?php endif; ?>
   </div>
 
   <?php if ($flash): ?>

@@ -28,7 +28,7 @@ if (!empty($_SESSION['email_Admin'])) {
     header('Location: /auth/login.php');
     exit;
 }
-nv_guard_page($con, 'report');   // per-user page access (permission control)
+nv_guard_page($con, 'reports');   // do-report is folded into the Laporan permission
 
 $t = $lang === 'bm' ? [
     'eyebrow' => 'Laporan', 'title' => 'Lapor kenderaan',
@@ -113,7 +113,7 @@ $jsL = $lang === 'bm' ? [
 </style>
 <body>
 <div class="nv-shell">
-<?php $nv_active='report'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
+<?php $nv_active='reports'; include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php'; ?>
 <main class="page">
   <div class="page-head">
     <div>
