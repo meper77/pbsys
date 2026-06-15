@@ -163,8 +163,13 @@ function nv_google_login($con, string $idToken, ?string &$error = null)
     $email = nv_norm_email($claims['email'] ?? '');
     if (empty($claims['email_verified']) || $email === '') { $error = 'unverified'; return false; }
 
-    $hd = (string) nv_secret('google_hd', '');
-    if ($hd !== '' && ($claims['hd'] ?? '') !== $hd) { $error = 'domain'; return false; }
+    // Hosted-domain guard: accept the UiTM Workspace family — uitm.edu.my (staff)
+    // and student.uitm.edu.my (students) — plus any configured google_hd / sub-domain.
+    $claimHd = strtolower((string) ($claims['hd'] ?? ''));
+    $hd      = strtolower((string) nv_secret('google_hd', ''));
+    $hdOk = ($claimHd === 'uitm.edu.my' || str_ends_with($claimHd, '.uitm.edu.my'));
+    if (!$hdOk && $hd !== '') { $hdOk = ($claimHd === $hd || str_ends_with($claimHd, '.' . $hd)); }
+    if (!$hdOk) { $error = 'domain'; return false; }
 
     if (!nv_valid_uitm_email($email)) { $error = 'bad_domain'; return false; }
 
