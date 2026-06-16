@@ -13,10 +13,7 @@ session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_xlsx.php';
 
-if (!isset($_SESSION['email_Admin'])) {
-    http_response_code(403);
-    exit('Admin access required');
-}
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 nv_schema_autoprovision_once($con);
 
 $cat_whitelist = ['Staf', 'Pelajar', 'Pelawat', 'Kontraktor', 'Pesara'];
@@ -24,6 +21,12 @@ $category = $_GET['category'] ?? '';
 if (!in_array($category, $cat_whitelist, true)) {
     http_response_code(400);
     exit('Invalid category');
+}
+// Admins, or users granted this category, may export.
+$exp_slug = ['Staf' => 'staff', 'Pelajar' => 'student', 'Pelawat' => 'visitor', 'Kontraktor' => 'contractor', 'Pesara' => 'alumni'][$category] ?? '';
+if (!nv_can_access_page($con, $exp_slug)) {
+    http_response_code(403);
+    exit('Access denied');
 }
 $isTemplate = !empty($_GET['template']);
 $fy = (isset($_GET['y']) && ctype_digit($_GET['y'])) ? (int) $_GET['y'] : 0;

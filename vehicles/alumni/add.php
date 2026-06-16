@@ -3,7 +3,8 @@ session_start();
 if (isset($_GET['logout'])) { header('Location: /auth/logout.php'); exit; }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-if (!isset($_SESSION['email_Admin'])) { header('location:/auth/login.php'); exit; }
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_guard_page($con, 'alumni');   // admins, or users granted this category, may manage
 
 if (!isset($_SESSION['language'])) { $_SESSION['language'] = 'bm'; }
 if (isset($_GET['lang'])) {

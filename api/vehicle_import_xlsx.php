@@ -15,15 +15,17 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/includes/vehicle_xlsx.php';
 
 $slug_map = ['Staf' => 'staff', 'Pelajar' => 'student', 'Pelawat' => 'visitor', 'Kontraktor' => 'contractor', 'Pesara' => 'alumni'];
 
-if (!isset($_SESSION['email_Admin'])) {
-    http_response_code(403);
-    exit('Admin access required');
-}
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 
 $category = $_POST['category'] ?? '';
 if (!isset($slug_map[$category])) {
     http_response_code(400);
     exit('Invalid category');
+}
+// Admins, or users granted this category, may import.
+if (!nv_can_access_page($con, $slug_map[$category])) {
+    http_response_code(403);
+    exit('Access denied');
 }
 $listUrl = '/vehicles/' . $slug_map[$category] . '/list.php';
 

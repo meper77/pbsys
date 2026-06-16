@@ -20,7 +20,8 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chart.php';
 
 nv_schema_autoprovision_once($con);          // ensure model/date_taken/serial_no exist on live
-$nv_admin = nv_is_admin();                    // mutating actions are admin-only
+$nv_admin = nv_is_admin();                    // delete stays admin-only
+$nv_can_manage = nv_is_admin() || nv_is_user();  // anyone on this permission-guarded page may register/edit/import/export
 
 $cat = mysqli_real_escape_string($con, $category);
 
@@ -146,7 +147,7 @@ if (!function_exists('nv_table_cell')) {
         </div>
         <div class="actions">
             <button type="button" class="btn btn-ghost" onclick="window.print()" title="<?php echo htmlspecialchars($H['print']); ?>"><i data-lucide="printer"></i> <?php echo htmlspecialchars($H['print']); ?></button>
-            <?php if ($nv_admin): ?>
+            <?php if ($nv_can_manage): ?>
             <?php $qf = ($fy > 0 ? '&y=' . $fy : '') . ($fm > 0 ? '&m=' . $fm : ''); ?>
             <a class="btn btn-ghost" href="/api/vehicle_export_xlsx.php?category=<?php echo urlencode($category); ?><?php echo $qf; ?>" title="<?php echo htmlspecialchars($H['export']); ?>"><i data-lucide="download"></i> <?php echo htmlspecialchars($H['export']); ?></a>
             <a class="btn btn-ghost" href="/api/vehicle_export_xlsx.php?category=<?php echo urlencode($category); ?>&template=1" title="<?php echo htmlspecialchars($H['template']); ?>"><i data-lucide="file-spreadsheet"></i> <?php echo htmlspecialchars($H['template']); ?></a>
@@ -234,7 +235,7 @@ if (!function_exists('nv_table_cell')) {
         <div class="card flat nv-no-print"><div class="text-center" style="padding:48px 24px;">
             <h3 style="margin-bottom:6px;"><?php echo htmlspecialchars($t['empty_title']); ?></h3>
             <p class="text-muted"><?php echo htmlspecialchars($t['empty_sub']); ?></p>
-            <?php if ($nv_admin): ?>
+            <?php if ($nv_can_manage): ?>
             <a class="btn btn-primary mt-4" href="/vehicles/<?php echo $nv_slug; ?>/add.php"><i data-lucide="plus"></i> <?php echo htmlspecialchars($t['add']); ?></a>
             <?php endif; ?>
         </div></div>
@@ -255,7 +256,7 @@ if (!function_exists('nv_table_cell')) {
                         <?php if ($nv_admin) { echo bulk_delete_checkbox_header(); } ?>
                         <th style="width:50px;"><?php echo htmlspecialchars($H['bil']); ?></th>
                         <?php foreach ($nv_cols as $c): ?><th><?php echo htmlspecialchars($c[1]); ?></th><?php endforeach; ?>
-                        <?php if ($nv_admin) { echo '<th class="text-right nv-no-print"></th>'; } ?>
+                        <?php if ($nv_can_manage) { echo '<th class="text-right nv-no-print"></th>'; } ?>
                     </tr></thead>
                     <tbody>
                     <?php
@@ -267,7 +268,7 @@ if (!function_exists('nv_table_cell')) {
                             <?php if ($nv_admin) { echo bulk_delete_checkbox($id); } ?>
                             <td class="meta"><?php echo $bil++; ?></td>
                             <?php foreach ($nv_cols as $c) { echo nv_table_cell($c[0], $r); } ?>
-                            <?php if ($nv_admin) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Kemaskini"><i data-lucide="pencil"></i></a></td>'; } ?>
+                            <?php if ($nv_can_manage) { echo '<td class="text-right nv-no-print"><a class="btn btn-quiet" href="/vehicles/'.$nv_slug.'/update.php?id='.$id.'" title="Kemaskini"><i data-lucide="pencil"></i></a></td>'; } ?>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>

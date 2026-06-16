@@ -5,7 +5,8 @@ if (isset($_GET['logout'])) { session_destroy(); header('Location: /auth/role_se
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 
-if (!isset($_SESSION['email_Admin'])) { header('location:/auth/login_admin.php'); exit(); }
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_guard_page($con, 'student');   // admins, or users granted this category, may manage
 
 if (!isset($_SESSION['language'])) { $_SESSION['language'] = 'bm'; }
 if (isset($_GET['lang'])) {
