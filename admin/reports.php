@@ -139,11 +139,11 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       </div>
       <div class="field">
         <label class="field-label" for="dateFrom"><?= htmlspecialchars($t['date_from']) ?></label>
-        <input class="input" id="dateFrom" name="date_from" type="date" value="<?= htmlspecialchars($date_from) ?>">
+        <input class="input" id="dateFrom" name="date_from" type="date" value="<?= htmlspecialchars($date_from) ?>" onchange="this.form.submit()">
       </div>
       <div class="field">
         <label class="field-label" for="dateTo"><?= htmlspecialchars($t['date_to']) ?></label>
-        <input class="input" id="dateTo" name="date_to" type="date" value="<?= htmlspecialchars($date_to) ?>">
+        <input class="input" id="dateTo" name="date_to" type="date" value="<?= htmlspecialchars($date_to) ?>" onchange="this.form.submit()">
       </div>
     </div>
   </form>
