@@ -96,7 +96,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php';
   <div class="page-head">
     <div>
       <span class="eyebrow"><?= htmlspecialchars($t['eyebrow']) ?></span>
-      <h1><?= htmlspecialchars($t['welcome']) ?>, <?= htmlspecialchars($userName) ?></h1>
+      <h1><?= htmlspecialchars($t['welcome']) ?>, <?= htmlspecialchars($nv_admin_display) ?></h1>
       <div class="sub text-mono"><?= htmlspecialchars($today) ?></div>
     </div>
     <div class="actions">
