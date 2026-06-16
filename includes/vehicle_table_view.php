@@ -193,9 +193,6 @@ if (!function_exists('nv_table_cell')) {
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="field">
-                <button class="btn btn-ghost" type="submit"><i data-lucide="filter"></i> <?php echo htmlspecialchars($H['apply']); ?></button>
-            </div>
         </div>
     </form>
 
