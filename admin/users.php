@@ -95,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!nv_valid_uitm_email($em)) {
             $flash = $t['bad_email']; $flashType = 'bad';
         } else {
-            $st = $con->prepare("INSERT INTO admin_allowlist (email, role, is_active, added_by)
-                                 VALUES (?, 'user', 1, ?)
-                                 ON DUPLICATE KEY UPDATE role='user', is_active=1");
+            $st = $con->prepare("INSERT INTO admin_allowlist (email, role, is_active, is_locked, added_by)
+                                 VALUES (?, 'user', 1, 0, ?)
+                                 ON DUPLICATE KEY UPDATE role='user', is_active=1, is_locked=0");
             $st->bind_param('ss', $em, $me); $st->execute(); $st->close();
             $flash = $t['added'];
         }
