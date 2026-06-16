@@ -258,6 +258,71 @@ function nv_xlsx_build($con, string $category, int $year, int $month, bool $temp
     return $ss;
 }
 
+/** Write data rows into a loaded template sheet at row 3+, preserving its styling. */
+function nv_xlsx_fill_rows($sheet, array $cols, array $rows, ?int $dateIdx): void {
+    $rowNo = 3;
+    $bil = 1;
+    foreach ($rows as $r) {
+        $vals = nv_xlsx_row_values($cols, $r, $bil++);
+        $sheet->fromArray([$vals], null, 'A' . $rowNo);
+        if ($dateIdx) {                                  // keep DD/MM/YYYY as text, not a date serial
+            $dl = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dateIdx);
+            $sheet->getCell($dl . $rowNo)->setValueExplicit((string)($vals[$dateIdx - 1] ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        }
+        $rowNo++;
+    }
+}
+
+/**
+ * Pour live data into the official static template (assets/templates/{cat}.xlsx) so an
+ * export looks identical to the template download — same title, month sheets, borders,
+ * column widths and KERETA/MOTOSIKAL dropdown. Data lands in row 3+ of the matching
+ * month sheet (month mode) or the single sheet. Requires the zip reader extension;
+ * callers fall back to nv_xlsx_build() if this throws. Returns a Spreadsheet.
+ */
+function nv_xlsx_fill_template(string $path, $con, string $category, int $year, int $month) {
+    require $_SERVER['DOCUMENT_ROOT'].'/vendor/autoload.php';
+    $cols   = nv_category_xlsx_cols($category);
+    $meta   = nv_xlsx_meta($category);
+    $months = nv_xlsx_months();
+    if ($year <= 0) { $year = (int) date('Y'); }
+
+    // Same source query + month grouping as nv_xlsx_build().
+    $byMonth = array_fill(1, 12, []);
+    $all = [];
+    $cat = mysqli_real_escape_string($con, $category);
+    $eff = "COALESCE(`date_taken`, `created_at`)";
+    $where = "status='$cat' AND YEAR($eff) = " . (int) $year;
+    if ($month >= 1 && $month <= 12) { $where .= " AND MONTH($eff) = " . (int) $month; }
+    if ($res = mysqli_query($con, "SELECT * FROM `owner` WHERE $where ORDER BY $eff ASC, id ASC")) {
+        while ($r = mysqli_fetch_assoc($res)) {
+            $m = (int) date('n', strtotime($r['date_taken'] ?: $r['created_at'] ?: 'now'));
+            if ($m < 1 || $m > 12) { $m = 1; }
+            $byMonth[$m][] = $r;
+            $all[] = $r;
+        }
+    }
+
+    $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();   // full read — keep styles + validations
+    $ss = $reader->load($path);
+
+    $dateIdx = null;
+    foreach ($cols as $i => $c) { if ($c[2] === 'date') { $dateIdx = $i + 1; } }
+
+    if ($meta['mode'] === 'month') {
+        foreach ($ss->getAllSheets() as $sheet) {
+            $mi = array_search($sheet->getTitle(), $months, true);   // 0-based month index
+            if ($mi === false) { continue; }
+            nv_xlsx_fill_rows($sheet, $cols, $byMonth[$mi + 1], $dateIdx);
+        }
+    } else {
+        nv_xlsx_fill_rows($ss->getSheet(0), $cols, $all, $dateIdx);
+    }
+
+    $ss->setActiveSheetIndex(0);
+    return $ss;
+}
+
 /* ----------------------------------------------------------------- reader */
 
 /**
