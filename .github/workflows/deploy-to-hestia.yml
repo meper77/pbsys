@@ -64,7 +64,7 @@ jobs:
             --exclude 'deploy_package/**' `
             --exclude 'runner-setup/**' `
             --exclude 'uploads/**' `
-            --exclude 'js/**' `
+            --exclude '/js/**' `
             --exclude 'node_modules/**' `
             --exclude '.hermes/**'
           if ($LASTEXITCODE -ne 0) { throw "rclone sync failed ($LASTEXITCODE)" }
