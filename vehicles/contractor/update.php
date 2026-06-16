@@ -130,5 +130,5 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ph) ph.addEventListener('input', function(){ this.value = this.value.replace(/[^0-9+\-]/g,''); });
 });
 </script>
-<script src="/assets/js/nv-autofill.js"></script>
+<script src="/assets/js/nv-autofill.js?v=<?php echo @filemtime($_SERVER['DOCUMENT_ROOT'].'/assets/js/nv-autofill.js'); ?>"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
