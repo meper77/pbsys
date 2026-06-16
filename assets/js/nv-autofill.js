@@ -109,7 +109,7 @@
 
     function fill(rec) {
       var f = {
-        platenum: rec.plate, name: rec.name, idnumber: rec.idnumber, phone: rec.phone
+        platenum: rec.plate, name: rec.name, idnumber: rec.idnumber, phone: rec.phone, model: rec.model
       };
       Object.keys(f).forEach(function (id) {
         var el = document.getElementById(id);
