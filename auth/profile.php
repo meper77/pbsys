@@ -109,6 +109,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
         : 'Account deletion requested. An administrator will process it.';
 }
 
+// ---- POST: cancel a pending deletion request ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel_deletion') {
+    $hasCol = false;
+    $tEsc = $con->real_escape_string($table);
+    if ($r = @$con->query("SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='$tEsc' AND COLUMN_NAME='deletion_requested' LIMIT 1")) {
+        $hasCol = $r->num_rows > 0;
+    }
+    if ($hasCol && ($u = $con->prepare("UPDATE `$table` SET deletion_requested = 0, deletion_requested_at = NULL WHERE email = ?"))) {
+        $u->bind_param('s', $email);
+        $u->execute();
+        $u->close();
+    }
+    $messages[] = ($lang === 'bm')
+        ? 'Permohonan pemadaman akaun dibatalkan.'
+        : 'Account deletion request cancelled.';
+}
+
 // ---- Fetch current profile ----
 // SELECT * (not specific columns) so schema drift between deployments — e.g. the prod
 // admin/user tables missing last_login / profile_image / updated_at — can't make prepare()
@@ -147,6 +164,8 @@ $L = $lang === 'bm' ? [
     'request_delete' => 'Mohon pemadaman akaun',
     'delete_requested' => 'Pemadaman akaun telah dimohon',
     'delete_confirm' => 'Mohon pemadaman akaun anda? Pentadbir akan menyemak dan memadamkannya.',
+    'cancel_delete' => 'Batal permohonan pemadaman',
+    'cancel_confirm' => 'Batalkan permohonan pemadaman akaun anda?',
 ] : [
     'title' => 'My Profile',
     'role_admin' => 'Administrator',
@@ -171,6 +190,8 @@ $L = $lang === 'bm' ? [
     'request_delete' => 'Request account deletion',
     'delete_requested' => 'Account deletion requested',
     'delete_confirm' => 'Request deletion of your account? An administrator will review and remove it.',
+    'cancel_delete' => 'Cancel deletion request',
+    'cancel_confirm' => 'Cancel your account deletion request?',
 ];
 
 $displayImg = !empty($profile['profile_image'])
@@ -250,18 +271,24 @@ $displayImg = !empty($profile['profile_image'])
         </button>
   </form>
 
-  <form method="POST" class="card nv-stack gap-4" onsubmit="return confirm('<?php echo addslashes($L['delete_confirm']); ?>');">
-    <input type="hidden" name="action" value="request_deletion">
+  <div class="card nv-stack gap-4">
     <div>
       <h3 style="margin:0 0 6px;"><?php echo htmlspecialchars($L['danger_zone']); ?></h3>
       <?php if (!empty($profile['deletion_requested'])): ?>
-        <span class="pill warn"><span class="dot"></span> <?php echo htmlspecialchars($L['delete_requested']); ?></span>
+        <p style="margin:0 0 10px;"><span class="pill warn"><span class="dot"></span> <?php echo htmlspecialchars($L['delete_requested']); ?></span></p>
+        <form method="POST" style="margin:0;" onsubmit="return confirm('<?php echo addslashes($L['cancel_confirm']); ?>');">
+          <input type="hidden" name="action" value="cancel_deletion">
+          <button type="submit" class="btn btn-ghost"><i data-lucide="rotate-ccw"></i> <?php echo htmlspecialchars($L['cancel_delete']); ?></button>
+        </form>
       <?php else: ?>
         <p class="text-muted" style="margin:0 0 10px;"><?php echo htmlspecialchars($L['delete_help']); ?></p>
-        <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> <?php echo htmlspecialchars($L['request_delete']); ?></button>
+        <form method="POST" style="margin:0;" onsubmit="return confirm('<?php echo addslashes($L['delete_confirm']); ?>');">
+          <input type="hidden" name="action" value="request_deletion">
+          <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> <?php echo htmlspecialchars($L['request_delete']); ?></button>
+        </form>
       <?php endif; ?>
     </div>
-  </form>
+  </div>
 </main>
 </div>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>
