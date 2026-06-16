@@ -108,8 +108,9 @@
     if (!plate || !(document.getElementById('name') || document.getElementById('phone'))) return;
 
     function fill(rec) {
+      // Owner details only — NOT plate or model (those belong to the new vehicle).
       var f = {
-        platenum: rec.plate, name: rec.name, idnumber: rec.idnumber, phone: rec.phone, model: rec.model
+        name: rec.name, idnumber: rec.idnumber, phone: rec.phone
       };
       Object.keys(f).forEach(function (id) {
         var el = document.getElementById(id);
