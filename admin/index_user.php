@@ -26,9 +26,9 @@ if (isset($_GET['lang'])) {
 $lang = $_SESSION['language'];
 
 $t = $lang === 'bm' ? [
-    'eyebrow' => 'Pengguna',
+    'eyebrow' => 'Polis Bantuan · UiTM',
     'title'   => 'Anjung pengguna',
-    'welcome' => 'Selamat datang',
+    'welcome' => 'Selamat datang ke NEO V-TRACK',
     'staff' => 'Kenderaan staf',
     'student' => 'Kenderaan pelajar',
     'visitor' => 'Kenderaan pelawat',
@@ -39,9 +39,9 @@ $t = $lang === 'bm' ? [
     'timeLabel' => 'Masa',
     'dateLabel' => 'Tarikh',
 ] : [
-    'eyebrow' => 'User',
+    'eyebrow' => 'Auxiliary Police · UiTM',
     'title'   => 'User dashboard',
-    'welcome' => 'Welcome',
+    'welcome' => 'Welcome to NEO V-TRACK',
     'staff' => 'Staff vehicles',
     'student' => 'Student vehicles',
     'visitor' => 'Visitor vehicles',
