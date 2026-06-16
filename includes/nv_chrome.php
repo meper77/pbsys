@@ -18,11 +18,39 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';  // nv_can_
 $nv_active = $nv_active ?? '';
 $nv_lang   = $nv_lang ?? ($_SESSION['language'] ?? 'bm');
 $nv_show_lang_switcher = $nv_show_lang_switcher ?? true;
-$nv_admin_role = $nv_admin_role ?? ($nv_lang === 'bm' ? 'Pentadbir' : 'Administrator');
 
-if (!isset($nv_admin_display)) {
-    $nv_admin_display = $_SESSION['email_Admin'] ?? ($_SESSION['email'] ?? 'guest');
-    $nv_admin_display = strstr($nv_admin_display, '@', true) ?: $nv_admin_display;
+// Reflect the signed-in person's REAL name + photo (and role) from the DB on every
+// page, so a profile edit shows immediately in the header (not the email prefix).
+$nv_is_admin_session = isset($_SESSION['email_Admin']) && !empty($_SESSION['email_Admin']);
+$nv_email   = $nv_is_admin_session ? (string) $_SESSION['email_Admin'] : (string) ($_SESSION['email'] ?? '');
+$nv_avatar_img = '';
+$nv_real_name  = '';
+if ($nv_email !== '' && ($nv_con = $GLOBALS['con'] ?? null)) {
+    $nv_table = $nv_is_admin_session ? 'admin' : 'user';
+    $nv_st = @$nv_con->prepare("SELECT name, profile_image FROM `$nv_table` WHERE email = ? LIMIT 1");
+    if (!$nv_st) { $nv_st = @$nv_con->prepare("SELECT name FROM `$nv_table` WHERE email = ? LIMIT 1"); }
+    if ($nv_st) {
+        $nv_st->bind_param('s', $nv_email);
+        if (@$nv_st->execute()) {
+            $nv_row = $nv_st->get_result()->fetch_assoc();
+            if ($nv_row) {
+                if (!empty($nv_row['name']))          { $nv_real_name  = (string) $nv_row['name']; }
+                if (!empty($nv_row['profile_image'])) { $nv_avatar_img = (string) $nv_row['profile_image']; }
+            }
+        }
+        $nv_st->close();
+    }
+}
+
+$nv_admin_role = $nv_admin_role ?? ($nv_is_admin_session
+    ? ($nv_lang === 'bm' ? 'Pentadbir' : 'Administrator')
+    : ($nv_lang === 'bm' ? 'Pengguna' : 'User'));
+
+// Display name: real name, else any page-provided value, else the email prefix.
+if ($nv_real_name !== '' || !isset($nv_admin_display)) {
+    $nv_admin_display = $nv_real_name !== ''
+        ? $nv_real_name
+        : ($nv_email !== '' ? (strstr($nv_email, '@', true) ?: $nv_email) : 'guest');
 }
 
 $nv_t = $nv_lang === 'bm' ? [
@@ -82,7 +110,7 @@ function nv_item($slug, $href, $lucide, $label, $active) {
 
         <div class="nv-who">
             <a href="/auth/profile.php" class="nv-who-link" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;" title="<?php echo htmlspecialchars($nv_t['profile']); ?>">
-                <div class="nv-avatar"><?php echo htmlspecialchars($nv_avatar_letter); ?></div>
+                <div class="nv-avatar"<?php if ($nv_avatar_img !== ''): ?> style="background-image:url('<?php echo htmlspecialchars($nv_avatar_img, ENT_QUOTES); ?>');background-size:cover;background-position:center;background-color:transparent;"<?php endif; ?>><?php echo $nv_avatar_img !== '' ? '' : htmlspecialchars($nv_avatar_letter); ?></div>
                 <div class="hide-on-mobile">
                     <div class="nv-who-name"><?php echo htmlspecialchars($nv_admin_display); ?></div>
                     <div class="nv-who-role"><?php echo htmlspecialchars($nv_admin_role); ?></div>
