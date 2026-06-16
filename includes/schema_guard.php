@@ -155,6 +155,12 @@ if (!function_exists('nv_schema_run')) {
                  WHERE `type` IS NOT NULL AND UPPER(`type`) NOT IN ('KERETA','MOTOSIKAL')");
         }
 
+        // Report close/resolve state — an admin can close (resolve) a report.
+        if (nv_schema_table_exists($con, 'vehicle_reports')) {
+            nv_schema_add_col($con, $results, 'vehicle_reports', 'closed_at', "`closed_at` DATETIME NULL DEFAULT NULL");
+            nv_schema_add_col($con, $results, 'vehicle_reports', 'closed_by', "`closed_by` VARCHAR(200) NULL DEFAULT NULL");
+        }
+
         // One-time: compact vehicle_reports ids to 1..N (oldest first) so the
         // recycled-id scheme (api/report_vehicle_api.php) starts gap-free. Runs
         // only while a gap exists (MAX(id) != COUNT(*)), so it is idempotent.

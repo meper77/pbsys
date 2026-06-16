@@ -62,11 +62,21 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   <div class="page-head">
     <div>
       <span class="eyebrow">Laporan</span>
-      <h1>Laporan #<?= (int)$report['id'] ?></h1>
+      <?php $closed = !empty($report['closed_at']); ?>
+      <h1 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">Laporan #<?= (int)$report['id'] ?>
+        <span class="pill <?= $closed ? 'ok' : 'warn' ?>" style="font-size:13px;"><span class="dot"></span> <?= $closed ? 'Selesai' : 'Menunggu' ?></span>
+      </h1>
+      <?php if ($closed && !empty($report['closed_by'])): ?><p class="sub" style="margin-top:4px;">Ditutup oleh <?= htmlspecialchars($report['closed_by']) ?></p><?php endif; ?>
     </div>
     <div class="actions">
       <a class="btn btn-ghost" href="/admin/reports.php"><i data-lucide="arrow-left"></i> Kembali ke senarai</a>
       <?php if (nv_is_admin()): ?>
+      <form method="POST" action="/admin/report_close.php" style="display:inline">
+        <input type="hidden" name="id" value="<?= (int)$report['id'] ?>">
+        <input type="hidden" name="back" value="/admin/report_view.php?id=<?= (int)$report['id'] ?>">
+        <input type="hidden" name="action" value="<?= $closed ? 'reopen' : 'close' ?>">
+        <button type="submit" class="btn btn-ghost"><i data-lucide="<?= $closed ? 'rotate-ccw' : 'check-circle' ?>"></i> <?= $closed ? 'Buka semula' : 'Tutup laporan' ?></button>
+      </form>
       <form method="POST" action="/admin/delete_report.php" style="display:inline" onsubmit="return confirm('Padam laporan #<?= (int)$report['id'] ?>?')">
         <input type="hidden" name="ids[]" value="<?= (int)$report['id'] ?>">
         <button type="submit" class="btn btn-ghost text-danger"><i data-lucide="trash-2"></i> Padam</button>

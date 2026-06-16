@@ -90,9 +90,7 @@ $date_from = $_GET['date_from'] ?? '';
 $date_to = $_GET['date_to'] ?? '';
 
 // Build query with filters. Columns match the actual vehicle_reports schema.
-$query = "SELECT id, reporter_name, reporter_role, plate_number, owner_name,
-        vehicle_type, offense_details, latitude, longitude, photo_paths,
-        created_at FROM vehicle_reports WHERE 1=1";
+$query = "SELECT * FROM vehicle_reports WHERE 1=1";
 
 if ($date_from) {
     $date_from = mysqli_real_escape_string($con, $date_from);
@@ -168,6 +166,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <?php if ($isAdmin): ?><th style="width:36px;"><input type="checkbox" id="selectAll" aria-label="Pilih semua"></th><?php endif; ?>
             <th><?= htmlspecialchars($t['id']) ?></th>
             <th><?= htmlspecialchars($t['submitted']) ?></th>
+            <th><?= htmlspecialchars($t['status']) ?></th>
             <th><?= htmlspecialchars($t['plate']) ?></th>
             <th><?= htmlspecialchars($t['reporter']) ?></th>
             <th><?= htmlspecialchars($t['owner']) ?></th>
@@ -187,6 +186,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <?php if ($isAdmin): ?><td><input type="checkbox" name="ids[]" value="<?= (int)$row['id'] ?>" aria-label="Pilih laporan <?= (int)$row['id'] ?>"></td><?php endif; ?>
             <td class="meta">#<?= (int)$row['id'] ?></td>
             <td class="meta"><?= htmlspecialchars(date('d M Y, H:i', strtotime($row['created_at']))) ?></td>
+            <td><?php $rc = !empty($row['closed_at']); ?><span class="pill <?= $rc ? 'ok' : 'warn' ?>"><span class="dot"></span> <?= $rc ? htmlspecialchars($t['resolved']) : htmlspecialchars($t['pending']) ?></span></td>
             <td><span class="plate"><?= htmlspecialchars($row['plate_number']) ?></span></td>
             <td>
               <div class="owner">
