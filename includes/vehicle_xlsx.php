@@ -531,14 +531,15 @@ function nv_xlsx_import($spreadsheet, string $category, $con, array &$stats): vo
             $phone = $vals['phone'] ?? '';
             $name  = $vals['name'] ?? '';
             if ($plate === '' && $name === '' && $phone === '') { continue; }       // blank row
-            if ($plate === '' || $phone === '') { $stats['skipped']++; $stats['errors'][] = "$sheetName r$row: plate+phone required"; continue; }
+            if ($plate === '' || $phone === '') { $stats['skipped']++; $stats['errors'][] = "$sheetName baris $row: plat & no. telefon diperlukan"; continue; }
 
             $_POST = $vals;
             $err = '';
             $res = nv_vehicle_register($con, $category, $err);
+            $pl = $plate !== '' ? "'$plate'" : '(tiada plat)';
             if ($res === 'created') { $stats['added']++; }
-            elseif ($res === 'exists') { $stats['skipped']++; }   // identical row already present — no change
-            else { $stats['skipped']++; $stats['errors'][] = "$sheetName r$row: " . ($err ?: 'skipped'); }
+            elseif ($res === 'exists') { $stats['skipped']++; $stats['errors'][] = "$sheetName baris $row: $pl sudah wujud (tiada perubahan)"; }
+            else { $stats['skipped']++; $stats['errors'][] = "$sheetName baris $row: $pl " . ($err ?: 'dilangkau'); }
         }
     }
 }

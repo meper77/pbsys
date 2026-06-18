@@ -57,12 +57,12 @@ try {
     $stats = [];
     nv_xlsx_import($spreadsheet, $category, $con, $stats);
 
-    $msg = "Import complete: {$stats['added']} added, {$stats['skipped']} skipped.";
+    $msg = "Import selesai: {$stats['added']} ditambah, {$stats['skipped']} dilangkau.";
     if (!empty($stats['errors'])) {
-        $msg .= ' (' . implode('; ', array_slice($stats['errors'], 0, 5)) . (count($stats['errors']) > 5 ? '…' : '') . ')';
+        $msg .= ' Dilangkau — ' . implode('; ', array_slice($stats['errors'], 0, 15)) . (count($stats['errors']) > 15 ? '; …' : '');
     }
     nv_import_redirect($listUrl, $msg);
 
 } catch (\Throwable $e) {
-    nv_import_redirect($listUrl, 'Import failed: ' . $e->getMessage());
+    nv_import_redirect($listUrl, 'Import gagal: ' . $e->getMessage());
 }
