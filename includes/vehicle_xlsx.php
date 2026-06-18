@@ -286,10 +286,22 @@ function nv_xlsx_restore_font_family(string $path): void {
     if ($zip->open($path) !== true) { return; }
     $styles = $zip->getFromName('xl/styles.xml');
     if ($styles !== false) {
-        // <family> must follow <name> in the schema; add it only where it's missing (idempotent).
-        $patched = preg_replace(
-            '#(<name val="Bernard MT Condensed"/>)(?!<family)#',
-            '$1<family val="1"/>',
+        // Make the title font (Bernard MT Condensed) byte-identical to the template's so
+        // viewers substitute it the same way (same weight): drop the no-op
+        // <b val="0"/>/<i val="0"/>/<strike val="0"/>/<u val="none"/> that PhpSpreadsheet adds
+        // (an explicit b=0 can render a substituted font thinner), and re-add the <family>
+        // hint PhpSpreadsheet strips.
+        $patched = preg_replace_callback(
+            '#<font\b[^>]*>.*?</font>#s',
+            function ($m) {
+                $f = $m[0];
+                if (strpos($f, 'Bernard MT Condensed') === false) { return $f; }
+                $f = preg_replace('#<b val="0"/>|<i val="0"/>|<strike val="0"/>|<u val="none"/>#', '', $f);
+                if (strpos($f, '<family') === false) {
+                    $f = preg_replace('#(<name val="Bernard MT Condensed"/>)#', '$1<family val="1"/>', $f, 1);
+                }
+                return $f;
+            },
             $styles
         );
         if ($patched !== null && $patched !== $styles) {
