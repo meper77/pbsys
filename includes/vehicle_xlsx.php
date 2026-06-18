@@ -306,7 +306,7 @@ function nv_xlsx_restore_font_family(string $path): void {
  * month sheet (month mode) or the single sheet. Requires the zip reader extension;
  * callers fall back to nv_xlsx_build() if this throws. Returns a Spreadsheet.
  */
-function nv_xlsx_fill_template(string $path, $con, string $category, int $year, int $month) {
+function nv_xlsx_fill_template(string $path, $con, string $category, int $year, int $month, ?int &$rowCount = null) {
     require $_SERVER['DOCUMENT_ROOT'].'/vendor/autoload.php';
     $cols   = nv_category_xlsx_cols($category);
     $meta   = nv_xlsx_meta($category);
@@ -329,23 +329,32 @@ function nv_xlsx_fill_template(string $path, $con, string $category, int $year, 
         }
     }
 
+    $rowCount = count($all);
+
     $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();   // full read — keep styles + validations
     $ss = $reader->load($path);
 
     $dateIdx = null;
     foreach ($cols as $i => $c) { if ($c[2] === 'date') { $dateIdx = $i + 1; } }
 
+    // Fill each sheet, remembering the first sheet that actually receives data so the
+    // workbook opens there — otherwise a month-split export opens on an empty JANUARI
+    // while the records sit in later month sheets, and looks empty.
+    $firstData = null;
     if ($meta['mode'] === 'month') {
-        foreach ($ss->getAllSheets() as $sheet) {
+        foreach ($ss->getAllSheets() as $idx => $sheet) {
             $mi = array_search($sheet->getTitle(), $months, true);   // 0-based month index
             if ($mi === false) { continue; }
-            nv_xlsx_fill_rows($sheet, $cols, $byMonth[$mi + 1], $dateIdx);
+            $mrows = $byMonth[$mi + 1];
+            if ($firstData === null && !empty($mrows)) { $firstData = $idx; }
+            nv_xlsx_fill_rows($sheet, $cols, $mrows, $dateIdx);
         }
     } else {
         nv_xlsx_fill_rows($ss->getSheet(0), $cols, $all, $dateIdx);
+        if (!empty($all)) { $firstData = 0; }
     }
 
-    $ss->setActiveSheetIndex(0);
+    $ss->setActiveSheetIndex($firstData ?? 0);
     return $ss;
 }
 

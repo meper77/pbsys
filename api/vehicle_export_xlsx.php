@@ -52,9 +52,10 @@ if ($isTemplate && is_file($static)) {
 // generated layout if the template is missing or the zip reader is unavailable.
 $spreadsheet = null;
 $filled = false;
+$rowCount = 0;
 if (!$isTemplate && is_file($static)) {
     try {
-        $spreadsheet = nv_xlsx_fill_template($static, $con, $category, $year, $fm);
+        $spreadsheet = nv_xlsx_fill_template($static, $con, $category, $year, $fm, $rowCount);
         $filled = true;
     } catch (\Throwable $e) {
         $spreadsheet = null;
@@ -63,6 +64,15 @@ if (!$isTemplate && is_file($static)) {
 }
 if ($spreadsheet === null) {
     $spreadsheet = nv_xlsx_build($con, $category, $year, $fm, $isTemplate);
+}
+
+// Safeguard: nothing to export for this scope — send the user back with a notice
+// instead of handing them a blank workbook.
+if ($filled && $rowCount === 0) {
+    $scope = $fm > 0 ? ($year . '-' . sprintf('%02d', $fm)) : (string) $year;
+    $_SESSION['success_message'] = 'Tiada rekod untuk dieksport (' . $scope . ').';
+    header('Location: /vehicles/' . $exp_slug . '/list.php' . ($fy > 0 ? '?y=' . (int) $fy : ''));
+    exit;
 }
 
 $suffix = $isTemplate ? 'TEMPLATE' : ($fm > 0 ? sprintf('%04d-%02d', $year, $fm) : (string) $year);
