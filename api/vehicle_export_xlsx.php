@@ -47,28 +47,27 @@ if ($isTemplate && is_file($static)) {
     exit;
 }
 
-// Filled export: pour live data into the official template so the download is identical
-// in look to the template (title, month sheets, borders, dropdowns). Fall back to the
-// generated layout if the template is missing or the zip reader is unavailable.
-$spreadsheet = null;
+// Filled export: byte-clone the official template and inject data into the sheet XML, so the
+// download IS the template file with data — identical styling (fonts/theme/borders), not a
+// PhpSpreadsheet re-save. Fall back to the generated layout if the template/zip is unavailable.
+$clonePath = null;
 $filled = false;
 $rowCount = 0;
 if (!$isTemplate && is_file($static)) {
     try {
-        $spreadsheet = nv_xlsx_fill_template($static, $con, $category, $year, $fm, $rowCount);
+        $clonePath = nv_xlsx_clone_export($static, $con, $category, $year, $fm, $rowCount);
         $filled = true;
     } catch (\Throwable $e) {
-        $spreadsheet = null;
+        if ($clonePath !== null && is_file($clonePath)) { @unlink($clonePath); }
+        $clonePath = null;
         $filled = false;
     }
-}
-if ($spreadsheet === null) {
-    $spreadsheet = nv_xlsx_build($con, $category, $year, $fm, $isTemplate);
 }
 
 // Safeguard: nothing to export for this scope — send the user back with a notice
 // instead of handing them a blank workbook.
 if ($filled && $rowCount === 0) {
+    if ($clonePath !== null && is_file($clonePath)) { @unlink($clonePath); }
     $scope = $fm > 0 ? ($year . '-' . sprintf('%02d', $fm)) : (string) $year;
     $_SESSION['success_message'] = 'Tiada rekod untuk dieksport (' . $scope . ').';
     header('Location: /vehicles/' . $exp_slug . '/list.php' . ($fy > 0 ? '?y=' . (int) $fy : ''));
@@ -81,19 +80,18 @@ $filename = strtoupper(nv_xlsx_meta($category)['cat']) . '_' . $suffix . '.xlsx'
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Cache-Control: max-age=0');
-$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-if ($filled) {
-    // PhpSpreadsheet drops the OOXML <family> font hint on save, so the title font
-    // (Bernard MT Condensed) substitutes to a different weight than the template in viewers
-    // that lack the font. Save to a temp file, restore <family>, then stream — so the export
-    // renders identically to the template download.
-    $tmp = tempnam(sys_get_temp_dir(), 'nvx');
-    $writer->save($tmp);
-    nv_xlsx_restore_font_family($tmp);
-    header('Content-Length: ' . filesize($tmp));
-    readfile($tmp);
-    @unlink($tmp);
-} else {
-    $writer->save('php://output');
+
+if ($filled && $clonePath !== null && is_file($clonePath)) {
+    // The export IS the template file with data — same styling byte-for-byte, so it renders
+    // identically to the template download in every viewer.
+    header('Content-Length: ' . filesize($clonePath));
+    readfile($clonePath);
+    @unlink($clonePath);
+    exit;
 }
+
+// Fallback: no official template (or the clone failed) — generate the workbook.
+$spreadsheet = nv_xlsx_build($con, $category, $year, $fm, $isTemplate);
+$writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+$writer->save('php://output');
 exit;

@@ -370,6 +370,135 @@ function nv_xlsx_fill_template(string $path, $con, string $category, int $year, 
     return $ss;
 }
 
+/**
+ * Inject data rows into one worksheet's raw XML (row 3+), preserving rows 1-2 (title +
+ * headers) and every other part of the file byte-for-byte. Data cells reuse the template's
+ * own data-row cell style (the s="" from row 3), and any blank template rows below the data
+ * are kept so the grid still shows. Pure string work — no PhpSpreadsheet, no re-save.
+ */
+function nv_xlsx_inject_rows_xml(string $xml, array $cols, array $rows): string {
+    if (!preg_match('#<sheetData[^>]*>#', $xml, $om)) { return $xml; }
+    if (!preg_match('#<sheetData[^>]*>(.*?)</sheetData>#s', $xml, $sd)) { return $xml; }
+    preg_match_all('#<row\b[^>]*>.*?</row>#s', $sd[1], $rws);
+    $byNum = []; $maxRow = 2;
+    foreach ($rws[0] as $rx) { if (preg_match('/<row r="(\d+)"/', $rx, $mm)) { $byNum[(int) $mm[1]] = $rx; $maxRow = max($maxRow, (int) $mm[1]); } }
+    $row1 = $byNum[1] ?? '';
+    $row2 = $byNum[2] ?? '';
+
+    $n = count($cols);
+    $letters = [];
+    for ($i = 0; $i < $n; $i++) { $letters[$i] = chr(65 + $i); }   // A..L (categories are <= 12 cols)
+
+    // Per-column data-cell style copied from the template's first data row (row 3).
+    $colStyle = [];
+    $r3 = $byNum[3] ?? '';
+    foreach ($letters as $i => $L) {
+        if (preg_match('/<c r="' . $L . '3"([^>]*?)\/?>/', $r3, $cm) && preg_match('/\bs="(\d+)"/', $cm[1], $sm)) { $colStyle[$i] = $sm[1]; }
+    }
+
+    $newRows = '';
+    $bil = 1; $rowNo = 3;
+    foreach ($rows as $r) {
+        $vals = nv_xlsx_row_values($cols, $r, $bil++);
+        $cells = '';
+        foreach ($vals as $i => $v) {
+            $s = isset($colStyle[$i]) ? ' s="' . $colStyle[$i] . '"' : '';
+            if (($cols[$i][2] ?? '') === 'bil') {
+                $cells .= '<c r="' . $letters[$i] . $rowNo . '"' . $s . '><v>' . (int) $v . '</v></c>';
+            } else {
+                $esc = htmlspecialchars((string) $v, ENT_QUOTES | ENT_XML1, 'UTF-8');
+                $cells .= '<c r="' . $letters[$i] . $rowNo . '"' . $s . ' t="inlineStr"><is><t xml:space="preserve">' . $esc . '</t></is></c>';
+            }
+        }
+        $newRows .= '<row r="' . $rowNo . '">' . $cells . '</row>';
+        $rowNo++;
+    }
+    // Keep the template's remaining blank rows below the data (preserves the bordered grid).
+    for ($R = $rowNo; $R <= $maxRow; $R++) { if (isset($byNum[$R])) { $newRows .= $byNum[$R]; } }
+
+    $rebuilt = $om[0] . $row1 . $row2 . $newRows . '</sheetData>';
+    $xml = preg_replace('#<sheetData[^>]*>.*?</sheetData>#s', '%%NVSD%%', $xml, 1);
+    return str_replace('%%NVSD%%', $rebuilt, $xml);
+}
+
+/**
+ * Byte-clone the official template and inject live data into the sheet XML, so the export
+ * is the template file with data — identical styling (fonts, theme, borders, validations),
+ * not a PhpSpreadsheet re-save. Sets the active tab to the first sheet with data. Returns a
+ * temp file path (caller streams + unlinks). Requires ext-zip.
+ */
+function nv_xlsx_clone_export(string $templatePath, $con, string $category, int $year, int $month, ?int &$rowCount = null): string {
+    $cols   = nv_category_xlsx_cols($category);
+    $meta   = nv_xlsx_meta($category);
+    $months = nv_xlsx_months();
+    if ($year <= 0) { $year = (int) date('Y'); }
+
+    $byMonth = array_fill(1, 12, []);
+    $all = [];
+    $cat = mysqli_real_escape_string($con, $category);
+    $eff = "COALESCE(`date_taken`, `created_at`)";
+    $where = "status='$cat' AND YEAR($eff) = " . (int) $year;
+    if ($month >= 1 && $month <= 12) { $where .= " AND MONTH($eff) = " . (int) $month; }
+    if ($res = mysqli_query($con, "SELECT * FROM `owner` WHERE $where ORDER BY $eff ASC, id ASC")) {
+        while ($r = mysqli_fetch_assoc($res)) {
+            $m = (int) date('n', strtotime($r['date_taken'] ?: $r['created_at'] ?: 'now'));
+            if ($m < 1 || $m > 12) { $m = 1; }
+            $byMonth[$m][] = $r;
+            $all[] = $r;
+        }
+    }
+    $rowCount = count($all);
+
+    $tmp = tempnam(sys_get_temp_dir(), 'nvx');
+    copy($templatePath, $tmp);
+    $zip = new \ZipArchive();
+    if ($zip->open($tmp) !== true) { return $tmp; }
+
+    // Map sheet name -> worksheet XML path, in workbook (tab) order.
+    $wb   = $zip->getFromName('xl/workbook.xml');
+    $rels = $zip->getFromName('xl/_rels/workbook.xml.rels');
+    $rid2t = [];
+    if ($rels !== false) {
+        preg_match_all('/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/', $rels, $rm, PREG_SET_ORDER);
+        foreach ($rm as $r) { $rid2t[$r[1]] = ltrim($r[2], '/'); }
+    }
+    $order = [];
+    if ($wb !== false) {
+        preg_match_all('/<sheet\b[^>]*>/', $wb, $shs);
+        foreach ($shs[0] as $sh) {
+            if (preg_match('/name="([^"]+)"/', $sh, $n) && preg_match('/r:id="([^"]+)"/', $sh, $ri) && isset($rid2t[$ri[1]])) {
+                $t = $rid2t[$ri[1]];
+                $order[] = [$n[1], strpos($t, 'xl/') === 0 ? $t : 'xl/' . $t];
+            }
+        }
+    }
+
+    $firstDataIdx = null;
+    foreach ($order as $idx => $pair) {
+        [$name, $file] = $pair;
+        if ($meta['mode'] === 'month') {
+            $mi = array_search($name, $months, true);
+            $rows = ($mi !== false) ? ($byMonth[$mi + 1] ?? []) : [];
+        } else {
+            $rows = ($idx === 0) ? $all : [];
+        }
+        if (empty($rows)) { continue; }
+        if ($firstDataIdx === null) { $firstDataIdx = $idx; }
+        $sx = $zip->getFromName($file);
+        if ($sx !== false) { $zip->addFromString($file, nv_xlsx_inject_rows_xml($sx, $cols, $rows)); }
+    }
+
+    // Open the workbook on the first sheet that has data.
+    if ($firstDataIdx !== null && $wb !== false) {
+        $wb2 = preg_replace('/(<workbookView\b[^>]*\bactiveTab=")\d+(")/', '${1}' . $firstDataIdx . '${2}', $wb, 1, $c1);
+        if ($c1 === 0) { $wb2 = preg_replace('/(<workbookView\b)/', '$1 activeTab="' . $firstDataIdx . '"', $wb, 1); }
+        if ($wb2 !== null && $wb2 !== $wb) { $zip->addFromString('xl/workbook.xml', $wb2); }
+    }
+
+    $zip->close();
+    return $tmp;
+}
+
 /* ----------------------------------------------------------------- reader */
 
 /**
