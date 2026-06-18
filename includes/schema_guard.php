@@ -33,6 +33,18 @@ if (!function_exists('nv_schema_run')) {
         nv_schema_run($con, $results, "add $table.$col", "ALTER TABLE `$table` ADD COLUMN $ddl");
     }
 
+    /** Ensure the report activity log exists (close/reopen events for the report timeline). */
+    function nv_ensure_report_events($con): void {
+        @$con->query("CREATE TABLE IF NOT EXISTS `report_events` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `report_id` INT NOT NULL,
+            `action` VARCHAR(16) NOT NULL,
+            `actor` VARCHAR(200) DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            KEY `idx_report` (`report_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+    }
+
     /** True once the foundation tables + columns exist (cheap gate to avoid re-running DDL). */
     function nv_schema_ready($con) {
         return nv_schema_table_exists($con, 'admin_allowlist')
@@ -160,6 +172,10 @@ if (!function_exists('nv_schema_run')) {
             nv_schema_add_col($con, $results, 'vehicle_reports', 'closed_at', "`closed_at` DATETIME NULL DEFAULT NULL");
             nv_schema_add_col($con, $results, 'vehicle_reports', 'closed_by', "`closed_by` VARCHAR(200) NULL DEFAULT NULL");
         }
+
+        // Report activity log — close/reopen events (time + who) for the report timeline.
+        nv_ensure_report_events($con);
+        $results[] = "OK   report_events";
 
         // One-time: compact vehicle_reports ids to 1..N (oldest first) so the
         // recycled-id scheme (api/report_vehicle_api.php) starts gap-free. Runs

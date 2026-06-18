@@ -6,6 +6,8 @@ require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 nv_require_login();
 nv_guard_page($con, 'reports');   // admins, or users granted the reports page
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/schema_guard.php';
+nv_ensure_report_events($con);
 
 if (isset($_GET['logout'])) {
     session_destroy();
@@ -109,6 +111,29 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           <div class="ev-title">Laporan dihantar</div>
           <div class="ev-meta">Oleh <?= htmlspecialchars($report['reporter_name']) ?></div>
         </div>
+        <?php
+        // Close / reopen history (each with time + admin).
+        $nv_events = [];
+        $rid = (int) $report['id'];
+        if ($evs = mysqli_prepare($con, "SELECT action, actor, created_at FROM report_events WHERE report_id = ? ORDER BY created_at ASC, id ASC")) {
+            mysqli_stmt_bind_param($evs, 'i', $rid);
+            mysqli_stmt_execute($evs);
+            $evr = mysqli_stmt_get_result($evs);
+            while ($evr && $e = mysqli_fetch_assoc($evr)) { $nv_events[] = $e; }
+        }
+        // Reports closed before the event log existed: fall back to the stored close stamp.
+        if (empty($nv_events) && !empty($report['closed_at'])) {
+            $nv_events[] = ['action' => 'close', 'actor' => $report['closed_by'], 'created_at' => $report['closed_at']];
+        }
+        foreach ($nv_events as $e):
+            $isClose = ($e['action'] === 'close');
+        ?>
+        <div class="ev">
+          <div class="ev-time"><?= htmlspecialchars(date('d M Y, H:i', strtotime($e['created_at']))) ?></div>
+          <div class="ev-title"><?= $isClose ? 'Laporan ditutup' : 'Laporan dibuka semula' ?></div>
+          <?php if (!empty($e['actor'])): ?><div class="ev-meta">Oleh <?= htmlspecialchars($e['actor']) ?></div><?php endif; ?>
+        </div>
+        <?php endforeach; ?>
       </div>
     </div>
   </div>
