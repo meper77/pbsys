@@ -513,6 +513,12 @@ function nv_xlsx_import($spreadsheet, string $category, $con, array &$stats): vo
                     'company'=>'company','email'=>'email','note'=>'note'];
     $stats = ['added'=>0,'updated'=>0,'skipped'=>0,'errors'=>[]];
 
+    // Plate-column header label, to skip any repeated header row embedded in the data (some
+    // forms — e.g. the contractor sheet's second monthly section — repeat the header inside
+    // the data range; it must not import as a record).
+    $plateHeader = '';
+    foreach ($cols as $c) { if ($c[2] === 'plate') { $plateHeader = strtoupper($c[0]); break; } }
+
     foreach ($spreadsheet->getAllSheets() as $sheet) {
         $sheetName = $sheet->getTitle();
         $lastRow = $sheet->getHighestDataRow();
@@ -531,6 +537,7 @@ function nv_xlsx_import($spreadsheet, string $category, $con, array &$stats): vo
             $phone = $vals['phone'] ?? '';
             $name  = $vals['name'] ?? '';
             if ($plate === '' && $name === '' && $phone === '') { continue; }       // blank row
+            if ($plateHeader !== '' && strtoupper($plate) === $plateHeader) { continue; }   // repeated header row, not data
             if ($plate === '' || $phone === '') { $stats['skipped']++; $stats['errors'][] = "$sheetName baris $row: plat & no. telefon diperlukan"; continue; }
 
             $_POST = $vals;
