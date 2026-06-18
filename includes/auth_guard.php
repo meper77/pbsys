@@ -105,3 +105,27 @@ function nv_guard_page($con, string $slug): void {
     header('Location: /admin/index_user.php?error=no_access');
     exit();
 }
+
+/**
+ * Resolve an email to a person's display name from the admin or user table (cached per
+ * request). Falls back to $fallback, then the email itself, when no name is on file.
+ */
+function nv_display_name($con, $email, string $fallback = ''): string {
+    static $cache = [];
+    $email = trim((string) $email);
+    if ($email === '') { return $fallback; }
+    $key = strtolower($email);
+    if (!array_key_exists($key, $cache)) {
+        $name = '';
+        foreach (['admin', 'user'] as $tbl) {
+            if ($stmt = mysqli_prepare($con, "SELECT name FROM `$tbl` WHERE email = ? LIMIT 1")) {
+                mysqli_stmt_bind_param($stmt, 's', $email);
+                mysqli_stmt_execute($stmt);
+                $row = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+                if ($row && trim((string) ($row['name'] ?? '')) !== '') { $name = trim((string) $row['name']); break; }
+            }
+        }
+        $cache[$key] = $name;
+    }
+    return $cache[$key] !== '' ? $cache[$key] : ($fallback !== '' ? $fallback : $email);
+}

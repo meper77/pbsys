@@ -109,7 +109,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         <div class="ev">
           <div class="ev-time"><?= htmlspecialchars(date('d M Y, H:i', strtotime($report['created_at']))) ?></div>
           <div class="ev-title">Laporan dihantar</div>
-          <div class="ev-meta">Oleh <?= htmlspecialchars($report['reporter_name']) ?></div>
+          <div class="ev-meta">Oleh <?= htmlspecialchars(nv_display_name($con, $report['reporter_email'] ?? '', $report['reporter_name'])) ?></div>
         </div>
         <?php
         // Close / reopen history (each with time + admin).
@@ -131,7 +131,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         <div class="ev">
           <div class="ev-time"><?= htmlspecialchars(date('d M Y, H:i', strtotime($e['created_at']))) ?></div>
           <div class="ev-title"><?= $isClose ? 'Laporan ditutup' : 'Laporan dibuka semula' ?></div>
-          <?php if (!empty($e['actor'])): ?><div class="ev-meta">Oleh <?= htmlspecialchars($e['actor']) ?></div><?php endif; ?>
+          <?php if (!empty($e['actor'])): ?><div class="ev-meta">Oleh <?= htmlspecialchars(nv_display_name($con, $e['actor'], $e['actor'])) ?></div><?php endif; ?>
         </div>
         <?php endforeach; ?>
       </div>
