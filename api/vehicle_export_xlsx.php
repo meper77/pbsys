@@ -51,11 +51,14 @@ if ($isTemplate && is_file($static)) {
 // in look to the template (title, month sheets, borders, dropdowns). Fall back to the
 // generated layout if the template is missing or the zip reader is unavailable.
 $spreadsheet = null;
+$filled = false;
 if (!$isTemplate && is_file($static)) {
     try {
         $spreadsheet = nv_xlsx_fill_template($static, $con, $category, $year, $fm);
+        $filled = true;
     } catch (\Throwable $e) {
         $spreadsheet = null;
+        $filled = false;
     }
 }
 if ($spreadsheet === null) {
@@ -69,5 +72,18 @@ header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetm
 header('Content-Disposition: attachment; filename="' . $filename . '"');
 header('Cache-Control: max-age=0');
 $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-$writer->save('php://output');
+if ($filled) {
+    // PhpSpreadsheet drops the OOXML <family> font hint on save, so the title font
+    // (Bernard MT Condensed) substitutes to a different weight than the template in viewers
+    // that lack the font. Save to a temp file, restore <family>, then stream — so the export
+    // renders identically to the template download.
+    $tmp = tempnam(sys_get_temp_dir(), 'nvx');
+    $writer->save($tmp);
+    nv_xlsx_restore_font_family($tmp);
+    header('Content-Length: ' . filesize($tmp));
+    readfile($tmp);
+    @unlink($tmp);
+} else {
+    $writer->save('php://output');
+}
 exit;

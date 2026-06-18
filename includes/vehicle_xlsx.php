@@ -274,6 +274,32 @@ function nv_xlsx_fill_rows($sheet, array $cols, array $rows, ?int $dateIdx): voi
 }
 
 /**
+ * PhpSpreadsheet does not model the OOXML <family> font hint, so it strips it on save.
+ * For the title font (Bernard MT Condensed) that hint drives font substitution in viewers
+ * without the font (Google Sheets, LibreOffice, mobile) — without it the title renders a
+ * different weight than the template. Re-insert <family val="1"/> into the saved file's
+ * styles.xml so a filled export matches the template's title exactly. Requires ext-zip.
+ */
+function nv_xlsx_restore_font_family(string $path): void {
+    if (!class_exists('ZipArchive')) { return; }
+    $zip = new \ZipArchive();
+    if ($zip->open($path) !== true) { return; }
+    $styles = $zip->getFromName('xl/styles.xml');
+    if ($styles !== false) {
+        // <family> must follow <name> in the schema; add it only where it's missing (idempotent).
+        $patched = preg_replace(
+            '#(<name val="Bernard MT Condensed"/>)(?!<family)#',
+            '$1<family val="1"/>',
+            $styles
+        );
+        if ($patched !== null && $patched !== $styles) {
+            $zip->addFromString('xl/styles.xml', $patched);
+        }
+    }
+    $zip->close();
+}
+
+/**
  * Pour live data into the official static template (assets/templates/{cat}.xlsx) so an
  * export looks identical to the template download — same title, month sheets, borders,
  * column widths and KERETA/MOTOSIKAL dropdown. Data lands in row 3+ of the matching
