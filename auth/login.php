@@ -167,4 +167,15 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 
   </div>
 </div>
+<script>
+(function(){
+  var v = document.querySelector('.auth-bg-video'); if (!v) return;
+  v.muted = true; v.playsInline = true;
+  function go(){ var p = v.play(); if (p && p.catch) p.catch(function(){}); }
+  go();
+  if (v.readyState >= 2) go(); else v.addEventListener('loadeddata', go, { once:true });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) go(); });
+  ['pointerdown','keydown','scroll','touchstart'].forEach(function(e){ window.addEventListener(e, go, { once:true, passive:true }); });
+})();
+</script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
