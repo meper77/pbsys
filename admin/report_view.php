@@ -66,7 +66,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <span class="eyebrow">Laporan</span>
       <?php $closed = !empty($report['closed_at']); ?>
       <h1 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">Laporan #<?= (int)$report['id'] ?>
-        <span class="pill <?= $closed ? 'ok' : 'warn' ?>" style="font-size:13px;"><span class="dot"></span> <?= $closed ? 'Selesai' : 'Menunggu' ?></span>
+        <span class="pill <?= $closed ? 'ok' : 'warn' ?>" style="font-size:14px;"><span class="dot"></span> <?= $closed ? 'Selesai' : 'Menunggu' ?></span>
       </h1>
       <?php if ($closed && !empty($report['closed_by'])): ?><p class="sub" style="margin-top:4px;">Ditutup oleh <?= htmlspecialchars($report['closed_by']) ?></p><?php endif; ?>
     </div>
@@ -160,7 +160,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
           $resolved = nv_report_photo_url($p);
           $name = htmlspecialchars('report_' . (int)$report['id'] . '_' . ($i + 1) . '.' . (pathinfo($p, PATHINFO_EXTENSION) ?: 'jpg'));
           if ($resolved === null): ?>
-        <div style="width:200px;height:200px;border-radius:12px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--fg-3);font-size:12px;padding:10px;">
+        <div style="width:200px;height:200px;border-radius:12px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--fg-3);font-size:13px;padding:10px;">
           <span><i data-lucide="image-off"></i><br>Foto tidak ditemui</span>
         </div>
           <?php else: $url = htmlspecialchars($resolved); ?>

@@ -152,7 +152,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
         onsubmit="return confirm('Padam ' + document.querySelectorAll('#reportsTable tbody input[name=&quot;ids[]&quot;]:checked').length + ' laporan?');">
     <?php if ($isAdmin): ?>
     <div class="nv-row between mb-4">
-      <span class="text-muted" id="bulkCount" style="font-size:13px;"><?= htmlspecialchars($t['no_reports']) ?></span>
+      <span class="text-muted" id="bulkCount" style="font-size:14px;"><?= htmlspecialchars($t['no_reports']) ?></span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled>
         <i data-lucide="trash-2"></i> <?= htmlspecialchars($t['bulk_delete']) ?>
       </button>

@@ -1,0 +1,137 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                  ✅ GOOGLE SIGN-IN DEPLOYED                          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+DEPLOYMENT COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ secrets.php deployed to Hestia
+  Location: web/neovtrack.uitm.edu.my/public_html/includes/secrets.php
+  Size: 1,081 bytes
+  Client ID: 845309728040-2803jm0hv4gnroajunpv65vsi1mm3nab...
+  Hosted Domain: uitm.edu.my
+
+✓ Allowlist updated
+  Admin email(s) added to admin_allowlist
+
+✓ Code ready
+  ✓ auth/login.php (renders Google button on HTTPS)
+  ✓ auth/google_callback.php (JWT handler)
+  ✓ includes/google_auth.php (RS256 verification)
+  ✓ includes/otp_auth.php (session + allowlist)
+
+
+LIVE TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Go to: https://neovtrack.uitm.edu.my/auth/login.php
+
+You should see:
+  1. Page loads (HTTPS ✓)
+  2. "Sign in with UiTM Google" button visible
+  3. Click button → Google card appears
+  4. Select your UiTM account
+  5. Auto-redirect to dashboard
+
+
+FLOW VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Frontend:
+  ① User clicks "Sign in with UiTM Google"
+  ② Google Identity Services renders card
+  ③ User selects account
+  ④ GIS generates JWT
+
+Backend:
+  ⑤ auth/google_callback.php receives JWT + CSRF token
+  ⑥ Verifies CSRF (double-submit)
+  ⑦ Fetches Google JWKS (with caching)
+  ⑧ Verifies JWT signature (RS256)
+  ⑩ Validates claims (aud, iss, exp, email_verified, hd)
+  ⑪ Checks allowlist (admin_allowlist table)
+  ⑫ Creates/updates account
+  ⑬ Establishes session
+  ⑭ Redirects to dashboard
+
+
+TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Button doesn't show?
+  → Check HTTPS (should show button only on https://*)
+  → Check network console (browser F12)
+  → Client ID might not be loaded
+
+"Invalid audience" or JWT errors?
+  → Client ID mismatch between Console and secrets.php
+  → Compare: https://console.cloud.google.com/apis/credentials
+
+"Not on allowlist"?
+  → Add email to admin_allowlist table
+  → Verify is_active = 1, is_locked = 0
+
+"Network error" or JWKS timeout?
+  → Rare; Google JWKS fetch timeout
+  → pbsys caches for 6 hours; will retry
+
+
+SECURITY DEPLOYED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ HTTPS-only (button hidden on HTTP)
+✓ JWT signature verified (RS256)
+✓ JWKS cached (6h + stale fallback)
+✓ CSRF protected (double-submit)
+✓ Email domain restricted (@uitm.edu.my)
+✓ Hosted domain enforced (hd=uitm.edu.my)
+✓ Email verification required
+✓ Allowlist gating (admin_allowlist)
+✓ Token expiry checked
+✓ Issuer validated (accounts.google.com)
+✓ Audience validated (Client ID)
+
+
+NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Test: https://neovtrack.uitm.edu.my/auth/login.php
+   Click Google button → should see card
+
+2. Sign in with your UiTM account
+   Auto-redirect to dashboard
+
+3. Onboard other users
+   Add their emails to admin_allowlist (admin panel or SQL)
+
+4. Done!
+   Users can now sign in via Google
+
+
+USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check if deployed:
+  rclone ls hestia:web/neovtrack.uitm.edu.my/public_html/includes/secrets.php
+
+View allowlist:
+  mysql -u neovtrack_app -p neovtrack_db -e \
+    "SELECT email, role, is_active FROM admin_allowlist;"
+
+Add admin:
+  mysql -u neovtrack_app -p neovtrack_db -e \
+    "INSERT INTO admin_allowlist (email, role, is_active) VALUES
+       ('email@uitm.edu.my', 'admin', 1);"
+
+Remove from allowlist:
+  mysql -u neovtrack_app -p neovtrack_db -e \
+    "UPDATE admin_allowlist SET is_locked = 1 WHERE email = 'email@uitm.edu.my';"
+
+
+═════════════════════════════════════════════════════════════════════════
+
+✅ DEPLOYMENT COMPLETE
+
+Everything is live. Test the Google button on:
+https://neovtrack.uitm.edu.my/auth/login.php
+

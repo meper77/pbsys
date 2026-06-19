@@ -34,7 +34,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
     <?php if ($row): ?>
     <div class="card nv-stack gap-4">
         <div class="nv-row gap-4"><span class="plate lg"><?= htmlspecialchars($row['platenum'] ?? '') ?></span>
-            <div><div class="text-display" style="font-size:20px;font-weight:700;"><?= htmlspecialchars($row['name'] ?? '') ?></div><div class="text-mono text-muted" style="font-size:12px;"><?= htmlspecialchars($row['idnumber'] ?? '') ?></div></div>
+            <div><div class="text-display" style="font-size:20px;font-weight:700;"><?= htmlspecialchars($row['name'] ?? '') ?></div><div class="text-mono text-muted" style="font-size:13px;"><?= htmlspecialchars($row['idnumber'] ?? '') ?></div></div>
         </div>
         <div class="kv">
             <div class="k">Status</div><div class="v"><?= htmlspecialchars($row['status'] ?? '') ?></div>

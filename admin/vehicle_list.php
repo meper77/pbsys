@@ -201,7 +201,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 
   <form id="bulkForm" method="POST" class="mt-6">
     <div class="nv-row between mb-4">
-      <span class="text-muted" id="bulkCount" style="font-size:13px;">No vehicles selected.</span>
+      <span class="text-muted" id="bulkCount" style="font-size:14px;">No vehicles selected.</span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled onclick="return confirm('Delete selected vehicles?')">
         <i data-lucide="trash-2"></i> <?= htmlspecialchars($t['bulk_delete']) ?>
       </button>

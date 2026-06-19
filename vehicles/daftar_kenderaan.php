@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 10px; 
             border: 1px solid var(--neutral-300); 
             border-radius: 6px; 
-            font-size: 14px;
+            font-size: 15px;
             font-family: inherit;
         }
         .form-group input:focus, .form-group select:focus {
@@ -234,9 +234,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
         .autocomplete-item-name { font-weight: 600; }
-        .autocomplete-item-email { font-size: 12px; color: var(--neutral-600); }
+        .autocomplete-item-email { font-size: 13px; color: var(--neutral-600); }
         .autocomplete-item.selected .autocomplete-item-email { color: rgba(255,255,255,0.7); }
-        .input-hint { font-size: 12px; color: var(--neutral-600); margin-top: 4px; }
+        .input-hint { font-size: 13px; color: var(--neutral-600); margin-top: 4px; }
         .section-title { font-size: 16px; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--neutral-200); }
         .alert { padding: 16px; border-radius: 6px; margin-bottom: 20px; }
         .alert-success { background-color: var(--success-50); color: var(--success-900); border: 1px solid var(--success-300); }
@@ -248,7 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 15px;
             border-left: 4px solid var(--brand-blue);
         }
-        .user-selection-content { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; }
+        .user-selection-content { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 15px; }
         .user-selection-label { color: var(--neutral-600); font-weight: 600; }
         .user-selection-value { color: var(--neutral-900); }
         .btn-group { display: flex; gap: 10px; margin-top: 30px; }
@@ -276,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-secondary:hover {
             background-color: var(--neutral-300);
         }
-        .form-hint { font-size: 12px; color: var(--neutral-600); }
+        .form-hint { font-size: 13px; color: var(--neutral-600); }
         @media (max-width: 600px) {
             .container { padding: 15px; margin: 20px auto; }
             .form-card { padding: 20px; }

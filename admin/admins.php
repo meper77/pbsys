@@ -142,7 +142,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
   <div class="card nv-stack">
     <div>
       <h3 style="margin:0 0 4px;"><?= htmlspecialchars($t['allowlist']) ?></h3>
-      <p class="text-muted" style="margin:0;font-size:13px;"><?= htmlspecialchars($t['allowlist_help']) ?></p>
+      <p class="text-muted" style="margin:0;font-size:14px;"><?= htmlspecialchars($t['allowlist_help']) ?></p>
     </div>
     <?php if (!$hasAllow): ?>
       <div class="flash info"><i data-lucide="info"></i> Allowlist table not migrated yet.</div>
@@ -203,7 +203,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
   <form id="adminBulkForm" method="POST" class="mt-4" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>');">
     <input type="hidden" name="action" value="delete_admins">
     <div class="nv-row between mb-4">
-      <span class="text-muted" id="bulkCount" style="font-size:13px;"><?= htmlspecialchars($t['no_selected']) ?></span>
+      <span class="text-muted" id="bulkCount" style="font-size:14px;"><?= htmlspecialchars($t['no_selected']) ?></span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled>
         <i data-lucide="trash-2"></i> <?= htmlspecialchars($t['delete_selected']) ?>
       </button>
@@ -242,7 +242,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             <td>
               <strong><?= htmlspecialchars($row['name'] ?: '—') ?></strong>
               <?php if ($isSelf): ?><span class="pill info" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['you']) ?></span><?php endif; ?>
-              <div class="text-mono text-muted" style="font-size:12px;"><?= htmlspecialchars($row['email'] ?? '') ?></div>
+              <div class="text-mono text-muted" style="font-size:13px;"><?= htmlspecialchars($row['email'] ?? '') ?></div>
             </td>
             <td><?= htmlspecialchars($row['position'] ?? '—') ?></td>
             <td class="meta"><?= $lastlg ? htmlspecialchars(date('d M Y, H:i', strtotime($lastlg))) : htmlspecialchars($t['never']) ?></td>

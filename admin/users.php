@@ -144,7 +144,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <style>
   .perm-grid{display:grid;grid-template-columns:repeat(2,minmax(78px,auto));gap:3px 12px;}
-  .perm-chk{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .perm-chk{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;white-space:nowrap;}
   .perm-chk input{margin:0;width:15px;height:15px;cursor:pointer;accent-color:var(--status-ok,#16a34a);}
   .perm-chk input:disabled{cursor:not-allowed;opacity:.5;}
   .perm-chk.busy{opacity:.5;}
@@ -186,7 +186,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
   <form id="bulkForm" method="POST" class="mt-4" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>');">
     <input type="hidden" name="action" value="delete_users">
     <div class="nv-row between mb-4">
-      <span class="text-muted" id="bulkCount" style="font-size:13px;"><?= htmlspecialchars($t['no_selected']) ?></span>
+      <span class="text-muted" id="bulkCount" style="font-size:14px;"><?= htmlspecialchars($t['no_selected']) ?></span>
       <button type="submit" class="btn btn-ghost text-danger" id="bulkDeleteBtn" disabled>
         <i data-lucide="trash-2"></i> <?= htmlspecialchars($t['delete_selected']) ?>
       </button>
@@ -222,7 +222,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
             <td class="meta"><?= $counter++ ?></td>
             <td>
               <strong><?= htmlspecialchars($row['name'] ?: '—') ?></strong>
-              <div class="text-mono text-muted" style="font-size:12px;"><?= htmlspecialchars($row['email']) ?>
+              <div class="text-mono text-muted" style="font-size:13px;"><?= htmlspecialchars($row['email']) ?>
                 <?php if (!empty($row['deletion_requested'])): ?><span class="pill warn" style="margin-left:6px;"><span class="dot"></span> <?= $lang === 'bm' ? 'Mohon padam' : 'Deletion requested' ?></span><?php endif; ?>
               </div>
             </td>

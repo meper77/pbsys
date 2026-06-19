@@ -1,0 +1,85 @@
+✅ GOOGLE SIGN-IN SETUP COMPLETED
+═════════════════════════════════════════════════════════════
+
+CLIENT ID INSTALLED
+   ✓ Added to: C:\Users\User.J1-ALPHA-PENS\pbsys\includes\secrets.php
+   ✓ Client ID: 845309728040-2803jm0hv4gnroajunpv65vsi1mm3nab.apps.googleusercontent.com
+   ✓ Hosted Domain: uitm.edu.my
+
+VERIFICATION
+   ✓ Configuration successfully read by auth/login.php
+   ✓ Code flow: nv_google_client_id() → login page renders button on HTTPS
+   ✓ Callback handler ready: auth/google_callback.php
+   ✓ JWT verification ready: includes/google_auth.php (RS256 + JWKS)
+   ✓ Session/allowlist ready: includes/otp_auth.php
+
+NEXT STEPS
+
+1. Deploy to Hestia (copy secrets.php)
+   rclone copy includes/secrets.php \
+     hestia:web/neovtrack.uitm.edu.my/public_html/includes/ \
+     --sftp-disable-hashcheck
+
+2. Add yourself to allowlist (so you can sign in)
+   
+   Option A - SSH to Hestia:
+   mysql -u neovtrack_app -p neovtrack_db -e "
+   INSERT INTO admin_allowlist (email, role, is_active, is_locked) VALUES 
+     ('your-email@uitm.edu.my', 'admin', 1, 0);
+   "
+   
+   Option B - Local SQL:
+   cd C:\Users\User.J1-ALPHA-PENS\pbsys
+   mysql -u root neovtrack_db -e "
+   INSERT INTO admin_allowlist (email, role, is_active, is_locked) VALUES 
+     ('2023818464@student.uitm.edu.my', 'admin', 1, 0);
+   "
+
+3. Test on production
+   https://neovtrack.uitm.edu.my/auth/login.php
+   
+   You should see:
+   - "Sign in with UiTM Google" button
+   - Click → Google card appears
+   - Select account → Auto-redirect to dashboard
+
+4. Done!
+   Users can now sign in via Google
+
+
+LOCAL TESTING (without HTTPS)
+   http://localhost:8000/auth/login.php?dev=1
+   
+   Shows developer bypass form. To get the token:
+   php -r "require 'includes/secrets_loader.php'; echo nv_dev_bypass_token();"
+
+
+FILES MODIFIED
+   ✓ includes/secrets.php (added google_client_id + google_hd)
+   ✓ Backup created: includes/secrets.php.bak.1718170109
+
+FILES READY
+   ✓ auth/login.php (GIS button)
+   ✓ auth/google_callback.php (JWT handler)
+   ✓ includes/google_auth.php (verification)
+   ✓ includes/otp_auth.php (allowlist + session)
+
+
+SECURITY CHECKLIST
+   ✓ HTTPS enforcement (button hidden on HTTP)
+   ✓ JWT signature verification (RS256)
+   ✓ JWKS caching (6h + stale fallback)
+   ✓ CSRF protection (double-submit)
+   ✓ Email domain restriction (@uitm.edu.my)
+   ✓ Hosted domain check (hd=uitm.edu.my)
+   ✓ Email verification required
+   ✓ Allowlist gating (admin_allowlist)
+   ✓ Token expiry validation
+   ✓ Issuer validation
+
+
+STATUS: 100% READY FOR DEPLOYMENT
+═════════════════════════════════════════════════════════════
+
+Everything is configured. Just deploy to Hestia and sign in.
+

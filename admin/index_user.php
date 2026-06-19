@@ -101,7 +101,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php';
     </div>
     <div class="actions">
       <form method="GET" class="actions" style="margin:0;gap:6px;">
-        <label class="text-mono" style="font-size:12px;color:var(--fg-3);align-self:center;"><?= $lang === 'bm' ? 'Tahun' : 'Year' ?></label>
+        <label class="text-mono" style="font-size:13px;color:var(--fg-3);align-self:center;"><?= $lang === 'bm' ? 'Tahun' : 'Year' ?></label>
         <select name="cy" class="select" onchange="this.form.submit()" style="min-width:110px;">
           <?php foreach ($cyYears as $yy): ?><option value="<?= $yy ?>" <?= $yy === $cy ? 'selected' : '' ?>><?= $yy ?></option><?php endforeach; ?>
         </select>

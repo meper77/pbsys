@@ -99,11 +99,11 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
   </form>
 
   <div class="nv-row gap-2 mt-4" style="flex-wrap:wrap;align-items:center;">
-    <span class="text-muted" style="font-size:13px;"><?= htmlspecialchars($t['quick']) ?>:</span>
+    <span class="text-muted" style="font-size:14px;"><?= htmlspecialchars($t['quick']) ?>:</span>
     <?php foreach ([['Staf','f_staff'],['Pelajar','f_student'],['Pelawat','f_visitor'],['Kontraktor','f_contractor']] as $f): ?>
-      <a class="btn btn-ghost<?= $status === $f[0] ? ' btn-primary' : '' ?>" style="padding:6px 14px;font-size:13px;" href="/search/car_user.php?status=<?= $f[0] . $langQ ?>"><?= htmlspecialchars($t[$f[1]]) ?></a>
+      <a class="btn btn-ghost<?= $status === $f[0] ? ' btn-primary' : '' ?>" style="padding:6px 14px;font-size:14px;" href="/search/car_user.php?status=<?= $f[0] . $langQ ?>"><?= htmlspecialchars($t[$f[1]]) ?></a>
     <?php endforeach; ?>
-    <a class="btn btn-ghost<?= $showAll ? ' btn-primary' : '' ?>" style="padding:6px 14px;font-size:13px;" href="/search/car_user.php?showAll=true<?= $langQ ?>"><?= htmlspecialchars($t['f_all']) ?></a>
+    <a class="btn btn-ghost<?= $showAll ? ' btn-primary' : '' ?>" style="padding:6px 14px;font-size:14px;" href="/search/car_user.php?showAll=true<?= $langQ ?>"><?= htmlspecialchars($t['f_all']) ?></a>
   </div>
 
   <?php if ($hasResults && count($results) > 0): ?>

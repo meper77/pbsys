@@ -158,7 +158,7 @@ function nv_stacked_bar_svg(array $xLabels, array $series, array $opts = []): st
     // Legend.
     $legend = '<div class="nv-row gap-3" style="flex-wrap:wrap;margin-top:8px;">';
     foreach ($series as $s) {
-        $legend .= '<span class="nv-row gap-2" style="align-items:center;font-size:12px;color:var(--fg-2,#555);">'
+        $legend .= '<span class="nv-row gap-2" style="align-items:center;font-size:13px;color:var(--fg-2,#555);">'
                  . '<span style="width:12px;height:12px;border-radius:3px;background:' . nv_chart_esc($s['color']) . ';display:inline-block;"></span> '
                  . nv_chart_esc($s['label']) . '</span>';
     }
@@ -182,7 +182,7 @@ function nv_chart_interactive_assets(): string
   .nv-bar { transition: opacity .12s ease; cursor: pointer; }
   svg:hover .nv-bar:not(:hover) { opacity: .35; }
   #nv-chart-tip { position: fixed; z-index: 9999; display: none; pointer-events: none;
-    background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px;
+    background: #1a1a1a; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 13px;
     line-height: 1.3; box-shadow: 0 6px 18px rgba(0,0,0,.28); white-space: nowrap; }
   #nv-chart-tip .x { color: #c9c9d4; margin-left: 6px; }
   @media print { svg:hover .nv-bar:not(:hover) { opacity: 1; } #nv-chart-tip { display: none !important; } }
@@ -263,7 +263,7 @@ function nv_owner_chart_card($con, array $opts): string
         <div class="nv-row between" style="align-items:flex-start;">
             <div>
                 <span class="eyebrow"><?php echo nv_chart_esc($opts['title'] ?? 'Statistics'); ?></span>
-                <?php if (!empty($opts['sub'])): ?><p class="text-muted" style="margin:2px 0 0;font-size:13px;"><?php echo nv_chart_esc($opts['sub']); ?></p><?php endif; ?>
+                <?php if (!empty($opts['sub'])): ?><p class="text-muted" style="margin:2px 0 0;font-size:14px;"><?php echo nv_chart_esc($opts['sub']); ?></p><?php endif; ?>
             </div>
         </div>
         <div style="margin-top:10px;">

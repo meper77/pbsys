@@ -75,9 +75,9 @@
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
   /* ----- TYPE SCALE (px, fluid-leaning) -------------------- */
-  --text-2xs: 11px;
-  --text-xs:  12px;
-  --text-sm:  14px;
+  --text-2xs: 12px;
+  --text-xs:  13px;
+  --text-sm:  15px;
   --text-md:  16px;
   --text-lg:  18px;
   --text-xl:  22px;

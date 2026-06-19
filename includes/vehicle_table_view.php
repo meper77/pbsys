@@ -117,9 +117,9 @@ if (!function_exists('nv_table_cell')) {
   .nv-sg-box { position:absolute; left:0; right:0; top:100%; z-index:60; background:#fff;
     border:1px solid var(--border,#d9d9e3); border-top:0; border-radius:0 0 8px 8px;
     max-height:280px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,.12); display:none; }
-  .nv-sg-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f3; font-size:14px; }
+  .nv-sg-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f3; font-size:15px; }
   .nv-sg-item:hover, .nv-sg-item.active { background:var(--surface-tint,#f5f3ff); }
-  .nv-sg-item .muted { color:#777; font-size:12px; }
+  .nv-sg-item .muted { color:#777; font-size:13px; }
   /* Print: the chart only (with its title), for the selected scope. */
   .nv-print-only { display:none; }
   @media print {

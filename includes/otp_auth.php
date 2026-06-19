@@ -198,7 +198,7 @@ function nv_create_and_send_otp($con, string $email, ?string &$error = null): bo
         . '<p style="font-size:30px;font-weight:700;letter-spacing:6px;margin:12px 0;">' . $code . '</p>'
         . '<p>This code expires in ' . (int) NV_OTP_TTL_MIN . ' minutes. If you did not request it, you can ignore this email.</p>'
         . '<hr style="border:none;border-top:1px solid #eee;margin:16px 0;">'
-        . '<p style="font-size:12px;color:#888;">Polis Bantuan · UiTM Cawangan Johor (Segamat)</p></div>';
+        . '<p style="font-size:13px;color:#888;">Polis Bantuan · UiTM Cawangan Johor (Segamat)</p></div>';
 
     $mailErr = null;
     if (!nv_send_mail($email, $subject, $body, $mailErr)) {

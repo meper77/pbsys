@@ -58,7 +58,7 @@ $nv_render_table = function (array $rows, $table_id, $t, $nv_slug, $show_select_
         echo '<td><span class="plate">'.$plate.'</span></td>';
         echo '<td><div class="owner"><span class="name">'.$name.'</span><span class="id">'.$idnum.'</span></div></td>';
         if ($phone !== '') {
-            echo '<td><div class="text-mono" style="font-size:13px;">'.$phone.'</div><div style="margin-top:2px;">'.format_contact_links($r['phone']).'</div></td>';
+            echo '<td><div class="text-mono" style="font-size:14px;">'.$phone.'</div><div style="margin-top:2px;">'.format_contact_links($r['phone']).'</div></td>';
         } else {
             echo '<td><span class="text-muted">—</span></td>';
         }

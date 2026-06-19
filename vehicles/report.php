@@ -103,10 +103,10 @@ $jsL = $lang === 'bm' ? [
     .plate-suggestions .suggest-item { padding:8px 12px; cursor:pointer; border-bottom:1px solid var(--neutral-100); }
     .plate-suggestions .suggest-item:hover, .plate-suggestions .suggest-item.active { background:var(--surface-tint); }
     .plate-suggestions .suggest-empty { padding:10px 12px; color:var(--fg-3); font-style:italic; }
-    .match-status { font-size:12px; margin-top:4px; }
+    .match-status { font-size:13px; margin-top:4px; }
     .match-status.found { color:var(--status-ok); }
     .match-status.new   { color:var(--status-bad); }
-    .geo-status { font-size: 13px; color:var(--fg-3); }
+    .geo-status { font-size: 14px; color:var(--fg-3); }
     .geo-status.ok { color:var(--status-ok); }
     .geo-status.err { color:var(--status-bad); }
     .photo-preview img { width:90px; height:90px; object-fit:cover; border-radius:6px; margin:6px 6px 0 0; border:1px solid var(--border); }
@@ -219,7 +219,7 @@ $jsL = $lang === 'bm' ? [
             <div class="geo-status" id="geoStatus"><?= htmlspecialchars($t['geo_perm']) ?></div>
 
             <div id="manualGeo" style="display:none;margin-top:10px;padding:12px;border:1px dashed var(--border);border-radius:8px;">
-                <div style="font-size:13px;margin-bottom:8px;color:var(--fg-2);"><?= htmlspecialchars($t['manual_help']) ?></div>
+                <div style="font-size:14px;margin-bottom:8px;color:var(--fg-2);"><?= htmlspecialchars($t['manual_help']) ?></div>
                 <div class="nv-grid cols-2">
                     <div class="field"><label class="field-label">Latitude</label>
                         <input type="text" class="input mono" id="latManual" inputmode="decimal" placeholder="2.48796"></div>

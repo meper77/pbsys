@@ -227,7 +227,7 @@ $displayImg = !empty($profile['profile_image'])
             <div class="text-muted" style="margin-top:-4px;"><?php echo htmlspecialchars($profile['position']); ?></div>
         <?php endif; ?>
         <span class="pill info"><span class="dot"></span><?php echo htmlspecialchars($role === 'admin' ? $L['role_admin'] : $L['role_user']); ?></span>
-        <div class="text-mono text-muted" style="font-size:12px;">
+        <div class="text-mono text-muted" style="font-size:13px;">
             <?php if (!empty($profile['last_login'])): ?>
                 <?php echo htmlspecialchars($L['last_login']); ?>: <?php echo htmlspecialchars(date('d M Y, H:i', strtotime($profile['last_login']))); ?>
             <?php endif; ?>

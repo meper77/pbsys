@@ -1,0 +1,166 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                 GOOGLE SIGN-IN SETUP — COMPLETE                     ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📦 GENERATED DOCUMENTATION & TOOLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ GOOGLE_SIGNIN_INDEX.md (6.8 KB)
+  Overview of all resources + quick navigation
+
+✓ GOOGLE_SIGNIN_QUICK_START.md (4.0 KB)
+  → Start here: 5-step setup (15 minutes)
+
+✓ GOOGLE_SIGNIN_SETUP.md (8.8 KB)
+  → Detailed guide: architecture + security + checklist
+
+✓ GOOGLE_SIGNIN_COMPLETE_GUIDE.md (13 KB)
+  → Full reference: step-by-step + troubleshooting matrix
+
+✓ google-signin-setup.sh (2.0 KB)
+  → Automation: ./google-signin-setup.sh "CLIENT_ID"
+
+✓ verify-google-signin.php (6.0 KB)
+  → Diagnostic: php verify-google-signin.php
+
+
+🔍 CURRENT STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Frontend:           auth/login.php (GIS button)
+✓ Backend:           auth/google_callback.php (JWT handler)
+✓ Verification:      includes/google_auth.php (RS256 + JWKS)
+✓ Sessions:          includes/otp_auth.php (allowlist + auth)
+✓ Config Loader:     includes/secrets_loader.php
+✓ HTTPS Enforcement: Built-in (button hidden on HTTP)
+✓ CSRF Protection:   Double-submit token check
+✓ Access Control:    Allowlist-gated (admin_allowlist table)
+
+❌ MISSING:          Google OAuth Client ID (in secrets.php)
+
+
+🚀 QUICK START (15 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Get Client ID
+   → https://console.cloud.google.com/
+   → Credentials → OAuth 2.0 Client ID → Web
+   → Copy the Client ID (format: 123...apps.googleusercontent.com)
+
+2. Add to Config
+   → cd C:\Users\User.J1-ALPHA-PENS\pbsys
+   → ./google-signin-setup.sh "YOUR_CLIENT_ID"
+
+3. Verify Setup
+   → php verify-google-signin.php
+   (Should show all green ✓ checks)
+
+4. Test Locally
+   → ./dev.sh
+   → http://localhost:8000/auth/login.php?dev=1
+
+5. Deploy to Hestia
+   → rclone copy includes/secrets.php \
+       hestia:web/neovtrack.uitm.edu.my/public_html/includes/ \
+       --sftp-disable-hashcheck
+
+6. Test Live
+   → https://neovtrack.uitm.edu.my/auth/login.php
+   (Should show the Google button)
+
+7. Sign In
+   → Add yourself to admin_allowlist (SQL or admin panel)
+   → Click the Google button
+   → Redirect to dashboard
+
+
+📖 DOCUMENTATION GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Want quick setup?       → Read: GOOGLE_SIGNIN_QUICK_START.md
+Want to understand it?  → Read: GOOGLE_SIGNIN_SETUP.md
+Want full reference?    → Read: GOOGLE_SIGNIN_COMPLETE_GUIDE.md
+Need navigation?        → Read: GOOGLE_SIGNIN_INDEX.md
+
+
+🔒 SECURITY FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ JWT signature verification (RS256)
+✓ CSRF protection (double-submit token)
+✓ Email domain restriction (@uitm.edu.my)
+✓ Hosted domain enforcement (optional)
+✓ Email verification required
+✓ Allowlist access control
+✓ HTTPS requirement
+✓ Token expiry validation
+✓ Issuer validation
+✓ Audience validation
+
+
+📋 CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Setup:
+  □ Get OAuth Client ID from Google Console
+  □ Add Client ID to includes/secrets.php
+  □ Run verify-google-signin.php (check all green)
+  □ Test locally with ?dev=1
+
+Deploy:
+  □ Verify HTTPS on Hestia
+  □ rclone copy secrets.php to Hestia
+  □ Add yourself to admin_allowlist
+  □ Test sign-in on https://neovtrack.uitm.edu.my/auth/login.php
+
+Onboard:
+  □ Add other admin emails to allowlist
+  □ Users click "Sign in with UiTM Google"
+  □ Auto-routed to dashboard
+
+
+📞 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Button doesn't show?
+  → Check HTTPS (GIS requires secure context)
+  → Check Client ID in secrets.php
+  → Run verify-google-signin.php
+
+"Invalid audience" error?
+  → Client ID in secrets.php doesn't match Google Console
+  → Copy-paste exactly from Console
+
+"Not on allowlist" after successful auth?
+  → Add your email to admin_allowlist table (SQL or admin UI)
+  → Check is_active = 1
+
+Full matrix: See GOOGLE_SIGNIN_COMPLETE_GUIDE.md
+
+
+📦 FILES IN THIS PROJECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All files are in: C:\Users\User.J1-ALPHA-PENS\pbsys\
+
+  GOOGLE_SIGNIN_*.md        Documentation
+  google-signin-setup.sh    Setup script
+  verify-google-signin.php  Diagnostic script
+  auth/login.php            (ready)
+  auth/google_callback.php  (ready)
+  includes/google_auth.php  (ready)
+
+Everything else is already implemented. Just add Client ID.
+
+
+✨ SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: 95% complete
+Missing: Google OAuth Client ID (1 config line)
+Time to live: 15 minutes (from Client ID to deployed)
+
+Everything is ready. Pick a guide and follow the steps.
+
+Recommended: Start with GOOGLE_SIGNIN_QUICK_START.md
+

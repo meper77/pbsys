@@ -12,7 +12,7 @@ function format_contact_links($phone) {
     $wa = (strpos($digits, '0') === 0) ? '60' . substr($digits, 1) : $digits;
     $tel = htmlspecialchars($digits, ENT_QUOTES);
     $wa  = htmlspecialchars($wa, ENT_QUOTES);
-    $btn = 'display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;text-decoration:none;margin-right:4px;font-size:12px;';
+    $btn = 'display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;color:#fff;text-decoration:none;margin-right:4px;font-size:13px;';
     return
         '<a href="tel:+' . $tel . '" title="Call" aria-label="Call" style="' . $btn . 'background:#0d6efd;">'
       . '<i class="fas fa-phone"></i></a>'

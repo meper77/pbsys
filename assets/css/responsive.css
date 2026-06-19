@@ -227,7 +227,7 @@ td {
 
 @media (max-width: 639px) {
   html {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   body {
@@ -249,7 +249,7 @@ td {
   }
 
   table {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   th,
@@ -314,7 +314,7 @@ td {
   }
 
   table {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   thead {
