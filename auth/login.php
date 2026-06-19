@@ -111,7 +111,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
   @media (prefers-reduced-motion: reduce) { .auth-bg-video { display:none; } }
 </style>
 <div class="auth-hero">
-  <video class="auth-bg-video" autoplay loop muted playsinline aria-hidden="true">
+  <video class="auth-bg-video" autoplay loop muted playsinline aria-hidden="true" poster="/assets/video/login-bg-poster.jpg">
     <source src="/assets/video/login-bg.webm" type="video/webm">
     <source src="/assets/video/login-bg.mp4" type="video/mp4">
   </video>
