@@ -101,7 +101,20 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
 <?php if ($googleOn): ?><script src="https://accounts.google.com/gsi/client" async></script><?php endif; ?>
 <body>
+<style>
+  /* Blender-rendered animated background filling the negative space behind the card */
+  .auth-hero { position: relative; overflow: hidden; }
+  .auth-bg-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none; }
+  .auth-hero::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background: radial-gradient(ellipse at center, rgba(250,249,252,0.40) 0%, rgba(250,249,252,0.12) 45%, rgba(46,20,101,0.06) 100%); }
+  .auth-card { position: relative; z-index: 2; }
+  @media (prefers-reduced-motion: reduce) { .auth-bg-video { display:none; } }
+</style>
 <div class="auth-hero">
+  <video class="auth-bg-video" autoplay loop muted playsinline aria-hidden="true">
+    <source src="/assets/video/login-bg.webm" type="video/webm">
+    <source src="/assets/video/login-bg.mp4" type="video/mp4">
+  </video>
   <div class="auth-card">
     <div class="auth-brand">
       <img class="uitm" src="/assets/images/uitm.png" alt="UiTM">
