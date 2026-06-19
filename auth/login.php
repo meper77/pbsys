@@ -103,7 +103,9 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 <body>
 <style>
   /* Blender-rendered animated background filling the negative space behind the card */
-  .auth-hero { position: relative; overflow: hidden; }
+  .auth-hero { position: relative; overflow: hidden;
+    background-image: url('/assets/video/login-bg-poster.jpg'), linear-gradient(180deg,#EEE7FB 0%,#FAF9FC 60%);
+    background-size: cover; background-position: center; background-repeat: no-repeat; }
   .auth-bg-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none; }
   .auth-hero::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
     background: radial-gradient(ellipse at center, rgba(250,249,252,0.40) 0%, rgba(250,249,252,0.12) 45%, rgba(46,20,101,0.06) 100%); }
