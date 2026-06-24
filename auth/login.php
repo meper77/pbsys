@@ -110,7 +110,11 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
   .auth-hero::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
     background: radial-gradient(ellipse at center, rgba(250,249,252,0.40) 0%, rgba(250,249,252,0.12) 45%, rgba(46,20,101,0.06) 100%); }
   .auth-card { position: relative; z-index: 2; }
-  @media (prefers-reduced-motion: reduce) { .auth-bg-video { display:none; } }
+  /* NOTE: we intentionally do NOT hide the video on prefers-reduced-motion.
+     It's a subtle, dimmed, looping ambient background the product wants shown on
+     every device; some machines have "reduce motion" enabled (often unintentionally,
+     e.g. Windows performance settings) which previously blanked it to the poster.
+     The poster (set as .auth-hero background-image) remains the load/failure fallback. */
 </style>
 <div class="auth-hero">
   <video class="auth-bg-video" autoplay loop muted playsinline aria-hidden="true" poster="/assets/video/login-bg-poster.jpg">
