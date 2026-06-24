@@ -104,11 +104,14 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 <style>
   /* Blender-rendered animated background filling the negative space behind the card */
   .auth-hero { position: relative; overflow: hidden;
-    background-image: url('/assets/video/login-bg-poster.jpg'), linear-gradient(180deg,#EEE7FB 0%,#FAF9FC 60%);
+    background-image: url('/assets/video/login-bg-poster.jpg'), linear-gradient(180deg,#0a0816 0%,#15111f 100%);
     background-size: cover; background-position: center; background-repeat: no-repeat; }
   .auth-bg-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none; }
+  /* Cinematic dark scrim: gently darkens the centre so the card reads, while the
+     edge cars + rain stay bright. (Replaces the old light-theme white wash that
+     fogged out the middle of the dark video.) */
   .auth-hero::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
-    background: radial-gradient(ellipse at center, rgba(250,249,252,0.40) 0%, rgba(250,249,252,0.12) 45%, rgba(46,20,101,0.06) 100%); }
+    background: radial-gradient(ellipse at center, rgba(6,5,16,0.50) 0%, rgba(6,5,16,0.20) 42%, rgba(6,5,16,0) 72%); }
   .auth-card { position: relative; z-index: 2; }
   /* NOTE: we intentionally do NOT hide the video on prefers-reduced-motion.
      It's a subtle, dimmed, looping ambient background the product wants shown on
