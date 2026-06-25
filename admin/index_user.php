@@ -12,6 +12,7 @@ if (!isset($_SESSION['email'])) {
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chart.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/nv_category.php';
 
@@ -98,6 +99,9 @@ if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE YE
 if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM report_events WHERE action = 'reopen' AND YEAR(created_at) = $cyInt")) {
     $rep_reopened = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
 }
+// Link the report cards to the reports page only for users who may open it
+// (same gate reports.php enforces) — others see plain, non-clickable cards.
+$canReports = function_exists('nv_can_access_page') ? nv_can_access_page($con, 'reports') : false;
 $uMonths = $lang === 'bm'
     ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
     : [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
@@ -166,18 +170,23 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php';
 
   <div class="eyebrow mt-6" style="margin-bottom:8px;"><?= htmlspecialchars($t['reports_heading']) . ' · ' . $cy ?></div>
   <div class="kpi-grid">
-    <div class="kpi">
-      <div class="lbl"><i data-lucide="folder-open" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_open']) ?></div>
-      <div class="val"><?= number_format($rep_open) ?></div>
-    </div>
-    <div class="kpi">
-      <div class="lbl"><i data-lucide="check-circle" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_closed']) ?></div>
-      <div class="val"><?= number_format($rep_closed) ?></div>
-    </div>
-    <div class="kpi">
-      <div class="lbl"><i data-lucide="rotate-ccw" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_reopened']) ?></div>
-      <div class="val"><?= number_format($rep_reopened) ?></div>
-    </div>
+    <?php
+    $repCards = [
+      ['folder-open',  $t['reports_open'],     $rep_open],
+      ['check-circle', $t['reports_closed'],   $rep_closed],
+      ['rotate-ccw',   $t['reports_reopened'], $rep_reopened],
+    ];
+    foreach ($repCards as $rc):
+      $rcIcon = $rc[0]; $rcLbl = $rc[1]; $rcVal = $rc[2];
+    ?>
+    <?php if ($canReports): ?><a href="/admin/reports.php" style="text-decoration:none;color:inherit;"><?php endif; ?>
+      <div class="kpi">
+        <div class="lbl"><i data-lucide="<?= $rcIcon ?>" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($rcLbl) ?></div>
+        <div class="val"><?= number_format($rcVal) ?></div>
+        <?php if ($canReports): ?><div class="delta"><?= htmlspecialchars($t['view']) ?> &rarr;</div><?php endif; ?>
+      </div>
+    <?php if ($canReports): ?></a><?php endif; ?>
+    <?php endforeach; ?>
   </div>
 
   <div class="page-head mt-6" style="align-items:flex-end;">
