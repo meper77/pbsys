@@ -146,6 +146,7 @@ if (!function_exists('nv_schema_run')) {
         // from the admin UI is never overwritten on the next migrate.
         if (nv_schema_table_exists($con, 'admin_allowlist')) {
             $seed = [
+                ['infostrukturjhr@uitm.edu.my', 1],
                 ['2023818464@student.uitm.edu.my', 1],
                 ['mimihasliah@uitm.edu.my', 0],
             ];

@@ -8,6 +8,7 @@ if (isset($_GET['logout'])) {
 
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/permission_check.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/admin_protect.php';
 requireAdmin();
 
 if (!isset($_SESSION['language'])) { $_SESSION['language'] = 'bm'; }
@@ -71,14 +72,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'allowlist_remove' && $hasAllow) {
         $id = (int)($_POST['id'] ?? 0);
-        $st = $con->prepare("DELETE FROM admin_allowlist WHERE id = ? AND is_locked = 0");
-        $st->bind_param('i', $id); $st->execute(); $st->close();
-        $flash = ($lang === 'bm' ? 'Emel dibuang dari senarai.' : 'Email removed from allowlist.');
-    } elseif ($action === 'delete_admins') {
-        $allow = [];
-        if ($hasAllow && ($r = $con->query("SELECT LOWER(email) e FROM admin_allowlist"))) {
-            while ($x = $r->fetch_assoc()) { $allow[$x['e']] = 1; }
+        $em = '';
+        if ($r = $con->query("SELECT LOWER(email) e FROM admin_allowlist WHERE id = $id LIMIT 1")) {
+            if ($x = $r->fetch_assoc()) { $em = $x['e']; }
         }
+        if ($em !== '' && $em !== $me && !nv_is_protected_admin($em)) {
+            $st = $con->prepare("DELETE FROM admin_allowlist WHERE id = ?");
+            $st->bind_param('i', $id); $st->execute(); $st->close();
+            $flash = ($lang === 'bm' ? 'Emel dibuang dari senarai.' : 'Email removed from allowlist.');
+        } else {
+            $flash = ($lang === 'bm' ? 'Emel dilindungi — tidak boleh dibuang.' : 'Protected email — cannot be removed.'); $flashType = 'bad';
+        }
+    } elseif ($action === 'delete_admins') {
         $ids = $_POST['admin_ids'] ?? [];
         $deleted = 0; $skipped = 0;
         foreach ((array)$ids as $raw) {
@@ -87,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $row = ($r = $con->query("SELECT email FROM admin WHERE userid = $id LIMIT 1")) ? $r->fetch_assoc() : null;
             if (!$row) continue;
             $em = strtolower($row['email']);
-            if ($em === $me || isset($allow[$em])) { $skipped++; continue; } // self / allowlisted are protected
+            if ($em === $me || nv_is_protected_admin($em)) { $skipped++; continue; } // self / protected admin
             $con->query("DELETE FROM admin WHERE userid = $id");
             $deleted++;
         }
@@ -161,7 +166,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
           <tbody>
           <?php foreach ($allowRows as $a):
               $em = strtolower($a['email']);
-              $locked = !empty($a['is_locked']);
+              $locked = nv_is_protected_admin($em);
               $hasAcct = false;
               foreach ($admins as $ad) { if (strtolower($ad['email']) === $em) { $hasAcct = true; break; } }
           ?>
@@ -227,7 +232,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
               $em = strtolower($row['email'] ?? '');
               $isSelf = ($em === $me);
               $isAllow = isset($allowSet[$em]);
-              $protected = $isSelf || $isAllow;
+              $protected = $isSelf || nv_is_protected_admin($em);
               $lastlg = $row['last_login'] ?? null;
           ?>
           <tr>

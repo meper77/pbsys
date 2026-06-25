@@ -1,6 +1,7 @@
 <?php
 // POST + admin only (was GET — deletable by any link/crawler/CSRF).
 require $_SERVER['DOCUMENT_ROOT'].'/includes/require_post_admin.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/admin_protect.php';
 
 // Debug: Check table structure (uncomment if needed)
 /*
@@ -17,8 +18,8 @@ if (isset($_POST['id'])) {
     $id = intval($_POST['id']);
     $current_admin_email = $_SESSION['email_Admin'];
 
-    // Defense in depth: never delete self or an allow-listed admin (the Admins page
-    // enforces this too). Tolerant of a missing admin_allowlist table.
+    // Defense in depth: never delete yourself or a designated protected admin
+    // (the Admins page enforces this too). Tolerant of a missing admin table row.
     $selfEmail = strtolower($current_admin_email ?? '');
     $tgtRow = @$con->query("SELECT email FROM admin WHERE userid = $id LIMIT 1");
     $tgtEmail = ($tgtRow && $tgtRow->num_rows) ? strtolower($tgtRow->fetch_assoc()['email']) : '';
@@ -26,12 +27,9 @@ if (isset($_POST['id'])) {
         echo "<script>alert('You cannot delete your own account.'); window.location.href='/admin/admins.php';</script>";
         exit();
     }
-    if ($tgtEmail !== '') {
-        $al = @$con->query("SELECT 1 FROM admin_allowlist WHERE LOWER(email)='" . $con->real_escape_string($tgtEmail) . "' LIMIT 1");
-        if ($al && $al->num_rows > 0) {
-            echo "<script>alert('This admin is allow-listed and cannot be deleted. Remove the email from the allowlist first.'); window.location.href='/admin/admins.php';</script>";
-            exit();
-        }
+    if ($tgtEmail !== '' && nv_is_protected_admin($tgtEmail)) {
+        echo "<script>alert('This admin is protected and cannot be deleted.'); window.location.href='/admin/admins.php';</script>";
+        exit();
     }
     
     // First, let's find out what columns exist
