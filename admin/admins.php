@@ -70,30 +70,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $st->execute(); $st->close();
             $flash = ($lang === 'bm' ? 'Emel ditambah ke senarai dibenarkan.' : 'Email added to allowlist.');
         }
-    } elseif ($action === 'allowlist_remove' && $hasAllow) {
-        $id = (int)($_POST['id'] ?? 0);
-        $em = '';
-        if ($r = $con->query("SELECT LOWER(email) e FROM admin_allowlist WHERE id = $id LIMIT 1")) {
-            if ($x = $r->fetch_assoc()) { $em = $x['e']; }
-        }
-        if ($em !== '' && $em !== $me && !nv_is_protected_admin($em)) {
-            $st = $con->prepare("DELETE FROM admin_allowlist WHERE id = ?");
-            $st->bind_param('i', $id); $st->execute(); $st->close();
-            $flash = ($lang === 'bm' ? 'Emel dibuang dari senarai.' : 'Email removed from allowlist.');
-        } else {
-            $flash = ($lang === 'bm' ? 'Emel dilindungi — tidak boleh dibuang.' : 'Protected email — cannot be removed.'); $flashType = 'bad';
-        }
     } elseif ($action === 'delete_admins') {
-        $ids = $_POST['admin_ids'] ?? [];
+        // Remove the selected admins entirely: their allowlist row AND their admin
+        // account (one list, like users.php). Yourself and protected admins skip.
+        $ids = (array)($_POST['allow_ids'] ?? []);
         $deleted = 0; $skipped = 0;
-        foreach ((array)$ids as $raw) {
-            $id = (int)$raw;
-            if ($id <= 0) continue;
-            $row = ($r = $con->query("SELECT email FROM admin WHERE userid = $id LIMIT 1")) ? $r->fetch_assoc() : null;
-            if (!$row) continue;
-            $em = strtolower($row['email']);
-            if ($em === $me || nv_is_protected_admin($em)) { $skipped++; continue; } // self / protected admin
-            $con->query("DELETE FROM admin WHERE userid = $id");
+        foreach ($ids as $raw) {
+            $id = (int)$raw; if ($id <= 0) continue;
+            $em = '';
+            if ($r = $con->query("SELECT LOWER(email) e FROM admin_allowlist WHERE id = $id AND role='admin' LIMIT 1")) {
+                if ($x = $r->fetch_assoc()) { $em = $x['e']; }
+            }
+            if ($em === '' || $em === $me || nv_is_protected_admin($em)) { $skipped++; continue; }
+            $con->query("DELETE FROM admin_allowlist WHERE id = $id AND role='admin'");
+            if ($d = $con->prepare("DELETE FROM `admin` WHERE LOWER(email) = ?")) { $d->bind_param('s', $em); $d->execute(); $d->close(); }
             $deleted++;
         }
         $flash = ($lang === 'bm' ? "Dipadam: $deleted admin." : "Deleted $deleted admin(s).");
@@ -110,15 +100,16 @@ $flash = $_SESSION['admins_flash'] ?? '';
 $flashType = $_SESSION['admins_flash_type'] ?? 'ok';
 unset($_SESSION['admins_flash'], $_SESSION['admins_flash_type']);
 
-/* ---------------- data ---------------- */
-$admins = [];
-if ($r = $con->query("SELECT * FROM `admin` ORDER BY userid ASC")) {
-    while ($row = $r->fetch_assoc()) { $admins[] = $row; }
-}
-$allowSet = [];
-$allowRows = [];
-if ($hasAllow && ($r = $con->query("SELECT * FROM admin_allowlist WHERE role='admin' ORDER BY is_locked DESC, email ASC"))) {
-    while ($row = $r->fetch_assoc()) { $allowRows[] = $row; $allowSet[strtolower($row['email'])] = 1; }
+/* ---------------- data: allow-listed admins + their account (one combined list) ---------------- */
+$rows = [];
+if ($hasAllow) {
+    $sql = "SELECT a.id AS allow_id, a.email,
+                   ad.userid AS acct_id, ad.name, ad.position, ad.last_login
+            FROM admin_allowlist a
+            LEFT JOIN `admin` ad ON LOWER(ad.email) = LOWER(a.email)
+            WHERE a.role = 'admin'
+            ORDER BY a.email ASC";
+    if ($r = @$con->query($sql)) { while ($row = $r->fetch_assoc()) { $rows[] = $row; } }
 }
 
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
@@ -143,61 +134,22 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
     <div class="flash <?= $flashType === 'bad' ? 'bad' : 'ok' ?>"><i data-lucide="<?= $flashType === 'bad' ? 'alert-triangle' : 'check-circle' ?>"></i> <?= htmlspecialchars($flash) ?></div>
   <?php endif; ?>
 
-  <!-- Allowlist management -->
-  <div class="card nv-stack">
-    <div>
-      <h3 style="margin:0 0 4px;"><?= htmlspecialchars($t['allowlist']) ?></h3>
-      <p class="text-muted" style="margin:0;font-size:14px;"><?= htmlspecialchars($t['allowlist_help']) ?></p>
-    </div>
-    <?php if (!$hasAllow): ?>
-      <div class="flash info"><i data-lucide="info"></i> Allowlist table not migrated yet.</div>
-    <?php else: ?>
-      <form method="POST" class="nv-row gap-2" style="flex-wrap:wrap;align-items:flex-end;">
-        <input type="hidden" name="action" value="allowlist_add">
-        <div class="field" style="flex:1;min-width:240px;margin:0;">
-          <label class="field-label" for="newAllow"><?= htmlspecialchars($t['add_email']) ?></label>
-          <input class="input" id="newAllow" name="email" type="email" placeholder="name@uitm.edu.my" required>
-        </div>
-        <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i> <?= htmlspecialchars($t['add']) ?></button>
-      </form>
-      <div class="card flat" style="margin-top:6px;">
-        <table class="table">
-          <thead><tr><th><?= htmlspecialchars($t['email']) ?></th><th style="width:140px;"></th><th style="width:120px;"></th></tr></thead>
-          <tbody>
-          <?php foreach ($allowRows as $a):
-              $em = strtolower($a['email']);
-              $locked = nv_is_protected_admin($em);
-              $hasAcct = false;
-              foreach ($admins as $ad) { if (strtolower($ad['email']) === $em) { $hasAcct = true; break; } }
-          ?>
-            <tr>
-              <td><strong><?= htmlspecialchars($a['email']) ?></strong></td>
-              <td>
-                <?php if ($locked): ?><span class="pill neutral"><span class="dot"></span> <?= htmlspecialchars($t['locked']) ?></span>
-                <?php elseif ($hasAcct): ?><span class="pill ok"><span class="dot"></span> <?= htmlspecialchars($t['has_account']) ?></span>
-                <?php else: ?><span class="pill warn"><span class="dot"></span> <?= htmlspecialchars($t['no_account']) ?></span><?php endif; ?>
-              </td>
-              <td class="text-right">
-                <?php if (!$locked): ?>
-                  <form method="POST" style="display:inline" onsubmit="return confirm('<?= addslashes($t['remove']) ?>?')">
-                    <input type="hidden" name="action" value="allowlist_remove">
-                    <input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
-                    <button class="btn btn-quiet text-danger" type="submit"><i data-lucide="x"></i> <?= htmlspecialchars($t['remove']) ?></button>
-                  </form>
-                <?php else: ?><span class="text-muted">—</span><?php endif; ?>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (empty($allowRows)): ?><tr><td colspan="3" class="text-muted">—</td></tr><?php endif; ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif; ?>
-  </div>
+  <?php if (!$hasAllow): ?>
+    <div class="flash info"><i data-lucide="info"></i> Allowlist table not migrated yet.</div>
+  <?php else: ?>
 
-  <!-- Admin accounts -->
-  <?php if (count($admins) > 0): ?>
-  <form class="card nv-stack mt-6" onsubmit="return false;">
+  <!-- Add an admin email to the allowlist -->
+  <form method="POST" class="card nv-row gap-2" style="flex-wrap:wrap;align-items:flex-end;">
+    <input type="hidden" name="action" value="allowlist_add">
+    <div class="field" style="flex:1;min-width:260px;margin:0;">
+      <label class="field-label" for="newAllow"><?= htmlspecialchars($t['add_email']) ?></label>
+      <input class="input" id="newAllow" name="email" type="email" placeholder="name@uitm.edu.my" required>
+    </div>
+    <button class="btn btn-primary" type="submit"><i data-lucide="user-plus"></i> <?= htmlspecialchars($t['add']) ?></button>
+  </form>
+
+  <?php if (count($rows) > 0): ?>
+  <form class="card nv-stack mt-4" onsubmit="return false;">
     <div class="field">
       <label class="field-label" for="adminsSearch"><?= htmlspecialchars($t['search']) ?></label>
       <input class="input mono" id="adminsSearch" type="text" placeholder="Email, name…">
@@ -205,6 +157,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
   </form>
   <?php endif; ?>
 
+  <!-- One combined list: allow-listed admins + their account (mirrors users.php) -->
   <form id="adminBulkForm" method="POST" class="mt-4" onsubmit="return confirm('<?= addslashes($t['delete_confirm']) ?>');">
     <input type="hidden" name="action" value="delete_admins">
     <div class="nv-row between mb-4">
@@ -215,7 +168,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
     </div>
 
     <div class="card flat">
-      <?php if (count($admins) > 0): ?>
+      <?php if (count($rows) > 0): ?>
       <table class="table" id="adminTable">
         <thead>
           <tr>
@@ -227,12 +180,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
           </tr>
         </thead>
         <tbody>
-          <?php $counter = 1; foreach ($admins as $row):
-              $id = (int)($row['userid'] ?? 0);
-              $em = strtolower($row['email'] ?? '');
+          <?php $counter = 1; foreach ($rows as $row):
+              $aid    = (int)$row['allow_id'];
+              $em     = strtolower($row['email'] ?? '');
               $isSelf = ($em === $me);
-              $isAllow = isset($allowSet[$em]);
               $protected = $isSelf || nv_is_protected_admin($em);
+              $hasAcct = !empty($row['acct_id']);
               $lastlg = $row['last_login'] ?? null;
           ?>
           <tr>
@@ -240,13 +193,15 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
               <?php if ($protected): ?>
                 <span title="<?= $isSelf ? htmlspecialchars($t['you']) : htmlspecialchars($t['protected']) ?>"><i data-lucide="lock" style="width:14px;height:14px;color:var(--fg-3);"></i></span>
               <?php else: ?>
-                <input type="checkbox" name="admin_ids[]" value="<?= $id ?>" class="admin-cb" aria-label="Select <?= htmlspecialchars($row['email'] ?? '') ?>">
+                <input type="checkbox" name="allow_ids[]" value="<?= $aid ?>" class="admin-cb" aria-label="Select <?= htmlspecialchars($row['email'] ?? '') ?>">
               <?php endif; ?>
             </td>
             <td class="meta"><?= $counter++ ?></td>
             <td>
               <strong><?= htmlspecialchars($row['name'] ?: '—') ?></strong>
-              <?php if ($isSelf): ?><span class="pill info" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['you']) ?></span><?php endif; ?>
+              <?php if ($isSelf): ?><span class="pill info" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['you']) ?></span>
+              <?php elseif (nv_is_protected_admin($em)): ?><span class="pill neutral" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['locked']) ?></span>
+              <?php elseif (!$hasAcct): ?><span class="pill warn" style="margin-left:6px;"><span class="dot"></span> <?= htmlspecialchars($t['no_account']) ?></span><?php endif; ?>
               <div class="text-mono text-muted" style="font-size:13px;"><?= htmlspecialchars($row['email'] ?? '') ?></div>
             </td>
             <td><?= htmlspecialchars($row['position'] ?? '—') ?></td>
@@ -260,6 +215,8 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
       <?php endif; ?>
     </div>
   </form>
+
+  <?php endif; ?>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
