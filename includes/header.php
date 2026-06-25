@@ -7,6 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Light-only UI: keep the current light theme even when the browser/OS is in
+         dark mode (also stops auto-darkening of native form controls + scrollbars). -->
+    <meta name="color-scheme" content="light" />
     <title>NEO V-TRACK</title>
     <link rel="icon" type="image/png" href="/assets/images/neo-vtrack-logo.png">
 

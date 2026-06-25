@@ -479,29 +479,11 @@ td {
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
-  }
-
-  table {
-    border-color: #333;
-  }
-
-  td {
-    border-bottom-color: #333;
-  }
-
-  input,
-  textarea,
-  select {
-    background-color: #2a2a2a;
-    color: #e0e0e0;
-    border-color: #444;
-  }
-}
+/* Light-only: the UI is designed for light mode, so we intentionally do NOT
+   switch to a dark palette under prefers-color-scheme: dark. Declaring the light
+   color-scheme also tells the browser not to auto-darken the page or its native
+   controls/scrollbars. (Pair: <meta name="color-scheme" content="light"> in the head.) */
+:root { color-scheme: light; }
 
 /* ============================================================================
    UTILITY CLASSES
