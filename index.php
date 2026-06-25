@@ -48,6 +48,10 @@ $text['bm'] = [
     'visitor_vehicles' => 'Kenderaan pelawat',
     'contractor_vehicles' => 'Kenderaan kontraktor',
     'alumni_vehicles' => 'Kenderaan pesara',
+    'reports_heading' => 'Laporan',
+    'reports_open' => 'Laporan dibuka',
+    'reports_closed' => 'Laporan ditutup',
+    'reports_reopened' => 'Laporan dibuka semula',
     'signed_in_as' => 'Log masuk sebagai',
     'brand_sub' => 'Anjung'
 ];
@@ -70,6 +74,10 @@ $text['en'] = [
     'visitor_vehicles' => 'Visitor vehicles',
     'contractor_vehicles' => 'Contractor vehicles',
     'alumni_vehicles' => 'Alumni vehicles',
+    'reports_heading' => 'Reports',
+    'reports_open' => 'Open reports',
+    'reports_closed' => 'Closed reports',
+    'reports_reopened' => 'Reopened reports',
     'signed_in_as' => 'Signed in as',
     'brand_sub' => 'Home'
 ];
@@ -112,6 +120,22 @@ $total_users_query = @mysqli_query($con, "SELECT COUNT(*) as total FROM user");
 if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
     $total_users_data = mysqli_fetch_assoc($total_users_query);
     $total_users_count = (int)($total_users_data['total'] ?? 0);
+}
+
+// Report status metrics (admin only). A report is open while closed_at is NULL,
+// closed once it is set; report_events logs each reopen. Queries are defensive —
+// if the columns/table aren't provisioned yet the count just stays 0.
+$rep_open = $rep_closed = $rep_reopened = 0;
+if ($nv_admin) {
+    if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE closed_at IS NULL")) {
+        $rep_open = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+    }
+    if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE closed_at IS NOT NULL")) {
+        $rep_closed = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+    }
+    if ($q = @mysqli_query($con, "SELECT COUNT(DISTINCT report_id) AS n FROM report_events WHERE action = 'reopen'")) {
+        $rep_reopened = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+    }
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
@@ -167,6 +191,24 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <div class="val"><?= number_format($counts['alumni']) ?></div>
     </a>
   </div>
+
+  <?php if ($nv_admin): ?>
+  <div class="eyebrow" style="margin:18px 0 8px;"><?= htmlspecialchars($t['reports_heading']) ?></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
+    <a class="kpi" href="/admin/reports.php" style="text-decoration:none;color:inherit;">
+      <div class="lbl"><?= htmlspecialchars($t['reports_open']) ?></div>
+      <div class="val"><?= number_format($rep_open) ?></div>
+    </a>
+    <a class="kpi" href="/admin/reports.php" style="text-decoration:none;color:inherit;">
+      <div class="lbl"><?= htmlspecialchars($t['reports_closed']) ?></div>
+      <div class="val"><?= number_format($rep_closed) ?></div>
+    </a>
+    <a class="kpi" href="/admin/reports.php" style="text-decoration:none;color:inherit;">
+      <div class="lbl"><?= htmlspecialchars($t['reports_reopened']) ?></div>
+      <div class="val"><?= number_format($rep_reopened) ?></div>
+    </a>
+  </div>
+  <?php endif; ?>
 
   <?php
   // Monthly registrations stacked by category, for the year chosen above.
