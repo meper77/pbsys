@@ -141,14 +141,13 @@ if (!function_exists('nv_schema_run')) {
             KEY `idx_email` (`email`), KEY `idx_token` (`token_hash`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
 
-        // Seed admin allowlist (developer + the one @uitm.edu.my admin today). Seed
-        // ONLY when missing (INSERT IGNORE) so a manual lock/unlock or role change
-        // from the admin UI is never overwritten on the next migrate.
+        // Seed the admin allowlist with the protected anchor admin only (see
+        // includes/admin_protect.php). INSERT IGNORE = seed only when missing, so
+        // existing allowlist rows and any manual lock/unlock or role change from the
+        // admin UI are never overwritten or removed on the next migrate.
         if (nv_schema_table_exists($con, 'admin_allowlist')) {
             $seed = [
                 ['infostrukturjhr@uitm.edu.my', 1],
-                ['2023818464@student.uitm.edu.my', 1],
-                ['mimihasliah@uitm.edu.my', 0],
             ];
             foreach ($seed as [$em, $lock]) {
                 if ($stmt = $con->prepare("INSERT IGNORE INTO `admin_allowlist` (`email`,`is_locked`,`added_by`) VALUES (?,?, 'seed')")) {
