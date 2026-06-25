@@ -122,20 +122,20 @@ if ($total_users_query && mysqli_num_rows($total_users_query) > 0) {
     $total_users_count = (int)($total_users_data['total'] ?? 0);
 }
 
-// Report status metrics (admin only). A report is open while closed_at is NULL,
-// closed once it is set; report_events logs each reopen. Queries are defensive —
-// if the columns/table aren't provisioned yet the count just stays 0.
+// Report status metrics for the selected year ($cy is a validated int), shown to
+// every signed-in user. dibuka = open (closed_at NULL), ditutup = closed,
+// dibuka semula = total reopen actions logged that year. Defensive — the count
+// stays 0 if the columns/table aren't provisioned yet.
 $rep_open = $rep_closed = $rep_reopened = 0;
-if ($nv_admin) {
-    if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE closed_at IS NULL")) {
-        $rep_open = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
-    }
-    if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE closed_at IS NOT NULL")) {
-        $rep_closed = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
-    }
-    if ($q = @mysqli_query($con, "SELECT COUNT(DISTINCT report_id) AS n FROM report_events WHERE action = 'reopen'")) {
-        $rep_reopened = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
-    }
+$cyInt = (int) $cy;
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE YEAR(created_at) = $cyInt AND closed_at IS NULL")) {
+    $rep_open = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+}
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE YEAR(created_at) = $cyInt AND closed_at IS NOT NULL")) {
+    $rep_closed = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+}
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM report_events WHERE action = 'reopen' AND YEAR(created_at) = $cyInt")) {
+    $rep_reopened = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
@@ -192,8 +192,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
     </a>
   </div>
 
-  <?php if ($nv_admin): ?>
-  <div class="eyebrow" style="margin:18px 0 8px;"><?= htmlspecialchars($t['reports_heading']) ?></div>
+  <div class="eyebrow" style="margin:18px 0 8px;"><?= htmlspecialchars($t['reports_heading']) . ' · ' . $cy ?></div>
   <div class="kpi-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
     <a class="kpi" href="/admin/reports.php" style="text-decoration:none;color:inherit;">
       <div class="lbl"><?= htmlspecialchars($t['reports_open']) ?></div>
@@ -208,7 +207,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/header.php';
       <div class="val"><?= number_format($rep_reopened) ?></div>
     </a>
   </div>
-  <?php endif; ?>
 
   <?php
   // Monthly registrations stacked by category, for the year chosen above.

@@ -34,6 +34,10 @@ $t = $lang === 'bm' ? [
     'visitor' => 'Kenderaan pelawat',
     'contractor' => 'Kenderaan kontraktor',
     'alumni' => 'Kenderaan pesara',
+    'reports_heading' => 'Laporan',
+    'reports_open' => 'Laporan dibuka',
+    'reports_closed' => 'Laporan ditutup',
+    'reports_reopened' => 'Laporan dibuka semula',
     'view' => 'Lihat',
     'search' => 'Cari kenderaan',
     'timeLabel' => 'Masa',
@@ -47,6 +51,10 @@ $t = $lang === 'bm' ? [
     'visitor' => 'Visitor vehicles',
     'contractor' => 'Contractor vehicles',
     'alumni' => 'Alumni vehicles',
+    'reports_heading' => 'Reports',
+    'reports_open' => 'Open reports',
+    'reports_closed' => 'Closed reports',
+    'reports_reopened' => 'Reopened reports',
     'view' => 'View',
     'search' => 'Search vehicle',
     'timeLabel' => 'Time',
@@ -75,6 +83,21 @@ $dataStatus = [
 $cy      = (isset($_GET['cy']) && ctype_digit($_GET['cy'])) ? (int) $_GET['cy'] : (int) date('Y');
 $cyYears = nv_owner_years($con, $cy);
 $yc      = nv_owner_year_counts($con, $cy);
+
+// Report status metrics for the selected year ($cy is a validated int):
+// dibuka = open (closed_at NULL), ditutup = closed, dibuka semula = total reopen
+// actions logged that year. Defensive — stays 0 if the table/columns are absent.
+$rep_open = $rep_closed = $rep_reopened = 0;
+$cyInt = (int) $cy;
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE YEAR(created_at) = $cyInt AND closed_at IS NULL")) {
+    $rep_open = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+}
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM vehicle_reports WHERE YEAR(created_at) = $cyInt AND closed_at IS NOT NULL")) {
+    $rep_closed = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+}
+if ($q = @mysqli_query($con, "SELECT COUNT(*) AS n FROM report_events WHERE action = 'reopen' AND YEAR(created_at) = $cyInt")) {
+    $rep_reopened = (int)(mysqli_fetch_assoc($q)['n'] ?? 0);
+}
 $uMonths = $lang === 'bm'
     ? [1=>'Jan',2=>'Feb',3=>'Mac',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Ogo',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Dis']
     : [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'May',6=>'Jun',7=>'Jul',8=>'Aug',9=>'Sep',10=>'Oct',11=>'Nov',12=>'Dec'];
@@ -139,6 +162,22 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/nv_chrome.php';
       </div>
     </a>
     <?php endforeach; ?>
+  </div>
+
+  <div class="eyebrow mt-6" style="margin-bottom:8px;"><?= htmlspecialchars($t['reports_heading']) . ' · ' . $cy ?></div>
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="lbl"><i data-lucide="folder-open" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_open']) ?></div>
+      <div class="val"><?= number_format($rep_open) ?></div>
+    </div>
+    <div class="kpi">
+      <div class="lbl"><i data-lucide="check-circle" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_closed']) ?></div>
+      <div class="val"><?= number_format($rep_closed) ?></div>
+    </div>
+    <div class="kpi">
+      <div class="lbl"><i data-lucide="rotate-ccw" style="width:14px;height:14px;vertical-align:-2px;"></i> <?= htmlspecialchars($t['reports_reopened']) ?></div>
+      <div class="val"><?= number_format($rep_reopened) ?></div>
+    </div>
   </div>
 
   <div class="page-head mt-6" style="align-items:flex-end;">
