@@ -96,6 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'dev_b
 $clientId = nv_google_client_id();
 $googleOn = $clientId !== '' && nv_is_https();
 $origin   = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'neovtrack.uitm.edu.my');
+// GIS popup mode (default) works in real browsers and only needs the JS origin
+// authorised. The native WebView app tags its UA with NEOVTRACKAPP and gets
+// redirect mode instead (cross-origin postMessage is blocked in WebViews) —
+// that path additionally needs the redirect URI authorised on the OAuth client.
+$gsiUx    = (strpos((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 'NEOVTRACKAPP') !== false) ? 'redirect' : 'popup';
 
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
@@ -145,7 +150,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
       <div id="g_id_onload"
            data-client_id="<?= htmlspecialchars($clientId) ?>"
            data-login_uri="<?= htmlspecialchars($origin) ?>/auth/google_callback.php"
-           data-ux_mode="redirect"
+           data-ux_mode="<?= $gsiUx ?>"
            data-auto_prompt="false"></div>
       <div class="g_id_signin" data-type="standard" data-theme="outline" data-text="signin_with"
            data-shape="pill" data-size="large" data-logo_alignment="left"
