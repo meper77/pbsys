@@ -145,6 +145,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
       <div id="g_id_onload"
            data-client_id="<?= htmlspecialchars($clientId) ?>"
            data-login_uri="<?= htmlspecialchars($origin) ?>/auth/google_callback.php"
+           data-ux_mode="redirect"
            data-auto_prompt="false"></div>
       <div class="g_id_signin" data-type="standard" data-theme="outline" data-text="signin_with"
            data-shape="pill" data-size="large" data-logo_alignment="left"
