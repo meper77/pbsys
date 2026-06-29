@@ -24,3 +24,31 @@ function nv_category_pill(string $status, string $label): string {
          . '<span class="dot" style="background:' . $c . ';"></span> '
          . htmlspecialchars($label) . '</span>';
 }
+
+/**
+ * Canonical owner category (the BM value stored in `owner`.`status`) for any
+ * BM/EN name in any case. Returns '' for an unrecognised value.
+ */
+function nv_canonical_category(string $status): string {
+    switch (strtolower(trim($status))) {
+        case 'staf':       case 'staff':      return 'Staf';
+        case 'pelajar':    case 'student':    return 'Pelajar';
+        case 'pelawat':    case 'visitor':    return 'Pelawat';
+        case 'kontraktor': case 'contractor': return 'Kontraktor';
+        case 'pesara':     case 'alumni':     return 'Pesara';
+        default:                              return '';
+    }
+}
+
+/** Slug (for /vehicles/{slug}/) + localized display label for a canonical category. */
+function nv_category_info(string $canonical, string $lang): array {
+    static $m = [
+        'Staf'       => ['slug' => 'staff',      'bm' => 'Staf',       'en' => 'Staff'],
+        'Pelajar'    => ['slug' => 'student',    'bm' => 'Pelajar',    'en' => 'Student'],
+        'Pelawat'    => ['slug' => 'visitor',    'bm' => 'Pelawat',    'en' => 'Visitor'],
+        'Kontraktor' => ['slug' => 'contractor', 'bm' => 'Kontraktor', 'en' => 'Contractor'],
+        'Pesara'     => ['slug' => 'alumni',     'bm' => 'Pesara',     'en' => 'Alumni'],
+    ];
+    $i = $m[$canonical] ?? ['slug' => '', 'bm' => $canonical, 'en' => $canonical];
+    return ['slug' => $i['slug'], 'label' => ($lang === 'bm' ? $i['bm'] : $i['en'])];
+}

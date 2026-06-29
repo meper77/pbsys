@@ -12,6 +12,7 @@
  */
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/schema_guard.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/contact_links.php';  // format_contact_links() for nv_table_cell()
 
 if (!defined('NV_SERIAL_PREFIX')) { define('NV_SERIAL_PREFIX', 'JA'); } // sticker series prefix (UiTM Johor)
 
@@ -86,6 +87,68 @@ function nv_category_xlsx_cols(string $category): array
         ['NO TELEFON', 'phone', 'phone'],
         ['NO SIRI', 'serial_no', 'serial'],
     ];
+}
+
+/**
+ * On-screen `[kind, label]` columns for a category (localized). Mirrors the
+ * per-category list pages (vehicle_table_view default 9-col for Staf/Pelajar/
+ * Pelawat; Kontraktor 12; Pesara 10) so search results read the same as the
+ * list. `kind` is rendered by nv_table_cell().
+ */
+function nv_category_columns(string $category, string $lang): array
+{
+    $bm = $lang === 'bm';
+    if ($category === 'Kontraktor') {
+        return $bm ? [
+            ['serial','NO SIRI'], ['name','NAMA'], ['idnum','NO. IC'], ['plate','NO KENDERAAN'],
+            ['type','KENDERAAN'], ['model','MODEL KENDERAAN'], ['company','SYARIKAT'], ['phone','NO TELEFON'],
+            ['date','TARIKH KELUAR PELEKAT'], ['email','EMAIL'], ['note','CATATAN'],
+        ] : [
+            ['serial','SERIAL NO.'], ['name','NAME'], ['idnum','IC NO.'], ['plate','PLATE NO.'],
+            ['type','VEHICLE'], ['model','VEHICLE MODEL'], ['company','COMPANY'], ['phone','PHONE'],
+            ['date','STICKER ISSUE DATE'], ['email','EMAIL'], ['note','NOTE'],
+        ];
+    }
+    if ($category === 'Pesara') {
+        return $bm ? [
+            ['serial','NO SIRI PELEKAT'], ['plate','NO KENDERAAN'], ['type','JENIS KENDERAAN'], ['model','MODEL KENDERAAN'],
+            ['date','TARIKH AMBIL PELEKAT'], ['name','NAMA'], ['idnum','NO. KP'], ['phone','NO. TELEFON'], ['note','CATATAN'],
+        ] : [
+            ['serial','STICKER SERIAL NO.'], ['plate','PLATE NO.'], ['type','VEHICLE TYPE'], ['model','VEHICLE MODEL'],
+            ['date','STICKER DATE'], ['name','NAME'], ['idnum','IC NO.'], ['phone','PHONE'], ['note','NOTE'],
+        ];
+    }
+    // Staf / Pelajar / Pelawat (and unknown) — 8 data columns; only the ID label varies.
+    $idH = $bm
+        ? ($category === 'Pelajar' ? 'NO PELAJAR' : ($category === 'Staf' ? 'NO PEKERJA' : 'NO PENGENALAN'))
+        : ($category === 'Pelajar' ? 'STUDENT NO.' : ($category === 'Staf' ? 'STAFF NO.' : 'ID NO.'));
+    return $bm ? [
+        ['plate','NO KENDERAAN'], ['type','JENIS KENDERAAN'], ['model','MODEL KENDERAAN'], ['date','TARIKH AMBIL'],
+        ['idnum',$idH], ['name','NAMA'], ['phone','NO TELEFON'], ['serial','NO SIRI'],
+    ] : [
+        ['plate','PLATE NO.'], ['type','VEHICLE TYPE'], ['model','VEHICLE MODEL'], ['date','DATE TAKEN'],
+        ['idnum',$idH], ['name','NAME'], ['phone','PHONE'], ['serial','SERIAL NO.'],
+    ];
+}
+
+if (!function_exists('nv_table_cell')) {
+    /** Render one <td> for a render-type (kind) from an owner row (cells uppercased via CSS). */
+    function nv_table_cell($type, $r) {
+        switch ($type) {
+            case 'plate':   return '<td><span class="plate">' . htmlspecialchars($r['platenum'] ?? '') . '</span></td>';
+            case 'type':    return '<td>' . htmlspecialchars($r['type'] ?? '') . '</td>';
+            case 'model':   $m = (($r['model'] ?? '') !== '' && ($r['model'] ?? '') !== 'N/A') ? $r['model'] : '—'; return '<td>' . htmlspecialchars($m) . '</td>';
+            case 'date':    $d = $r['date_taken'] ?? null; $dd = ($d && $d !== '0000-00-00') ? date('d M Y', strtotime($d)) : '—'; return '<td class="meta">' . htmlspecialchars($dd) . '</td>';
+            case 'idnum':   return '<td class="text-mono">' . htmlspecialchars($r['idnumber'] ?? '') . '</td>';
+            case 'name':    return '<td>' . htmlspecialchars($r['name'] ?? '') . '</td>';
+            case 'phone':   $p = htmlspecialchars($r['phone'] ?? ''); return '<td class="lower">' . ($p !== '' ? '<span class="text-mono">' . $p . '</span> ' . format_contact_links($r['phone']) : '<span class="text-muted">—</span>') . '</td>';
+            case 'serial':  return '<td class="text-mono">' . htmlspecialchars(nv_serial_label($r['serial_no'] ?? null)) . '</td>';
+            case 'company': $c = ($r['company'] ?? '') !== '' ? $r['company'] : '—'; return '<td>' . htmlspecialchars($c) . '</td>';
+            case 'email':   $e = htmlspecialchars($r['ownerEmail'] ?? ''); return '<td class="lower">' . ($e !== '' ? '<span class="text-mono">' . $e . '</span>' : '<span class="text-muted">—</span>') . '</td>';
+            case 'note':    $n = ($r['note'] ?? '') !== '' ? $r['note'] : '—'; return '<td>' . htmlspecialchars($n) . '</td>';
+        }
+        return '<td></td>';
+    }
 }
 
 /** Which of the 9-column fields exist on `owner` right now (resilient to a half-provisioned DB). */

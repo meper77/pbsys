@@ -54,8 +54,8 @@ function searchByTerm(mysqli $con, string $term): array
         ];
     }
 
-    // Generate cache key
-    $cacheKey = 'search_' . md5($term);
+    // Generate cache key (v2 = normalized rows now carry the category-specific fields)
+    $cacheKey = 'search_v2_' . md5($term);
     $cached = getCachedResult($cacheKey);
     
     if ($cached !== null) {
@@ -132,8 +132,8 @@ function searchByStatus(mysqli $con, string $status): array
 {
     $status = trim($status);
     
-    // Generate cache key
-    $cacheKey = 'status_' . md5($status);
+    // Generate cache key (v2 = normalized rows now carry the category-specific fields)
+    $cacheKey = 'status_v2_' . md5($status);
     $cached = getCachedResult($cacheKey);
     
     if ($cached !== null) {
@@ -204,8 +204,8 @@ function searchByStatus(mysqli $con, string $status): array
  */
 function searchAll(mysqli $con): array
 {
-    // Generate cache key for all vehicles
-    $cacheKey = 'search_all';
+    // Generate cache key for all vehicles (v2 = rows now carry category-specific fields)
+    $cacheKey = 'search_all_v2';
     $cached = getCachedResult($cacheKey);
     
     if ($cached !== null) {
@@ -414,6 +414,12 @@ function normalizeVehicleRow(array $row): array
         'status' => $row['status'] ?? '',
         'brand' => $row['brand'] ?? '',
         'platenum' => strtoupper($row['platenum'] ?? ''),
+        // Category-specific fields for the grouped per-category search view (nv_table_cell).
+        'model' => $row['model'] ?? '',
+        'date_taken' => $row['date_taken'] ?? '',
+        'serial_no' => $row['serial_no'] ?? '',
+        'company' => $row['company'] ?? '',
+        'note' => $row['note'] ?? '',
     ];
 }
 

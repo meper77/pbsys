@@ -116,42 +116,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
       <a class="btn btn-ghost" href="/search/car_user.php<?= $lang === 'en' ? '?lang=en' : '' ?>"><i data-lucide="rotate-ccw"></i> <?= htmlspecialchars($t['again']) ?></a>
     </div>
   </div>
-  <div class="card flat">
-    <table class="table" id="vehicleTable">
-      <thead>
-        <tr>
-          <th style="width:50px;"><?= htmlspecialchars($t['col_no']) ?></th>
-          <th style="width:120px;"><?= htmlspecialchars($t['col_status']) ?></th>
-          <th><?= htmlspecialchars($t['col_id']) ?></th>
-          <th><?= htmlspecialchars($t['col_name']) ?></th>
-          <th><?= htmlspecialchars($t['col_phone']) ?></th>
-          <th><?= htmlspecialchars($t['col_plate']) ?></th>
-          <th><?= htmlspecialchars($t['col_type']) ?></th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php $no = 1; foreach ($results as $row):
-          $sraw = strtolower($row['status'] ?? '');
-          $stext = $row['status'] ?? '';
-          if (in_array($sraw, ['staf','staff'])) { $stext = $lang==='bm'?'Staf':'Staff'; }
-          elseif (in_array($sraw, ['pelajar','student'])) { $stext = $lang==='bm'?'Pelajar':'Student'; }
-          elseif (in_array($sraw, ['pelawat','visitor'])) { $stext = $lang==='bm'?'Pelawat':'Visitor'; }
-          elseif (in_array($sraw, ['kontraktor','contractor'])) { $stext = $lang==='bm'?'Kontraktor':'Contractor'; }
-          elseif (in_array($sraw, ['pesara','alumni'])) { $stext = $lang==='bm'?'Pesara':'Alumni'; }
-        ?>
-        <tr>
-          <td class="meta"><?= $no++ ?></td>
-          <td><?= nv_category_pill($row['status'] ?? '', $stext) ?></td>
-          <td><?= htmlspecialchars($row['idnumber'] ?? '') ?></td>
-          <td><strong><?= htmlspecialchars($row['name'] ?? '') ?></strong></td>
-          <td><?= htmlspecialchars($row['phone'] ?? '') ?></td>
-          <td><span class="plate"><?= htmlspecialchars(strtoupper($row['platenum'] ?? '')) ?></span></td>
-          <td><?= htmlspecialchars($row['type'] ?? '') ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
+  <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/search_results_view.php'; ?>
   <?php elseif ($hasResults): ?>
   <div class="card flat mt-6 text-center" style="padding:40px;">
     <span class="eyebrow"><?= htmlspecialchars($t['none_title']) ?></span>
@@ -195,10 +160,10 @@ include $_SERVER['DOCUMENT_ROOT'].'/includes/nv_chrome.php';
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script>
 $(function(){
-  var table = $('#vehicleTable');
-  if (table.length) {
-    table.DataTable({ pageLength: 10, order: [[0, 'asc']], autoWidth: false, dom: 'rtip' });
-  }
+  // One DataTable per category result table (each has its own columns).
+  $('table.nv-search-table').each(function () {
+    $(this).DataTable({ pageLength: 25, autoWidth: false, dom: 'rtip', order: [] });
+  });
 });
 </script>
 <?php include $_SERVER['DOCUMENT_ROOT'].'/includes/footer.php'; ?>
