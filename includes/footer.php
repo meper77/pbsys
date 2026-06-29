@@ -15,5 +15,7 @@
     }
 </script>
 <script src="/assets/js/nv-autofill.js" defer></script>
+<!-- App-only: render data tables as a vertical stack of labelled cards (html.nv-app). -->
+<script src="/assets/js/nv-card-table.js" defer></script>
 </body>
 </html>

@@ -2,8 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+// The native WebView app tags its UA with NEOVTRACKAPP. Mark the root element so
+// the app gets the mobile card-stack table layout (assets/css/responsive.css +
+// assets/js/nv-card-table.js); the browser web keeps its normal tables.
+$nvIsApp = strpos((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 'NEOVTRACKAPP') !== false;
 ?><!DOCTYPE html>
-<html lang="en">
+<html lang="en"<?= $nvIsApp ? ' class="nv-app"' : '' ?>>
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
