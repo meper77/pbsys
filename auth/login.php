@@ -107,6 +107,11 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 <?php if ($googleOn): ?><script src="https://accounts.google.com/gsi/client" async></script><?php endif; ?>
 <body>
 <style>
+  /* Dark page backdrop: a pull-to-refresh / overscroll on the login page should
+     reveal the hero's dark tone, not the light app surface (--bg) which showed as
+     a blank "hidden" strip — on the native app and on mobile browsers. The root
+     element's background paints the overscroll/viewport area. */
+  html, body { background: #0a0816; }
   /* Blender-rendered animated background filling the negative space behind the card */
   .auth-hero { position: relative; overflow: hidden;
     background-image: url('/assets/video/login-bg-poster.jpg'), linear-gradient(180deg,#0a0816 0%,#15111f 100%);
