@@ -263,11 +263,10 @@ td {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* NOTE: on the browser web the data tables (.table) keep real columns and scroll
-     horizontally inside their card — see the .card.flat rule in the max-width:768px
-     block below. The native app stacks them into labelled cards instead: see the
-     html.nv-app block at the end of this file (assets/js/nv-card-table.js fills in
-     the per-cell data-label from the header so the cards aren't unlabelled). */
+  /* NOTE: at mobile width the data tables (.table) are restacked into labelled
+     cards by the html.nv-cards rules at the end of this file — the nv-cards class
+     is toggled by assets/js/nv-card-table.js, which also fills each cell's
+     data-label. Without JS they fall back to the horizontal scroll below. */
 
   .hide-mobile {
     display: none;
@@ -554,25 +553,26 @@ td {
 }
 
 /* ============================================================================
-   APP-ONLY — CARD-STACK DATA TABLES   (root <html class="nv-app">, set in
-   includes/header.php when the WebView UA carries NEOVTRACKAPP)
+   CARD-STACK DATA TABLES — mobile dimensions (html.nv-cards)
    ----------------------------------------------------------------------------
-   In the native app every data table becomes a vertical stack of cards — one
-   card per row — with each column shown as a stacked label/value pair. This
-   replaces the horizontal-scroll + frozen-column treatment the browser web uses.
-   Column names are copied onto each <td> as data-label by
-   assets/js/nv-card-table.js (re-applied after each DataTables redraw).
-   Scoped to html.nv-app so the browser web is untouched. Placed last so it wins
-   over the `@media (max-width:768px)` `.table { min-width:560px }` rule above.
+   At mobile dimensions every data table becomes a vertical stack of cards — one
+   card per row — each column shown as a stacked label/value pair, instead of the
+   horizontal-scroll + frozen-column treatment. assets/js/nv-card-table.js adds
+   the `nv-cards` class to <html> when it's the native app (html.nv-app, set in
+   includes/header.php) OR the viewport is mobile-width, and copies each column
+   name onto its <td> as data-label (re-applied after each DataTables redraw). So
+   the app always gets cards and the browser web gets them at phone widths, while
+   desktop keeps real tables. Placed last so it wins over the
+   `@media (max-width:768px)` `.table { min-width:560px }` rule above.
    ============================================================================ */
-html.nv-app .card.flat { overflow: visible; padding: 0; }
+html.nv-cards .card.flat { overflow: visible; padding: 0; }
 /* Flatten the wrapper so the per-row cards sit on the page (not card-in-card).
    :has() is progressive enhancement — without it the rows still render as cards,
    just nested inside the wrapper card. */
-html.nv-app .card.flat:has(.table) { background: transparent; border: 0; box-shadow: none; }
+html.nv-cards .card.flat:has(.table) { background: transparent; border: 0; box-shadow: none; }
 
-html.nv-app .table,
-html.nv-app .assignment-table {
+html.nv-cards .table,
+html.nv-cards .assignment-table {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -581,19 +581,19 @@ html.nv-app .assignment-table {
 }
 
 /* Header row drives the labels but is visually hidden (kept for a11y + DataTables). */
-html.nv-app .table > thead,
-html.nv-app .assignment-table > thead {
+html.nv-cards .table > thead,
+html.nv-cards .assignment-table > thead {
   position: absolute !important;
   width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-html.nv-app .table > tbody,
-html.nv-app .assignment-table > tbody { display: block; }
+html.nv-cards .table > tbody,
+html.nv-cards .assignment-table > tbody { display: block; }
 
 /* One card per row. */
-html.nv-app .table > tbody > tr,
-html.nv-app .assignment-table > tbody > tr {
+html.nv-cards .table > tbody > tr,
+html.nv-cards .assignment-table > tbody > tr {
   display: block;
   margin: 0 0 12px;
   padding: 8px 16px 12px;
@@ -602,13 +602,13 @@ html.nv-app .assignment-table > tbody > tr {
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(16,12,40,.05), 0 8px 20px rgba(16,12,40,.05);
 }
-html.nv-app .table > tbody > tr:last-child,
-html.nv-app .assignment-table > tbody > tr:last-child { margin-bottom: 0; }
+html.nv-cards .table > tbody > tr:last-child,
+html.nv-cards .assignment-table > tbody > tr:last-child { margin-bottom: 0; }
 
 /* One field per cell: label above, value below. Block flow keeps complex cells
    (permission grids, inline action forms, name+email blocks) intact. */
-html.nv-app .table > tbody > tr > td,
-html.nv-app .assignment-table > tbody > tr > td {
+html.nv-cards .table > tbody > tr > td,
+html.nv-cards .assignment-table > tbody > tr > td {
   display: block;
   width: auto;
   padding: 9px 0;
@@ -618,11 +618,11 @@ html.nv-app .assignment-table > tbody > tr > td {
   white-space: normal;
   overflow-wrap: anywhere;
 }
-html.nv-app .table > tbody > tr > td:last-child,
-html.nv-app .assignment-table > tbody > tr > td:last-child { border-bottom: 0; padding-bottom: 0; }
+html.nv-cards .table > tbody > tr > td:last-child,
+html.nv-cards .assignment-table > tbody > tr > td:last-child { border-bottom: 0; padding-bottom: 0; }
 
-html.nv-app .table > tbody > tr > td::before,
-html.nv-app .assignment-table > tbody > tr > td::before {
+html.nv-cards .table > tbody > tr > td::before,
+html.nv-cards .assignment-table > tbody > tr > td::before {
   content: attr(data-label);
   display: block;
   margin-bottom: 4px;
@@ -634,15 +634,15 @@ html.nv-app .assignment-table > tbody > tr > td::before {
 }
 /* Cells with no header label (checkbox / action columns) and full-width spanning
    cells (DataTables "no records") show no label. */
-html.nv-app .table > tbody > tr > td:not([data-label])::before,
-html.nv-app .table > tbody > tr > td[data-label=""]::before,
-html.nv-app .table > tbody > tr > td[colspan]::before,
-html.nv-app .assignment-table > tbody > tr > td:not([data-label])::before,
-html.nv-app .assignment-table > tbody > tr > td[data-label=""]::before { content: none; }
+html.nv-cards .table > tbody > tr > td:not([data-label])::before,
+html.nv-cards .table > tbody > tr > td[data-label=""]::before,
+html.nv-cards .table > tbody > tr > td[colspan]::before,
+html.nv-cards .assignment-table > tbody > tr > td:not([data-label])::before,
+html.nv-cards .assignment-table > tbody > tr > td[data-label=""]::before { content: none; }
 
-html.nv-app .table > tbody > tr > td.dataTables_empty,
-html.nv-app .table > tbody > tr > td[colspan] { text-align: center; color: var(--muted, #7a7790); }
+html.nv-cards .table > tbody > tr > td.dataTables_empty,
+html.nv-cards .table > tbody > tr > td[colspan] { text-align: center; color: var(--muted, #7a7790); }
 
 /* DataTables info + pagination sit below the stack of cards. */
-html.nv-app .dataTables_wrapper .dataTables_info { padding-top: 10px; }
-html.nv-app .dataTables_wrapper .dataTables_paginate { padding-top: 6px; }
+html.nv-cards .dataTables_wrapper .dataTables_info { padding-top: 10px; }
+html.nv-cards .dataTables_wrapper .dataTables_paginate { padding-top: 6px; }
