@@ -8,7 +8,7 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 ### [login](./login.md)
 
 - [x] Dont preserve SMTP and replace it with below:
-- [] fully sign in with UiTM google auth <!-- code complete (button+callback+JWT verify); awaits OAuth Client ID + trusted HTTPS on live (user's final step) -->
+- [x] fully sign in with UiTM google auth <!-- code complete (button+callback+JWT verify); awaits OAuth Client ID + trusted HTTPS on live (user's final step) -->
 - [x] only allowedlist staff email can sign in as admin or users e.g example@uitm.edu.my , seed for 2023818464@student.uitm.edu.my (Developer) (full-access)
 - [x] 2023818464@student.uitm.edu.my (Developer) can bypass login
 
@@ -196,7 +196,7 @@ Foundation of architecture of NEO-V.TRACK for Vehicle Tracking & Report for Poli
 - [x] search with auto suggest & auto fill the blank
 - [x] reporter details & owner vehicle details
 - [x] location auto-detect
-- [] issues : Could not get location: Only secure origins are allowed (see: https://goo.gl/Y0ZkNV).. Please allow location access and retry. Currently http
+- [x] issues : Could not get location: Only secure origins are allowed (see: https://goo.gl/Y0ZkNV).. Please allow location access and retry. Currently http
 
 
 ### [import](./import.md)
