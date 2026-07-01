@@ -35,6 +35,7 @@ dependencies:
   google_fonts: ^6.2.1         # splash branding fonts (Manrope / Space Grotesk)
   url_launcher: ^6.1.10        # open downloads / external links
   flutter_inappwebview: ^6.1.5 # the shell itself
+  crypto: ^3.0.7               # SHA-256 pin of the live TLS cert (see main.dart)
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

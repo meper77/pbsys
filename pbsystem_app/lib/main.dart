@@ -5,6 +5,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart' hide Config;
+import 'package:crypto/crypto.dart';
 import 'config.dart';
 
 /// NEO V-TRACK native shell.
@@ -15,6 +16,20 @@ import 'config.dart';
 /// file downloads that the web pages rely on.
 const Color _navy = Color(0xFF2E1465);
 const Color _yellow = Color(0xFFFFC400);
+
+// Certificate pin for the WebView's TLS trust decision.
+//
+// The live host serves the genuine Sectigo wildcard certificate for
+// *.uitm.edu.my, but it EXPIRED on 2024-08-24, so normal chain validation
+// rejects it. Instead of trusting ANY certificate (which would let anyone on the
+// network MITM the connection and steal the session cookie / injected content),
+// we proceed only when the presented leaf certificate is exactly that known cert,
+// pinned by its SHA-256 fingerprint. Any other/forged cert is refused.
+//
+// When ops installs a renewed, unexpired chain: update this fingerprint, or drop
+// the pin entirely and let the platform validate normally.
+const String _pinnedCertSha256 =
+    '7a77c6bf2c6cad9a10d5d1fcfe78cb076ad49159a70344b6a4c911b99f268767';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -132,11 +147,26 @@ class _WebShellState extends State<WebShell> {
                         _pull.endRefreshing();
                         if (!_firstLoadDone) setState(() => _firstLoadDone = true);
                       },
-                      // TESTING: the server reuses an expired TLS cert to enable HTTPS
-                      // (Google Sign-In needs a secure origin). Proceed past the cert
-                      // warning so the site loads. Remove once a valid cert is in place.
-                      onReceivedServerTrustAuthRequest: (c, challenge) async =>
-                          ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED),
+                      // The live host serves an EXPIRED (but genuine) *.uitm.edu.my
+                      // cert, so default validation fails and this fires. Proceed ONLY
+                      // for that exact pinned certificate; refuse anything else so a
+                      // network attacker cannot MITM the authenticated session. (On
+                      // Android this callback only fires on a cert error, so valid
+                      // origins like accounts.google.com are unaffected.)
+                      onReceivedServerTrustAuthRequest: (c, challenge) async {
+                        final der = challenge.protectionSpace.sslCertificate?.x509Certificate?.encoded;
+                        final fingerprint = der == null ? null : sha256.convert(der).toString().toLowerCase();
+                        final trusted = fingerprint == _pinnedCertSha256;
+                        if (!trusted) {
+                          debugPrint('[tls] refused ${challenge.protectionSpace.host}: '
+                              '${fingerprint ?? 'no-certificate'}');
+                        }
+                        return ServerTrustAuthResponse(
+                          action: trusted
+                              ? ServerTrustAuthResponseAction.PROCEED
+                              : ServerTrustAuthResponseAction.CANCEL,
+                        );
+                      },
                       onPermissionRequest: (c, req) async => PermissionResponse(
                         resources: req.resources,
                         action: PermissionResponseAction.GRANT,
