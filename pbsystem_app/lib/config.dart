@@ -8,7 +8,7 @@ class Config {
 
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://neovtrack.uitm.edu.my',
+    defaultValue: 'https://neovtrack.uitm.edu.my',
   );
 
   /// Build a full URL for an `/api/*` endpoint.
