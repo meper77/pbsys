@@ -3,17 +3,6 @@
 require $_SERVER['DOCUMENT_ROOT'].'/includes/require_post_admin.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/includes/admin_protect.php';
 
-// Debug: Check table structure (uncomment if needed)
-/*
-$debug = mysqli_query($con, "SHOW COLUMNS FROM admin");
-echo "<pre>Admin table columns:\n";
-while ($row = mysqli_fetch_assoc($debug)) {
-    print_r($row);
-}
-echo "</pre>";
-exit();
-*/
-
 if (isset($_POST['id'])) {
     $id = intval($_POST['id']);
     $current_admin_email = $_SESSION['email_Admin'];
