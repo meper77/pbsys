@@ -129,3 +129,27 @@ function nv_display_name($con, $email, string $fallback = ''): string {
     }
     return $cache[$key] !== '' ? $cache[$key] : ($fallback !== '' ? $fallback : $email);
 }
+
+/* ------------------------------------------------------------------ JSON API guards
+ * For /api/* endpoints that must not be reachable anonymously. Unlike the page
+ * guards above (which redirect to HTML login), these emit a JSON error + status
+ * code and stop. Include this file, then call at the very top of the endpoint.
+ */
+
+/** Require any signed-in role (admin OR user); 401 JSON + exit otherwise. */
+function nv_api_require_login(): void {
+    if (nv_is_logged_in()) { return; }
+    http_response_code(401);
+    if (!headers_sent()) { header('Content-Type: application/json'); }
+    echo json_encode(['success' => 0, 'count' => 0, 'data' => [], 'message' => 'Authentication required']);
+    exit;
+}
+
+/** Require an admin session; 403 (or 401 if anonymous) JSON + exit otherwise. */
+function nv_api_require_admin(): void {
+    if (nv_is_admin()) { return; }
+    http_response_code(nv_is_logged_in() ? 403 : 401);
+    if (!headers_sent()) { header('Content-Type: application/json'); }
+    echo json_encode(['success' => 0, 'count' => 0, 'data' => [], 'message' => 'Admin access required']);
+    exit;
+}

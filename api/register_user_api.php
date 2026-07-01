@@ -1,45 +1,16 @@
 <?php
+/**
+ * RETIRED ENDPOINT.
+ *
+ * Self-service registration belonged to the old plaintext-password model and
+ * built SQL by concatenating raw $_POST (unauthenticated SQL injection). The live
+ * system is passwordless: sign-in is Google (UiTM) / email OTP, gated by
+ * admin_allowlist (see includes/otp_auth.php, includes/google_auth.php,
+ * auth/login.php). Accounts are provisioned there, so this endpoint is disabled.
+ */
 header('Content-Type: application/json');
-include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
-
-$response = ["success" => 0, "message" => ""];
-
-$name = $_POST['name'] ?? '';
-$email = $_POST['email'] ?? '';
-$password = $_POST['password'] ?? '';
-$confirm_password = $_POST['confirm_password'] ?? '';
-
-if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
-    $response["message"] = "Please fill in all fields";
-    echo json_encode($response);
-    exit;
-}
-
-if (strlen($password) < 6) {
-    $response["message"] = "Password must be at least 6 characters";
-    echo json_encode($response);
-    exit;
-}
-
-if ($password !== $confirm_password) {
-    $response["message"] = "Passwords do not match";
-    echo json_encode($response);
-    exit;
-}
-
-$check = mysqli_query($con, "SELECT * FROM user WHERE email='$email'");
-if (mysqli_num_rows($check) > 0) {
-    $response["message"] = "Email already registered";
-    echo json_encode($response);
-    exit;
-}
-
-$sql = "INSERT INTO user (name, email, password) VALUES ('$name', '$email', '$password')";
-if (mysqli_query($con, $sql)) {
-    $response["success"] = 1;
-    $response["message"] = "Registration successful";
-} else {
-    $response["message"] = "Registration failed";
-}
-
-echo json_encode($response);
+http_response_code(410);
+echo json_encode([
+    'success' => 0,
+    'message' => 'This endpoint has been retired. Sign in with your UiTM Google account.',
+]);

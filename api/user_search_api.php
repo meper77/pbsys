@@ -6,6 +6,8 @@
 
 header('Content-Type: application/json');
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';
+nv_api_require_admin();   // exposes the user directory (email, phone, IC) — admins only
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'search';
 $response = ['success' => false, 'data' => []];

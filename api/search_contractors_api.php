@@ -5,6 +5,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'].'/includes/search_backend.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_api_require_login();   // owner rows carry PII (name, IC, phone) — signed-in callers only
 
 $search = '';
 $showAll = false;

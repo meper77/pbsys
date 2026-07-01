@@ -10,6 +10,8 @@ header('Content-Type: application/json');
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
 
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+
 $action = $_GET['action'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -47,6 +49,7 @@ if ($action === 'get_stats') {
 }
 
 if ($action === 'get_vehicles_by_type') {
+    nv_api_require_login();   // returns owner rows (name, IC, phone) — signed-in only (get_stats stays public counts)
     $type   = trim($_GET['type'] ?? '');
     $limit  = max(1, min(500, (int)($_GET['limit'] ?? 50)));
     $offset = max(0, (int)($_GET['offset'] ?? 0));

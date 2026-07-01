@@ -4,6 +4,8 @@
 
 header('Content-Type: application/json');
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_api_require_login();   // owner rows carry PII (name, IC, phone) — signed-in callers only
 
 $q = trim($_GET['q'] ?? '');
 if ($q === '' || strlen($q) < 2) {

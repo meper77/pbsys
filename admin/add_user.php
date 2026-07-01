@@ -1,6 +1,8 @@
 <?php
 session_start();
 include $_SERVER['DOCUMENT_ROOT'].'/includes/connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/includes/auth_guard.php';
+nv_require_admin();   // creating portal accounts is an admin-only action
 require $_SERVER['DOCUMENT_ROOT'].'/includes/lang_switch.php';
 
 if (isset($_POST['submit'])) {

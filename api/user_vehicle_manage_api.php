@@ -14,6 +14,8 @@
 header('Content-Type: application/json');
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/user_vehicle_helper.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';
+nv_api_require_admin();   // mutates ownership links + returns user rows — admins only
 
 $action = $_POST['action'] ?? null;
 $response = ['success' => false, 'message' => 'Unknown action'];

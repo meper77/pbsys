@@ -18,6 +18,8 @@ header('Content-Type: application/json');
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/user_vehicle_helper.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/search_backend.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/auth_guard.php';
+nv_api_require_login();   // owner rows carry PII (name, IC, phone) — signed-in callers only
 
 $action = $_GET['action'] ?? $_POST['action'] ?? null;
 $q = $_GET['q'] ?? $_POST['q'] ?? '';
